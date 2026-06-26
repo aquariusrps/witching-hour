@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 :root {
+  /* Six hero colors */
   --char:        #100808;
   --claret:      #301010;
   --roseash:     #f0d4c0;
   --ember:       #c83818;
   --gold:        #e0b028;
   --moonstone:   #3878a8;
+
+  /* Extended tones */
   --raised:      #1e0c0c;
   --elevated:    #3e1818;
   --mist:        #b89080;
@@ -17,26 +20,79 @@
   --gold-dim:    #8a6818;
   --moon-light:  #58a8d0;
   --moon-dim:    #1a4870;
+
+  /* Faction fills & borders */
   --cov-fill:    rgba(224,176,40,0.12);
   --cab-fill:    rgba(200,56,24,0.12);
   --unb-fill:    rgba(56,120,168,0.12);
   --cov-border:  rgba(224,176,40,0.35);
   --cab-border:  rgba(200,56,24,0.35);
   --unb-border:  rgba(56,120,168,0.35);
+
+  /* Alpha / glow tokens */
   --ember-glow:  rgba(200,56,24,0.15);
   --gold-glow:   rgba(224,176,40,0.12);
   --moon-glow:   rgba(56,120,168,0.10);
-  --masthead-bg: rgba(48,16,16,0.92);
+  --masthead-bg: rgba(16,8,8,0.97);
+
+  /* Font families */
+  --f-display: 'Cormorant Upright', Georgia, serif;
+  --f-head:    'Playfair Display', Georgia, serif;
+  --f-ui:      'Cinzel', Georgia, serif;
+  --f-body:    'EB Garamond', Georgia, serif;
+
+  /* Border tokens */
+  --border:       rgba(240,212,192,0.07);
+  --border-mid:   rgba(240,212,192,0.14);
+  --border-hi:    rgba(240,212,192,0.26);
+  --border-ember: rgba(200,56,24,0.35);
+  --border-gold:  rgba(224,176,40,0.35);
+  --border-moon:  rgba(56,120,168,0.35);
+
+  /* Fill tokens */
+  --ember-fill:   rgba(200,56,24,0.14);
+  --gold-fill:    rgba(224,176,40,0.12);
+  --moon-fill:    rgba(56,120,168,0.14);
+
+  /* Border radius */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 7px;
+  --r-lg: 11px;
+
+  /* Canon ribbon dot colors */
+  --dot-charmed:        #e0b028;
+  --dot-buffy:          #3878a8;
+  --dot-angel:          #c83818;
+  --dot-secret-circle:  #7a6080;
+  --dot-the-craft:      #608060;
+  --dot-witches-ee:     #806040;
+  --dot-practical:      #806870;
+
+  /* Theme swatch colors */
+  --swatch-blood-moon:            #100808;
+  --swatch-silver-onyx:           #0c0c14;
+  --swatch-victorian-apothecary:  #0c1810;
+  --swatch-crimson-athenaeum:     #0e0808;
+  --swatch-midnight-garden:       #081418;
 }
 
 body {
   background-color: var(--char);
   background-image:
-    radial-gradient(ellipse 65% 55% at top left,     var(--ember-glow) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 60% at right center,  var(--gold-glow)  0%, transparent 60%),
-    radial-gradient(ellipse 65% 50% at bottom center, var(--moon-glow)  0%, transparent 60%);
+    radial-gradient(ellipse 70% 50% at 0% 0%,
+      rgba(200,56,24,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 100% 60%,
+      rgba(224,176,40,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 100%,
+      rgba(56,120,168,0.04) 0%, transparent 55%);
   color: var(--roseash);
-  font-family: 'EB Garamond', Georgia, serif;
+  font-family: var(--f-body);
   min-height: 100vh;
   margin: 0;
 }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--char); }
+::-webkit-scrollbar-thumb { background: var(--elevated); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--claret); }

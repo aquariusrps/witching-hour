@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import MastheadNav from '@/app/components/MastheadNav'
 
 interface MastheadProps {
   user: {
@@ -11,23 +12,14 @@ interface MastheadProps {
   settings: Record<string, string>
 }
 
-const NAV_LINKS = [
-  { label: 'Home',      href: '/dashboard' },
-  { label: 'Forums',    href: '/forums' },
-  { label: 'The Circle', href: '/circle' },
-  { label: 'Grimoire',  href: '/grimoire' },
-  { label: 'Rewatch',   href: '/rewatch' },
-  { label: 'Members',   href: '/members' },
-]
-
 const SHOWS = [
-  { label: 'Charmed',             color: 'var(--gold)' },
-  { label: 'Buffy',               color: 'var(--moonstone)' },
-  { label: 'Angel',               color: 'var(--ember)' },
-  { label: 'The Secret Circle',   color: 'var(--mist)' },
-  { label: 'The Craft',           color: 'var(--mist)' },
-  { label: 'Witches of East End', color: 'var(--mist)' },
-  { label: 'Practical Magic',     color: 'var(--mist)' },
+  { label: 'Charmed',             href: '/forums?canon=charmed',        dotVar: 'var(--dot-charmed)',       glow: true  },
+  { label: 'Buffy',               href: '/forums?canon=buffy',           dotVar: 'var(--dot-buffy)',         glow: true  },
+  { label: 'Angel',               href: '/forums?canon=angel',           dotVar: 'var(--dot-angel)',         glow: true  },
+  { label: 'The Secret Circle',   href: '/forums?canon=secret-circle',   dotVar: 'var(--dot-secret-circle)', glow: false },
+  { label: 'The Craft',           href: '/forums?canon=the-craft',       dotVar: 'var(--dot-the-craft)',     glow: false },
+  { label: 'Witches of East End', href: '/forums?canon=witches-ee',      dotVar: 'var(--dot-witches-ee)',    glow: false },
+  { label: 'Practical Magic',     href: '/forums?canon=practical-magic', dotVar: 'var(--dot-practical)',     glow: false },
 ]
 
 function getInitial(name: string): string {
@@ -42,33 +34,36 @@ export default function Masthead({ user }: MastheadProps) {
       zIndex: 50,
       width: '100%',
     }}>
-      {/* Row 1 — Top bar */}
+      {/* Row 1 — 60px */}
       <div style={{
         background: 'var(--masthead-bg)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        borderBottom: '1px solid var(--ember-dim)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 1.25rem',
-        height: 52,
-        gap: '1.5rem',
+        padding: '0 22px',
+        height: 60,
+        gap: 0,
       }}>
-        {/* Left — Logo + site title */}
+
+        {/* Logo group */}
         <Link href="/dashboard" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.6rem',
+          gap: 10,
           textDecoration: 'none',
           flexShrink: 0,
+          marginRight: 30,
         }}>
           <svg
             aria-hidden="true"
             viewBox="0 0 38 38"
             fill="none"
             style={{
-              width: 32, height: 32,
-              filter: 'drop-shadow(0 0 6px rgba(200,56,24,0.5))',
+              width: 38, height: 38,
+              filter: 'drop-shadow(0 0 7px rgba(200,56,24,0.5))',
+              flexShrink: 0,
             }}
           >
             <circle cx="19" cy="19" r="17" stroke="#c83818" strokeWidth="0.5" opacity="0.4" />
@@ -81,78 +76,111 @@ export default function Masthead({ user }: MastheadProps) {
             <circle cx="19" cy="36" r="1" fill="#e0b028" opacity="0.45" />
             <circle cx="2"  cy="19" r="1" fill="#e0b028" opacity="0.45" />
           </svg>
-          <span style={{
-            fontFamily: 'Cormorant Upright, serif',
-            fontWeight: 600,
-            fontSize: '1rem',
-            color: 'var(--gold)',
-            letterSpacing: '0.02em',
-            whiteSpace: 'nowrap',
-          }}>
-            The Witching Hour
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{
+              fontFamily: 'var(--f-display)',
+              fontWeight: 600,
+              fontSize: '1.25rem',
+              color: 'var(--roseash)',
+              letterSpacing: '0.01em',
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
+            }}>
+              The{' '}
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>Witching Hour</em>
+            </span>
+            <span style={{
+              fontFamily: 'var(--f-body)',
+              fontStyle: 'italic',
+              fontSize: '0.64rem',
+              color: 'var(--faded)',
+              lineHeight: 1,
+            }}>
+              a fan community
+            </span>
+          </div>
         </Link>
 
-        {/* Center — Nav links */}
-        <nav style={{
-          display: 'flex',
-          gap: '1.25rem',
-          flex: 1,
-          justifyContent: 'center',
-        }}>
-          {NAV_LINKS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              style={{
-                fontFamily: 'Cinzel, serif',
-                fontSize: '0.55rem',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: 'var(--mist)',
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        {/* Center nav */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <MastheadNav />
+        </div>
 
-        {/* Right — Bell + user chip */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', flexShrink: 0 }}>
-          {/* Notification bell stub */}
-          <button
-            aria-label="Notifications"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--mist)',
-              padding: '4px',
-              lineHeight: 1,
-            }}
-          >
-            <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 18, height: 18 }}>
-              <path d="M10 2a6 6 0 00-6 6v2.586l-1.707 1.707A1 1 0 003 14h14a1 1 0 00.707-1.707L16 10.586V8a6 6 0 00-6-6zm0 16a2 2 0 01-2-2h4a2 2 0 01-2 2z" />
+        {/* Right actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+
+          {/* Messages button with pip */}
+          <Link href="/whispers" aria-label="Messages" style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            height: 32,
+            padding: '0 12px',
+            background: 'none',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-sm)',
+            fontFamily: 'var(--f-body)',
+            fontSize: '0.82rem',
+            color: 'var(--mist)',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 15, height: 15, flexShrink: 0 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 4.5h15a1 1 0 011 1v8a1 1 0 01-1 1h-9l-4 3v-3H3.5a1 1 0 01-1-1v-8a1 1 0 011-1z" />
+            </svg>
+            <span>Messages</span>
+            {/* Red pip */}
+            <span style={{
+              position: 'absolute',
+              top: -3,
+              right: -3,
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              background: 'var(--ember)',
+              boxShadow: '0 0 5px var(--ember-glow)',
+              border: '1.5px solid var(--masthead-bg)',
+            }} aria-hidden="true" />
+          </Link>
+
+          {/* Notifications button */}
+          <button aria-label="Notifications" style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
+            height: 32,
+            background: 'none',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-sm)',
+            color: 'var(--mist)',
+            cursor: 'pointer',
+            padding: 0,
+            flexShrink: 0,
+          }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 15, height: 15 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10a5 5 0 00-10 0v3l-1.5 2h13L15 13v-3zm-5 7a2 2 0 004 0" />
             </svg>
           </button>
+
+          {/* Separator */}
+          <div style={{ width: 1, height: 26, background: 'var(--border)', flexShrink: 0, margin: '0 4px' }} aria-hidden="true" />
 
           {/* User chip */}
           {user && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer',
+              gap: 8,
+              cursor: 'default',
             }}>
-              {/* Avatar */}
               <div style={{
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
                 borderRadius: '50%',
                 overflow: 'hidden',
-                border: '1px solid var(--ember)',
+                border: '1px solid var(--cov-border)',
                 flexShrink: 0,
                 background: 'var(--claret)',
                 display: 'flex',
@@ -168,8 +196,8 @@ export default function Masthead({ user }: MastheadProps) {
                   />
                 ) : (
                   <span style={{
-                    fontFamily: 'Cinzel, serif',
-                    fontSize: '0.7rem',
+                    fontFamily: 'var(--f-ui)',
+                    fontSize: '0.66rem',
                     color: 'var(--mist)',
                     fontWeight: 600,
                   }}>
@@ -177,10 +205,8 @@ export default function Masthead({ user }: MastheadProps) {
                   </span>
                 )}
               </div>
-
-              {/* Display name */}
               <span style={{
-                fontFamily: 'EB Garamond, Georgia, serif',
+                fontFamily: 'var(--f-body)',
                 fontSize: '0.875rem',
                 color: 'var(--roseash)',
                 maxWidth: 120,
@@ -190,9 +216,7 @@ export default function Masthead({ user }: MastheadProps) {
               }}>
                 {user.display_name}
               </span>
-
-              {/* Chevron stub */}
-              <svg viewBox="0 0 10 6" fill="currentColor" style={{ width: 10, height: 6, color: 'var(--faded)', flexShrink: 0 }}>
+              <svg viewBox="0 0 10 6" fill="currentColor" style={{ width: 9, height: 5, color: 'var(--faded)', flexShrink: 0 }}>
                 <path d="M0 0l5 6 5-6H0z" />
               </svg>
             </div>
@@ -200,54 +224,93 @@ export default function Masthead({ user }: MastheadProps) {
         </div>
       </div>
 
-      {/* Row 2 — Show ribbon */}
+      {/* Row 2 — Show ribbon 36px */}
       <div style={{
-        background: 'var(--claret)',
-        borderBottom: '1px solid var(--ember-dim)',
+        background: 'var(--raised)',
+        borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 1.25rem',
-        height: 28,
-        gap: '1.25rem',
+        height: 36,
         overflow: 'hidden',
       }}>
-        {/* Shows */}
-        <div style={{ display: 'flex', gap: '1.25rem', flex: 1, alignItems: 'center' }}>
-          {SHOWS.map(({ label, color }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span style={{
-                display: 'inline-block',
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: color,
-                flexShrink: 0,
-              }} />
-              <span style={{
-                fontFamily: 'Cinzel, serif',
-                fontSize: '0.55rem',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--mist)',
-                whiteSpace: 'nowrap',
-              }}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Tagline */}
-        <span style={{
-          fontFamily: 'EB Garamond, Georgia, serif',
-          fontStyle: 'italic',
-          fontSize: '0.75rem',
-          color: 'var(--faded)',
-          whiteSpace: 'nowrap',
-          flexShrink: 0,
+        <div style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          padding: '0 22px',
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          gap: 0,
         }}>
-          For those who never stopped believing in magic.
-        </span>
+          {/* Canons label */}
+          <span style={{
+            fontFamily: 'var(--f-ui)',
+            fontSize: '0.56rem',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--faded)',
+            paddingRight: 16,
+            marginRight: 16,
+            borderRight: '1px solid var(--border)',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}>
+            Canons
+          </span>
+
+          {/* Show links */}
+          <div style={{ display: 'flex', gap: 4, flex: 1, alignItems: 'center', overflow: 'hidden' }}>
+            {SHOWS.map(({ label, href, dotVar, glow }) => (
+              <Link
+                key={label}
+                href={href}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '0 10px',
+                  height: 24,
+                  borderRadius: 'var(--r-xs)',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                <span style={{
+                  display: 'inline-block',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: dotVar,
+                  boxShadow: glow ? `0 0 5px ${dotVar}` : undefined,
+                  flexShrink: 0,
+                }} aria-hidden="true" />
+                <span style={{
+                  fontFamily: 'var(--f-ui)',
+                  fontSize: '0.55rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--mist)',
+                }}>
+                  {label}
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Tagline */}
+          <span style={{
+            fontFamily: 'var(--f-body)',
+            fontStyle: 'italic',
+            fontSize: '0.75rem',
+            color: 'var(--faded)',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            paddingLeft: 16,
+          }}>
+            &amp; the magic that never left
+          </span>
+        </div>
       </div>
     </header>
   )

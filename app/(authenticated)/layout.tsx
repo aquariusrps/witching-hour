@@ -5,7 +5,7 @@ import { getCachedSiteSettings } from '@/lib/cached-settings'
 import { getUserRow } from '@/lib/db/users'
 import { logSession } from '@/lib/db/session'
 import Masthead from '@/app/components/Masthead'
-import Sidebar from '@/app/components/Sidebar'
+import Footer from '@/app/components/Footer'
 
 export default async function AuthenticatedLayout({
   children,
@@ -30,21 +30,12 @@ export default async function AuthenticatedLayout({
   const theme = userRow?.theme_preference ?? 'blood-moon'
 
   return (
-    <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--char)' }}>
+    <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--char)', display: 'flex', flexDirection: 'column' }}>
       <Masthead user={userRow} settings={settings} />
-      <div style={{
-        display: 'flex',
-        minHeight: 'calc(100vh - 80px)', // subtract masthead height (52 + 28)
-      }}>
-        <Sidebar user={userRow} />
-        <main style={{
-          flex: 1,
-          overflowY: 'auto',
-          minWidth: 0,
-        }}>
-          {children}
-        </main>
+      <div style={{ flex: 1 }}>
+        {children}
       </div>
+      <Footer />
     </div>
   )
 }

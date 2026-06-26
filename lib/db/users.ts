@@ -5,7 +5,7 @@ export async function getUserRow(userId: string | undefined) {
   const supabase = await getServerClient()
   const { data } = await supabase
     .from('users')
-    .select('id, display_name, avatar_url, theme_preference, active_character_id')
+    .select('id, display_name, avatar_url, theme_preference, active_character_id, created_at')
     .eq('id', userId)
     .single()
   return data ?? null
