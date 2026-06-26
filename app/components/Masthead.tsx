@@ -53,26 +53,14 @@ export default function Masthead({ user }: MastheadProps) {
           flexShrink: 0,
           marginRight: 30,
         }}>
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 38 38"
-            fill="none"
-            style={{
-              width: 38, height: 38,
-              filter: 'drop-shadow(0 0 7px rgba(200,56,24,0.5))',
-              flexShrink: 0,
-            }}
-          >
-            <circle cx="19" cy="19" r="17" stroke="#c83818" strokeWidth="0.5" opacity="0.4" />
-            <circle cx="19" cy="19" r="13" fill="rgba(200,56,24,0.12)" stroke="#c83818" strokeWidth="0.8" opacity="0.7" />
-            <circle cx="23" cy="17" r="10" fill="rgba(16,8,8,0.75)" />
-            <polygon points="14,6 24,28 4,15 24,15 4,28" fill="none" stroke="#e0b028" strokeWidth="0.7" strokeLinejoin="round" opacity="0.8" />
-            <circle cx="14" cy="19" r="1.5" fill="#c83818" opacity="0.8" />
-            <circle cx="19" cy="2"  r="1" fill="#e0b028" opacity="0.45" />
-            <circle cx="36" cy="19" r="1" fill="#e0b028" opacity="0.45" />
-            <circle cx="19" cy="36" r="1" fill="#e0b028" opacity="0.45" />
-            <circle cx="2"  cy="19" r="1" fill="#e0b028" opacity="0.45" />
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/witchinghourlogo.png"
+            alt="The Witching Hour"
+            width={38}
+            height={38}
+            style={{ objectFit: 'contain', flexShrink: 0 }}
+          />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <span style={{
               fontFamily: 'var(--f-display)',
