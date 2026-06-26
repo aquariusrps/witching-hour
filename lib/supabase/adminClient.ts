@@ -1,10 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
 
-let _adminClient: ReturnType<typeof createClient> | null = null
+let _adminClient: SupabaseClient<Database> | null = null
 
-export function getAdminClient() {
+export function getAdminClient(): SupabaseClient<Database> {
   if (!_adminClient) {
-    _adminClient = createClient(
+    _adminClient = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
