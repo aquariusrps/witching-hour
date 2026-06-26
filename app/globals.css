@@ -60,7 +60,7 @@
   --r-md: 7px;
   --r-lg: 11px;
 
-  /* Canon ribbon dot colors */
+  /* Canon ribbon dot colors (theme-invariant) */
   --dot-charmed:        #e0b028;
   --dot-buffy:          #3878a8;
   --dot-angel:          #c83818;
@@ -69,12 +69,14 @@
   --dot-witches-ee:     #806040;
   --dot-practical:      #806870;
 
-  /* Theme swatch colors */
-  --swatch-blood-moon:            #100808;
-  --swatch-silver-onyx:           #0c0c14;
-  --swatch-victorian-apothecary:  #0c1810;
-  --swatch-crimson-athenaeum:     #0e0808;
-  --swatch-midnight-garden:       #081418;
+  /* Theme swatch colors (theme-invariant identifiers) */
+  --swatch-blood-moon:             #100808;
+  --swatch-silver-onyx:            #0c0c14;
+  --swatch-midnight-garden:        #081418;
+  --swatch-crimson-athenaeum:      #0e0808;
+  --swatch-blackthorn-parchment:   #1c0d08;
+  --swatch-the-craft-1996:         #0d0c1a;
+  --swatch-victorian-apothecary:   #0c1810;
 }
 
 body {
@@ -96,3 +98,270 @@ body {
 ::-webkit-scrollbar-track { background: var(--char); }
 ::-webkit-scrollbar-thumb { background: var(--elevated); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--claret); }
+
+/* ─────────────────────────────────────────────────────────
+   MULTI-THEME OVERRIDES
+   Each block overrides only the theme-sensitive CSS vars.
+   Font families, border-radius, and dot/swatch colors
+   are theme-invariant and not repeated here.
+───────────────────────────────────────────────────────── */
+
+/* ── Theme 1: Silver & Onyx ────────────────────────────
+   Onyx base · Iris violet · Dark garnet · Tourmaline
+──────────────────────────────────────────────────────── */
+[data-theme="silver-onyx"] {
+  /* Hero */
+  --char:      #0c0c14;
+  --claret:    #202030;
+  --roseash:   #eae8f4;
+  --ember:     #6040c0;
+  --gold:      #a02840;
+  --moonstone: #288890;
+
+  /* Extended tones */
+  --raised:      #151520;
+  --elevated:    #29293d;
+  --mist:        #9c9ab8;
+  --faded:       #5a5878;
+  --ember-light: #7864d8;
+  --ember-dim:   #35236a;
+  --gold-light:  #bc445c;
+  --gold-dim:    #601625;
+  --moon-light:  #40a0a8;
+  --moon-dim:    #144448;
+
+  /* Faction fills & borders */
+  --cov-fill:    rgba(160,40,64,0.12);
+  --cab-fill:    rgba(96,64,192,0.12);
+  --unb-fill:    rgba(40,136,144,0.12);
+  --cov-border:  rgba(160,40,64,0.35);
+  --cab-border:  rgba(96,64,192,0.35);
+  --unb-border:  rgba(40,136,144,0.35);
+
+  /* Alpha / glow */
+  --ember-glow:  rgba(96,64,192,0.15);
+  --gold-glow:   rgba(160,40,64,0.12);
+  --moon-glow:   rgba(40,136,144,0.10);
+  --masthead-bg: rgba(12,12,20,0.95);
+
+  /* Border tokens */
+  --border:       rgba(234,232,244,0.07);
+  --border-mid:   rgba(234,232,244,0.14);
+  --border-hi:    rgba(234,232,244,0.26);
+  --border-ember: rgba(96,64,192,0.35);
+  --border-gold:  rgba(160,40,64,0.35);
+  --border-moon:  rgba(40,136,144,0.35);
+
+  /* Fill tokens */
+  --ember-fill:   rgba(96,64,192,0.14);
+  --gold-fill:    rgba(160,40,64,0.12);
+  --moon-fill:    rgba(40,136,144,0.14);
+}
+
+/* ── Theme 2: Midnight Garden ──────────────────────────
+   Teal-black base · Copper · Damask rose · Amethyst
+──────────────────────────────────────────────────────── */
+[data-theme="midnight-garden"] {
+  /* Hero */
+  --char:      #081418;
+  --claret:    #142e30;
+  --roseash:   #dce8e4;
+  --ember:     #b06018;
+  --gold:      #982050;
+  --moonstone: #785898;
+
+  /* Extended tones */
+  --raised:      #0d2023;
+  --elevated:    #193a3b;
+  --mist:        #8ab0ac;
+  --faded:       #4e6864;
+  --ember-light: #c88030;
+  --ember-dim:   #66380e;
+  --gold-light:  #b43c6c;
+  --gold-dim:    #58122e;
+  --moon-light:  #9474b0;
+  --moon-dim:    #3c2c4c;
+
+  /* Faction fills & borders */
+  --cov-fill:    rgba(152,32,80,0.12);
+  --cab-fill:    rgba(176,96,24,0.12);
+  --unb-fill:    rgba(120,88,152,0.12);
+  --cov-border:  rgba(152,32,80,0.35);
+  --cab-border:  rgba(176,96,24,0.35);
+  --unb-border:  rgba(120,88,152,0.35);
+
+  /* Alpha / glow */
+  --ember-glow:  rgba(176,96,24,0.15);
+  --gold-glow:   rgba(152,32,80,0.12);
+  --moon-glow:   rgba(120,88,152,0.10);
+  --masthead-bg: rgba(8,20,24,0.95);
+
+  /* Border tokens */
+  --border:       rgba(220,232,228,0.07);
+  --border-mid:   rgba(220,232,228,0.14);
+  --border-hi:    rgba(220,232,228,0.26);
+  --border-ember: rgba(176,96,24,0.35);
+  --border-gold:  rgba(152,32,80,0.35);
+  --border-moon:  rgba(120,88,152,0.35);
+
+  /* Fill tokens */
+  --ember-fill:   rgba(176,96,24,0.14);
+  --gold-fill:    rgba(152,32,80,0.12);
+  --moon-fill:    rgba(120,88,152,0.14);
+}
+
+/* ── Theme 3: Crimson Athenaeum ────────────────────────
+   Void-black base · True crimson · Antique gold · Smoke blue
+──────────────────────────────────────────────────────── */
+[data-theme="crimson-athenaeum"] {
+  /* Hero */
+  --char:      #0e0808;
+  --claret:    #2c0a0a;
+  --roseash:   #f0dcd4;
+  --ember:     #c81818;
+  --gold:      #d4a028;
+  --moonstone: #507090;
+
+  /* Extended tones */
+  --raised:      #1c0909;
+  --elevated:    #3a0b0b;
+  --mist:        #b09088;
+  --faded:       #6a5048;
+  --ember-light: #e03030;
+  --ember-dim:   #720d0d;
+  --gold-light:  #ecb63e;
+  --gold-dim:    #836017;
+  --moon-light:  #6888a8;
+  --moon-dim:    #283848;
+
+  /* Faction fills & borders */
+  --cov-fill:    rgba(212,160,40,0.12);
+  --cab-fill:    rgba(200,24,24,0.12);
+  --unb-fill:    rgba(80,112,144,0.12);
+  --cov-border:  rgba(212,160,40,0.35);
+  --cab-border:  rgba(200,24,24,0.35);
+  --unb-border:  rgba(80,112,144,0.35);
+
+  /* Alpha / glow */
+  --ember-glow:  rgba(200,24,24,0.15);
+  --gold-glow:   rgba(212,160,40,0.12);
+  --moon-glow:   rgba(80,112,144,0.10);
+  --masthead-bg: rgba(14,8,8,0.97);
+
+  /* Border tokens */
+  --border:       rgba(240,220,212,0.07);
+  --border-mid:   rgba(240,220,212,0.14);
+  --border-hi:    rgba(240,220,212,0.26);
+  --border-ember: rgba(200,24,24,0.35);
+  --border-gold:  rgba(212,160,40,0.35);
+  --border-moon:  rgba(80,112,144,0.35);
+
+  /* Fill tokens */
+  --ember-fill:   rgba(200,24,24,0.14);
+  --gold-fill:    rgba(212,160,40,0.12);
+  --moon-fill:    rgba(80,112,144,0.14);
+}
+
+/* ── Theme 4: Blackthorn & Parchment ──────────────────
+   Mahogany base · Aged claret · Brass · Muted sage
+──────────────────────────────────────────────────────── */
+[data-theme="blackthorn-parchment"] {
+  /* Hero */
+  --char:      #1c0d08;
+  --claret:    #5a2c18;
+  --roseash:   #f0e4d0;
+  --ember:     #8a1c30;
+  --gold:      #c49028;
+  --moonstone: #7a9068;
+
+  /* Extended tones */
+  --raised:      #381b0f;
+  --elevated:    #763a1f;
+  --mist:        #b49878;
+  --faded:       #786040;
+  --ember-light: #a03646;
+  --ember-dim:   #4f0f1a;
+  --gold-light:  #daa63e;
+  --gold-dim:    #765617;
+  --moon-light:  #90a67c;
+  --moon-dim:    #3d4834;
+
+  /* Faction fills & borders */
+  --cov-fill:    rgba(196,144,40,0.12);
+  --cab-fill:    rgba(138,28,48,0.12);
+  --unb-fill:    rgba(122,144,104,0.12);
+  --cov-border:  rgba(196,144,40,0.35);
+  --cab-border:  rgba(138,28,48,0.35);
+  --unb-border:  rgba(122,144,104,0.35);
+
+  /* Alpha / glow */
+  --ember-glow:  rgba(138,28,48,0.15);
+  --gold-glow:   rgba(196,144,40,0.12);
+  --moon-glow:   rgba(122,144,104,0.10);
+  --masthead-bg: rgba(28,13,8,0.96);
+
+  /* Border tokens */
+  --border:       rgba(240,228,208,0.07);
+  --border-mid:   rgba(240,228,208,0.14);
+  --border-hi:    rgba(240,228,208,0.26);
+  --border-ember: rgba(138,28,48,0.35);
+  --border-gold:  rgba(196,144,40,0.35);
+  --border-moon:  rgba(122,144,104,0.35);
+
+  /* Fill tokens */
+  --ember-fill:   rgba(138,28,48,0.14);
+  --gold-fill:    rgba(196,144,40,0.12);
+  --moon-fill:    rgba(122,144,104,0.14);
+}
+
+/* ── Theme 5: The Craft 1996 ───────────────────────────
+   Blue-black base · Electric violet · Acid candle · True scarlet
+──────────────────────────────────────────────────────── */
+[data-theme="the-craft-1996"] {
+  /* Hero */
+  --char:      #0d0c1a;
+  --claret:    #28244a;
+  --roseash:   #e4e0f4;
+  --ember:     #7838d0;
+  --gold:      #d4a018;
+  --moonstone: #c82038;
+
+  /* Extended tones */
+  --raised:      #191730;
+  --elevated:    #342f60;
+  --mist:        #9e9abb;
+  --faded:       #5c5878;
+  --ember-light: #9058e8;
+  --ember-dim:   #421f72;
+  --gold-light:  #ecb630;
+  --gold-dim:    #7f600e;
+  --moon-light:  #e03c50;
+  --moon-dim:    #64101c;
+
+  /* Faction fills & borders */
+  --cov-fill:    rgba(212,160,24,0.12);
+  --cab-fill:    rgba(120,56,208,0.12);
+  --unb-fill:    rgba(200,32,56,0.12);
+  --cov-border:  rgba(212,160,24,0.35);
+  --cab-border:  rgba(120,56,208,0.35);
+  --unb-border:  rgba(200,32,56,0.35);
+
+  /* Alpha / glow */
+  --ember-glow:  rgba(120,56,208,0.15);
+  --gold-glow:   rgba(212,160,24,0.12);
+  --moon-glow:   rgba(200,32,56,0.10);
+  --masthead-bg: rgba(13,12,26,0.95);
+
+  /* Border tokens */
+  --border:       rgba(228,224,244,0.07);
+  --border-mid:   rgba(228,224,244,0.14);
+  --border-hi:    rgba(228,224,244,0.26);
+  --border-ember: rgba(120,56,208,0.35);
+  --border-gold:  rgba(212,160,24,0.35);
+  --border-moon:  rgba(200,32,56,0.35);
+
+  /* Fill tokens */
+  --ember-fill:   rgba(120,56,208,0.14);
+  --gold-fill:    rgba(212,160,24,0.12);
+  --moon-fill:    rgba(200,32,56,0.14);
+}

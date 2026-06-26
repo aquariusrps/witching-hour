@@ -7,9 +7,10 @@ import { getServerClient } from '@/lib/supabase/serverClient'
 const VALID_THEMES = [
   'blood-moon',
   'silver-onyx',
-  'victorian-apothecary',
-  'crimson-athenaeum',
   'midnight-garden',
+  'crimson-athenaeum',
+  'blackthorn-parchment',
+  'the-craft-1996',
 ] as const
 
 type Theme = typeof VALID_THEMES[number]

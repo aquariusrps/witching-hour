@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { updateTheme } from '@/lib/actions/settings'
 
 const THEMES = [
-  { key: 'blood-moon',            name: 'Blood Moon',            swatch: 'var(--swatch-blood-moon)' },
-  { key: 'silver-onyx',           name: 'Silver & Onyx',         swatch: 'var(--swatch-silver-onyx)' },
-  { key: 'victorian-apothecary',  name: 'Victorian Apothecary',  swatch: 'var(--swatch-victorian-apothecary)' },
-  { key: 'crimson-athenaeum',     name: 'Crimson Athenaeum',     swatch: 'var(--swatch-crimson-athenaeum)' },
-  { key: 'midnight-garden',       name: 'Midnight Garden',       swatch: 'var(--swatch-midnight-garden)' },
+  { key: 'blood-moon',           name: 'Blood Moon',           swatch: 'var(--swatch-blood-moon)' },
+  { key: 'silver-onyx',          name: 'Silver & Onyx',        swatch: 'var(--swatch-silver-onyx)' },
+  { key: 'midnight-garden',      name: 'Midnight Garden',      swatch: 'var(--swatch-midnight-garden)' },
+  { key: 'crimson-athenaeum',    name: 'Crimson Athenaeum',    swatch: 'var(--swatch-crimson-athenaeum)' },
+  { key: 'blackthorn-parchment', name: 'Blackthorn & Parchment', swatch: 'var(--swatch-blackthorn-parchment)' },
+  { key: 'the-craft-1996',       name: 'The Craft 1996',       swatch: 'var(--swatch-the-craft-1996)' },
 ]
 
 export default function ThemePanel({ currentTheme }: { currentTheme: string }) {
