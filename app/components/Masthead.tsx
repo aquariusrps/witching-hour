@@ -57,9 +57,9 @@ export default function Masthead({ user }: MastheadProps) {
           <img
             src="/witchinghourlogo.png"
             alt="The Witching Hour"
-            width={38}
-            height={38}
-            style={{ objectFit: 'contain', flexShrink: 0 }}
+            width={52}
+            height={52}
+            style={{ objectFit: 'contain', margin: '-7px 0' }}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <span style={{
