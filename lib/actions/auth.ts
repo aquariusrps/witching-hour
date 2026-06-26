@@ -1,7 +1,9 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminClient } from '@/lib/supabase/adminClient'
+import { getServerClient } from '@/lib/supabase/serverClient'
 
 const DISPLAY_NAME_RE = /^[a-zA-Z0-9_-]{3,30}$/
 
@@ -69,4 +71,26 @@ export async function registerUser(
   }
 
   return { success: true }
+}
+
+export async function loginUser(
+  formData: FormData
+): Promise<{ error: string } | { success: true }> {
+  const email    = ((formData.get('email')    as string | null) ?? '').trim()
+  const password =  (formData.get('password') as string | null) ?? ''
+
+  if (!email || !password) {
+    return { error: 'Email and password are required.' }
+  }
+
+  const supabase = await getServerClient()
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function signOut() {
+  const supabase = await getServerClient()
+  await supabase.auth.signOut()
+  redirect('/login')
 }
