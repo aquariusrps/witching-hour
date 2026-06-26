@@ -119,6 +119,33 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_signups: {
+        Row: {
+          canon: string
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          resend_id: string | null
+        }
+        Insert: {
+          canon: string
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          resend_id?: string | null
+        }
+        Update: {
+          canon?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          resend_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
