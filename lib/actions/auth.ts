@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 import { getServerClient } from '@/lib/supabase/serverClient'
 
-const DISPLAY_NAME_RE = /^[a-zA-Z0-9_-]{3,30}$/
+const DISPLAY_NAME_RE = /^[a-zA-Z0-9_ -]{3,30}$/
 
 export async function registerUser(
   formData: FormData
@@ -20,7 +20,7 @@ export async function registerUser(
     return { error: 'All fields are required.' }
   }
   if (!DISPLAY_NAME_RE.test(displayName)) {
-    return { error: 'Display name must be 3–30 characters: letters, numbers, underscores, hyphens only.' }
+    return { error: 'Display name must be 3–30 characters. Letters, numbers, spaces, hyphens, and underscores only.' }
   }
   if (password.length < 8) {
     return { error: 'Password must be at least 8 characters.' }

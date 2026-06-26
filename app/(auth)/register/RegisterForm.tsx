@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { registerUser } from '@/lib/actions/auth'
 
-const DISPLAY_NAME_RE = /^[a-zA-Z0-9_-]{3,30}$/
+const DISPLAY_NAME_RE = /^[a-zA-Z0-9_ -]{3,30}$/
 
 const ANIMATIONS = `
   @keyframes fadeUp {
@@ -67,7 +67,7 @@ export default function RegisterForm() {
     if (!email.trim()) { setEmailErr('Email is required.'); ok = false }
     if (!displayName.trim()) { setNameErr('Display name is required.'); ok = false }
     else if (!DISPLAY_NAME_RE.test(displayName)) {
-      setNameErr('3–30 characters: letters, numbers, underscores, hyphens only.')
+      setNameErr('3–30 characters. Letters, numbers, spaces, hyphens, and underscores only.')
       ok = false
     }
     if (!password) { setPassErr('Password is required.'); ok = false }
@@ -216,7 +216,7 @@ export default function RegisterForm() {
                 color: 'var(--faded)',
                 marginTop: '0.25rem',
               }}>
-                Letters, numbers, underscores, hyphens. No spaces. 3–30 characters.
+                3–30 characters. Letters, numbers, spaces, hyphens, and underscores only.
               </p>
               {nameErr && <p style={FIELD_ERROR_STYLE}>{nameErr}</p>}
             </div>
