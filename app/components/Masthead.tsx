@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import MastheadNav from '@/app/components/MastheadNav'
 import MastheadUser from '@/app/components/MastheadUser'
+import { CANONS } from '@/lib/canons'
 
 interface MastheadProps {
   user: {
@@ -12,16 +13,6 @@ interface MastheadProps {
   } | null
   settings: Record<string, string>
 }
-
-const SHOWS = [
-  { label: 'Charmed',             href: '/forums?canon=charmed',        dotVar: 'var(--dot-charmed)',       glow: true  },
-  { label: 'Buffy',               href: '/forums?canon=buffy',           dotVar: 'var(--dot-buffy)',         glow: true  },
-  { label: 'Angel',               href: '/forums?canon=angel',           dotVar: 'var(--dot-angel)',         glow: true  },
-  { label: 'The Secret Circle',   href: '/forums?canon=secret-circle',   dotVar: 'var(--dot-secret-circle)', glow: false },
-  { label: 'The Craft',           href: '/forums?canon=the-craft',       dotVar: 'var(--dot-the-craft)',     glow: false },
-  { label: 'Witches of East End', href: '/forums?canon=witches-ee',      dotVar: 'var(--dot-witches-ee)',    glow: false },
-  { label: 'Practical Magic',     href: '/forums?canon=practical-magic', dotVar: 'var(--dot-practical)',     glow: false },
-]
 
 export default function Masthead({ user }: MastheadProps) {
   return (
@@ -198,10 +189,10 @@ export default function Masthead({ user }: MastheadProps) {
 
           {/* Show links */}
           <div style={{ display: 'flex', gap: 4, flex: 1, alignItems: 'center', overflow: 'hidden' }}>
-            {SHOWS.map(({ label, href, dotVar, glow }) => (
+            {CANONS.map((c) => (
               <Link
-                key={label}
-                href={href}
+                key={c.db}
+                href={`/forums?canon=${c.db.replace(/_/g, '-')}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -219,8 +210,8 @@ export default function Masthead({ user }: MastheadProps) {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  background: dotVar,
-                  boxShadow: glow ? `0 0 5px ${dotVar}` : undefined,
+                  background: c.color,
+                  boxShadow: c.primary ? `0 0 5px ${c.color}` : undefined,
                   flexShrink: 0,
                 }} aria-hidden="true" />
                 <span style={{
@@ -230,7 +221,7 @@ export default function Masthead({ user }: MastheadProps) {
                   textTransform: 'uppercase',
                   color: 'var(--mist)',
                 }}>
-                  {label}
+                  {c.label}
                 </span>
               </Link>
             ))}

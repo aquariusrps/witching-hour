@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { CANONS } from '@/lib/canons'
 
 export const metadata: Metadata = {
   title: 'The Witching Hour — A Fan Community for Charmed, Buffy & Angel',
@@ -13,16 +14,6 @@ export const metadata: Metadata = {
     url: 'https://atwitchinghour.com',
   },
 }
-
-const CANONS = [
-  { label: 'Charmed',                 color: 'var(--gold)',      primary: true  },
-  { label: 'Buffy the Vampire Slayer', color: 'var(--moonstone)', primary: true  },
-  { label: 'Angel',                   color: 'var(--ember)',     primary: true  },
-  { label: 'The Secret Circle',       color: 'var(--mist)',      primary: false },
-  { label: 'The Craft',               color: 'var(--mist)',      primary: false },
-  { label: 'Witches of East End',     color: 'var(--mist)',      primary: false },
-  { label: 'Practical Magic',         color: 'var(--mist)',      primary: false },
-]
 
 const HERO_GRADIENT = [
   'radial-gradient(ellipse 65% 55% at top left,     var(--ember-glow) 0%, transparent 60%)',

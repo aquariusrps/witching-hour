@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { joinWaitlist } from '@/lib/actions/waitlist'
+import { CANONS } from '@/lib/canons'
 
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
@@ -96,13 +97,9 @@ export default function WaitlistForm() {
           onBlur={e   => { e.currentTarget.style.borderColor = 'var(--ember-dim)' }}
         >
           <option value="">Which show calls to you?</option>
-          <option value="charmed">Charmed</option>
-          <option value="buffy">Buffy the Vampire Slayer</option>
-          <option value="angel">Angel</option>
-          <option value="secret_circle">The Secret Circle</option>
-          <option value="the_craft">The Craft</option>
-          <option value="witches_of_east_end">Witches of East End</option>
-          <option value="practical_magic">Practical Magic</option>
+          {CANONS.map(c => (
+            <option key={c.db} value={c.db}>{c.label}</option>
+          ))}
         </select>
 
         <button

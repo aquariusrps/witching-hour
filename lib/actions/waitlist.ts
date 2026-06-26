@@ -4,8 +4,10 @@ import { Resend } from 'resend'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 
 const VALID_CANONS = [
-  'charmed', 'buffy', 'angel', 'secret_circle',
-  'the_craft', 'witches_of_east_end', 'practical_magic',
+  'charmed', 'buffy', 'the_craft', 'practical_magic',
+  'ahs_coven', 'chilling_adventures', 'secret_circle',
+  'witches_of_east_end', 'motherland_fort_salem',
+  'discovery_of_witches', 'sabrina_90s',
 ] as const
 
 type Canon = typeof VALID_CANONS[number]

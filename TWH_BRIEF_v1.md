@@ -97,21 +97,30 @@ Authentication → URL Configuration:
 
 | Show | Ribbon colour | Hex | Notes |
 |---|---|---|---|
-| Charmed | Gold | #e0b028 | The heart of the site. Always listed first. |
-| Buffy the Vampire Slayer | Moonstone blue | #3878a8 | Largest supporting fandom |
-| Angel | Ember | #c83818 | Companion to Buffy |
+| Charmed | Harvest Gold | #e0b028 | The heart of the site. Always listed first. |
+| Buffy the Vampire Slayer | Moonstone blue | #3878a8 | Combined with Angel in UI as "Buffy & Angel" |
+| Angel | Moonstone blue | #3878a8 | Companion to Buffy — separate DB value, combined UI entry |
+| The Craft | Sage green | #4a7c59 | Film, not series — aesthetically central |
+| Practical Magic | Dusty mauve | #9a7090 | Owens family lore |
+| AHS: Coven | Silver lavender | #a8a0b8 | American Horror Story: Coven |
+| Chilling Adventures | Deep violet | #6030a0 | Chilling Adventures of Sabrina (Netflix) |
+| The Secret Circle | Dusty purple | #7a6080 | Circle coven arc — natural fit |
 
-### Supporting Canons (subforum presence, character support, lighter ribbon treatment)
+**Note on Buffy & Angel:** `'buffy'` and `'angel'` remain separate DB values for thread, post, and character tagging. All UI ribbons and dropdowns display them as a single combined entry "Buffy & Angel" (using `db: 'buffy'` where a single value is needed, e.g. the waitlist dropdown).
 
-| Show | Notes |
-|---|---|
-| The Secret Circle | Circle coven arc — natural fit |
-| The Craft (1996 film) | Film, not series — aesthetically central |
-| Witches of East End | Norse mythology angle |
-| Practical Magic | Owens family lore |
+### Secondary Canons (subforum presence, character support, lighter ribbon treatment)
+
+| Show | Hex | Notes |
+|---|---|---|
+| Witches of East End | #806040 | Norse mythology angle |
+| Motherland: Fort Salem | #706880 | Military witch alt-history |
+| A Discovery of Witches | #507060 | Oxford / All Souls Trilogy |
+| Sabrina (90s) | #806870 | Original Melissa Joan Hart series |
 
 **Canon source field values (used throughout the database):**
-`'charmed'` `'buffy'` `'angel'` `'secret_circle'` `'the_craft'` `'witches_of_east_end'` `'practical_magic'` `'original'` `'all'`
+Primary: `'charmed'` `'buffy'` `'angel'` `'the_craft'` `'practical_magic'` `'ahs_coven'` `'chilling_adventures'` `'secret_circle'`
+Secondary: `'witches_of_east_end'` `'motherland_fort_salem'` `'discovery_of_witches'` `'sabrina_90s'`
+System: `'original'` `'all'`
 
 The value `'original'` is used for characters and content not tied to any specific show. The value `'all'` is used for cross-canon content (events, site-wide threads).
 
