@@ -86,10 +86,9 @@ Authentication → URL Configuration:
   Also add: `https://the-witching-hour.vercel.app/auth/callback` for Vercel preview
 
 ### Supabase Storage Buckets (all public)
-- `portraits` — user avatar images
-- `characters` — character portrait images (path: character-portraits/{uuid}.{ext})
+- `avatars` — user account profile images
+- `character-portraits` — RP character portrait images
 - `rich-text-images` — Tiptap editor image uploads (admin-only)
-
 ---
 
 ## 3. Canons & Show Hierarchy
@@ -870,7 +869,7 @@ way but the wrong name causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
 - GitHub: `aquariusrps/witchinghour`
 - Supabase project: `the-witching-hour` (ID: vkhuttcusqubteseifui)
   URL: `https://vkhuttcusqubteseifui.supabase.co`
-- Storage buckets created: `portraits`, `characters`, `rich-text-images`
+- Storage buckets created: `avatars`, `character-portraits`, `rich-text-images`
 - `.env.local` created with all 5 required env vars (confirmed working)
 - Vercel project: `the-witching-hour` → `https://the-witching-hour.vercel.app`
 - Supabase Auth: email confirmation ON, SMTP via Resend, redirect URLs set
@@ -879,7 +878,7 @@ way but the wrong name causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
 
 ### Phase 1 — Landing Page (June 2026)
 
-**TWH-1.2a — Complete** (commit: 0927c4c area)
+**TWH-1.2a/b — Complete** (commit: 0927c4c area)
 Landing page live at `https://the-witching-hour.vercel.app`
 - `app/page.tsx` — fully static, no Supabase, no auth check, no async
 - `app/layout.tsx` — minimal, Google Fonts only
