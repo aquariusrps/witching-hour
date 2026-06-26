@@ -291,9 +291,18 @@ Audit questions must verify that behavior works, not just that the code calls th
 
 ---
 
-## 11. npx next lint
+## 11. Quality Gates Before Every Push
 
-Run `npx next lint 2>/dev/null` before pushing any code changes. Do not push if lint errors exist. Warnings are acceptable; errors are not.
+Run both commands before pushing any code changes. Do not push if either reports errors.
+
+```bash
+tsc --noEmit        # TypeScript type checking
+npx eslint .        # Code quality and React rules
+```
+
+**Note:** `npx next lint` does not exist in Next.js 16 — it was removed. Use the two commands above instead. Both must pass clean. Warnings are acceptable; errors are not.
+
+ESLint is configured via `eslint.config.mjs` with `eslint-config-next` (core-web-vitals preset). Internal Next.js routes must use `<Link>` not `<a>` tags — ESLint enforces this.
 
 ---
 
@@ -311,24 +320,28 @@ Never apply migrations by copy-pasting into the Supabase UI SQL editor for anyth
 
 ## 13. Production Push Protocol
 
+**Every build prompt must end with a git push.** Vercel auto-deploys on push to main. Never end a session without confirming the push succeeded.
+
 **Visual changes (no schema):**
-1. `git add -A && git commit -m "descriptive message"`
-2. `git push origin main`
-3. Wait for Vercel deploy (watch dashboard)
-4. Hard refresh browser
-5. Smoke test primary user flow
+1. `tsc --noEmit` — must pass clean
+2. `npx eslint .` — must pass clean
+3. `git add -A && git commit -m "TWH-X.X: descriptive message"`
+4. `git push origin main`
+5. Wait for Vercel deploy (check dashboard)
+6. Hard refresh browser
+7. Verify manually — do not use Claude in Chrome
 
 **Schema changes:**
 1. Apply migration via Supabase MCP
 2. Verify migration applied (`information_schema` query)
 3. Regenerate TypeScript types
-4. Run `npx next lint`
-5. `git add -A && git commit -m "migration NNN: descriptive message"`
+4. `tsc --noEmit` and `npx eslint .` — both must pass clean
+5. `git add -A && git commit -m "TWH-X.X: migration NNN: descriptive message"`
 6. `git push origin main`
 7. Wait for Vercel deploy
-8. Hard refresh + smoke test
+8. Hard refresh + verify manually
 
-**Claude Code commits without pushing:** Claude Code may commit without pushing. Always verify the commit happened (`git log --oneline -3`) before the session ends. Never assume a commit was made — verify.
+**Claude Code commits without pushing:** Claude Code may commit without pushing. Always verify the push happened (`git log --oneline -3` + compare to GitHub) before the session ends. A commit that isn't pushed has not deployed.
 
 ---
 
@@ -374,7 +387,7 @@ These values are exact strings — no variations, no capitalisation, no spaces. 
 
 ### Two Tables — Never Conflate Them
 - `users` — the account-level profile. One row per registered user. Display name, avatar, bio, theme preference, watching status, active_character_id. Maps 1:1 with `auth.users`.
-- `characters` — RP character sub-profiles. Up to 3 per user. Name, faction, powers, XP, level, status. FK to `users.id`.
+- `characters` — RP character sub-profiles. Multiple per user (limit in site_settings, never hardcoded). Name, faction, powers, XP, level, status. FK to `users.id`.
 
 **`users` = the person. `characters` = the personas they play.**
 
@@ -418,39 +431,65 @@ The faction color must appear consistently: as a diamond pip in post headers, as
 
 ## 19. Tailwind v4 / Turbopack Platform Rules
 
-Discovered: TWH-0.1 (June 2026). These rules apply for the lifetime of this project.
+These rules apply for the lifetime of this project.
 
 ### Google Fonts — Use `<link>` tags, not CSS `@import`
 
-Tailwind v4 + Turbopack inline CSS at build time. This means a CSS `@import url(...)` for Google Fonts is **invalid** — it lands after real CSS rules and is silently ignored by some renderers.
+Tailwind v4 + Turbopack inline CSS at build time. A CSS `@import url(...)` for Google Fonts is invalid — it lands after real CSS rules and is silently ignored.
 
-**Correct pattern** (implemented in `app/layout.tsx`):
+**Correct pattern** (in `app/layout.tsx`):
 ```tsx
-<head>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Upright:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@400;500;600&display=swap"
-  />
-</head>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Upright:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@400;500;600&display=swap"
+/>
 ```
 
-**Wrong pattern** (do not use):
-```css
-/* app/globals.css — INVALID in Tailwind v4 + Turbopack */
-@import url('https://fonts.googleapis.com/css2?...');
-```
+### `@theme` block — static values only
 
-This is functionally equivalent to the CSS import and fully supported by all browsers. Do not change it to a CSS import in any future session.
+The `@theme` block in `globals.css` MUST contain static hex values. `var()` references inside `@theme` cause runtime 404s even when the build succeeds. This is a confirmed production failure mode discovered in TWH-1.4.
 
-### Next.js Version
+### No tailwind.config.ts
 
-This project runs **Next.js 16.2.9** (installed by `create-next-app@latest`). The Brief targets Next.js 14 patterns — all are compatible with 16. Do not downgrade. If a Next.js API behaves unexpectedly, check the v16 changelog before assuming a Brief error.
+This project uses `postcss.config.mjs` with `@tailwindcss/postcss`. There is no `tailwind.config.ts`. Do not create one.
+
+### Next.js version
+
+This project runs **Next.js 16.2.9**. Do not downgrade.
 
 ---
 
-*Last updated: June 2026 — v1.2 (table rename: characters→users, characters_rp→characters; email confirmation enabled)*
-*Version history: v1 (Phase 0 inception) → v1.1 (TWH-0.1: §19 added) → v1.2 (TWH-0.1 Q-items: table rename + email confirmation)*
+## 20. Vercel Platform Rules
+
+### Framework Preset — MUST be set manually
+
+When creating any new Vercel project, **always manually set the Framework Preset to Next.js** in Settings → General → Framework Preset. Vercel does not reliably auto-detect Next.js 16. Failure to set this causes all routes to return 404 regardless of code correctness. This was the root cause of hours of lost time on this project.
+
+**Verification:** After creating a new Vercel project, immediately confirm the framework preset is set before pushing any code.
+
+### proxy.ts — Next.js 16 middleware convention
+
+Next.js 16 uses `proxy.ts` at the project root with `export async function proxy()`.
+The build log confirms: *"The middleware file convention is deprecated. Please use proxy instead."*
+Do NOT use `middleware.ts` or `export function middleware()` — this causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
+
+### Environment variables
+
+All five env vars must be set in Vercel → Settings → Environment Variables AND in local `.env.local`. Adding vars to Vercel requires a redeploy to take effect. Use `npx vercel --prod --force` for a guaranteed fresh build with no cache.
+
+### Build cache issues
+
+If a deployment shows `[0ms]` build time, it served from cache and may not have the latest env vars or code. Force a fresh build with `npx vercel --prod --force`.
+
+### Do not use Claude in Chrome for verification
+
+All visual verification is done manually by the operator. Claude Code must not open a browser or use Claude in Chrome for any verification step. This wastes tokens and is explicitly prohibited.
+
+---
+
+*Last updated: June 2026 — v1.3 (post clean slate — all lessons from failed Phase 1 builds incorporated)*
+*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands)*
 *This document must be updated whenever a new standing rule is agreed upon.*
 *Cross-reference: TWH_BRIEF_v1.md*

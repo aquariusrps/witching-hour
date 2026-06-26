@@ -44,9 +44,12 @@ Vercel preview URL: `https://the-witching-hour.vercel.app`
 - **File Storage:** Supabase Storage (avatars, character portraits, theme assets)
 - **Image Processing:** sharp (server-side, lossless PNG processing for all image uploads)
 - **Styling:** Tailwind CSS v4 (CSS-first configuration — no tailwind.config.ts)
-  Tailwind v4 uses an `@theme` block in `globals.css` instead of `tailwind.config.ts`.
-  Color tokens and font families are defined there, not in a JS config file.
-  Do NOT create or reference `tailwind.config.ts` — it is not used in this project.
+  Tailwind v4 uses `postcss.config.mjs` with `@tailwindcss/postcss`. There is no
+  `tailwind.config.ts` in this project — do not create one.
+  The `@theme` block in `globals.css` MUST use static hex values only.
+  `var()` references inside `@theme` are NOT supported and cause runtime 404s
+  even when the build succeeds. This is a confirmed critical failure mode.
+  See §4 for the correct globals.css structure.
 - **Rich Text Editor:** Tiptap (@tiptap/react, @tiptap/starter-kit, extensions)
   Used in: forum posts, Grimoire entries, character bios, Whispers composition
   Custom extension: spoiler tags (click-to-reveal)
@@ -169,9 +172,40 @@ The default theme is **Blood Moon**. All UI is built to this palette first. Othe
 https://fonts.googleapis.com/css2?family=Cormorant+Upright:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@400;500;600&display=swap
 ```
 
-### CSS Variable Naming Convention
+### CSS Variable Naming Convention & globals.css Structure
 
-All design tokens are declared as CSS custom properties on `:root`. Theme switching works by applying a `data-theme` attribute to `<body>` which overrides these variables. Tailwind v4 utility classes (e.g. `text-ember`, `bg-claret`) are defined in the `@theme` block in `globals.css` and resolve to these CSS variables — so they remain theme-aware.
+All design tokens are declared as CSS custom properties on `:root`. Theme switching
+works by applying a `data-theme` attribute to `<body>` which overrides these variables
+via `[data-theme="name"]` blocks in `globals.css`.
+
+**CRITICAL — `@theme` block rules:**
+The `@theme` block in `globals.css` is used to generate Tailwind utility classes
+(`text-ember`, `bg-claret`, etc.). It MUST use static hex values — never `var()`
+references. Using `var()` inside `@theme` causes runtime 404s even though the
+build succeeds. This is a confirmed production failure mode.
+
+```css
+/* CORRECT — static hex values in @theme */
+@theme {
+  --color-ember: #c83818;
+  --color-gold:  #e0b028;
+  --font-cormorant: 'Cormorant Upright', serif;
+}
+
+/* WRONG — var() references in @theme cause runtime 404s */
+@theme {
+  --color-ember: var(--ember); /* DO NOT DO THIS */
+}
+```
+
+**Consequence of this rule:** Tailwind utility classes (`text-ember`, `bg-claret`)
+will always reflect Blood Moon colors regardless of active theme. They are static.
+Theme switching works correctly via CSS variables and inline `style` props using
+`var(--token)` — not via Tailwind utility classes. All components use inline styles
+for theme-sensitive colors.
+
+**Opacity modifier limitation:** Tailwind v4 opacity modifiers (`text-ember/50`)
+do NOT work with CSS variable-backed colors. Use inline styles for alpha variants.
 
 ```css
 :root {
@@ -200,21 +234,13 @@ All design tokens are declared as CSS custom properties on `:root`. Theme switch
   --cov-border:  rgba(224,176,40,0.35);
   --cab-border:  rgba(200,56,24,0.35);
   --unb-border:  rgba(56,120,168,0.35);
-  /* Alpha / glow tokens (added TWH-1.4) */
+  /* Alpha / glow tokens */
   --ember-glow:  rgba(200,56,24,0.15);
   --gold-glow:   rgba(224,176,40,0.12);
   --moon-glow:   rgba(56,120,168,0.10);
   --masthead-bg: rgba(48,16,16,0.92);
 }
 ```
-
-**Tailwind v4 `@theme` block:** Color utility classes (`text-ember`, `bg-claret`,
-`border-gold`, etc.) and font family classes (`font-cormorant`, `font-playfair`,
-`font-garamond`, `font-cinzel`) are declared in `@theme` in `globals.css` and
-resolve to the CSS variables above. They are theme-aware automatically.
-
-**Opacity modifier limitation:** Tailwind v4 opacity modifiers (`text-ember/50`)
-do NOT work with CSS variable-backed colors. Use inline styles for alpha variants.
 
 ### Signature Visual Elements
 
@@ -799,11 +825,25 @@ shell once — pages inside the group do not import or render PageLayout themsel
 Public pages (landing, login, register, confirm) live outside the route group.
 Auth pages live under `app/(auth)/`.
 
-### Middleware Convention (confirmed fix TWH-1.3)
-The Next.js middleware file is `middleware.ts` at the project root.
-The exported function MUST be named `middleware`.
-This project uses `middleware.ts` with `export async function middleware(...)`.
-Do NOT rename to `proxy.ts` or export as `proxy` — this breaks routing entirely.
+### Middleware Convention (Next.js 16 confirmed)
+Next.js 16 has renamed the middleware file convention from `middleware.ts` to
+`proxy.ts`. The exported function must be named `proxy`.
+
+**Confirmed facts from build log:**
+```
+⚠ The "middleware" file convention is deprecated.
+  Please use "proxy" instead.
+```
+The route table in Vercel build output shows `ƒ Proxy (Middleware)`.
+
+**Correct setup:**
+- File: `proxy.ts` at the project root
+- Export: `export async function proxy(request: NextRequest)`
+- Config: `export const config = { matcher: [...] }`
+
+Do NOT name the file `middleware.ts` or export as `middleware` in Next.js 16.
+This was confirmed through painful trial and error — the build succeeds either
+way but the wrong name causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
 
 ---
 
@@ -813,103 +853,107 @@ Do NOT rename to `proxy.ts` or export as `proxy` — this breaks routing entirel
 
 **TWH-0.1 — Complete**
 - Repo scaffolded at `/Users/soundadvice/witchinghour/`
-- Next.js 16.2.9 installed (not 14 — `create-next-app@latest` resolved to 16; all patterns identical)
-- Tailwind v4 + Turbopack active
-- Dependencies installed: `@supabase/supabase-js @supabase/ssr sharp @tiptap/react @tiptap/starter-kit @tiptap/extension-image dompurify @types/dompurify resend`
-- `lib/supabase/browserClient.ts` — module-level singleton via `createBrowserClient`, exported as `getBrowserClient()`
-- `lib/supabase/serverClient.ts` — async `getServerClient()` using `createServerClient` with `cookies()` from `next/headers`
-- `lib/supabase/adminClient.ts` — `getAdminClient()` using service role key, no session persistence
-- `lib/cached-settings.ts` — empty shell with `unstable_cache` import
-- `app/globals.css` — Blood Moon `:root` variables (22 tokens, faction fills/borders), body defaults
-- `app/layout.tsx` — Google Fonts loaded via `<link>` tags with preconnect headers
-- Dev server confirmed: 200 OK, no errors
+- Next.js 16.2.9 installed via `create-next-app@latest`
+- Tailwind v4 + Turbopack + ESLint active
+- Dependencies: `@supabase/supabase-js @supabase/ssr sharp @tiptap/react
+  @tiptap/starter-kit @tiptap/extension-image dompurify @types/dompurify resend`
+- Supabase client files created (empty shells): `lib/supabase/browserClient.ts`,
+  `serverClient.ts`, `adminClient.ts`, `lib/cached-settings.ts`
+- `app/globals.css` — Blood Moon `:root` tokens + body defaults
+- `app/layout.tsx` — Google Fonts via `<link>` tags (not CSS `@import`)
+- Master documents copied to repo root
 
 **TWH-0.2 — Complete**
-- `TWH_BRIEF_v1.md` — master project document written
-- `TWH_PROCESS_v1.md` — build governance document written
+- `TWH_BRIEF_v1.md` and `TWH_PROCESS_v1.md` written
 
-**TWH-0.3 — Complete**
-- GitHub repository: `aquariusrps/witchinghour`
-- Supabase project: `the-witching-hour` (project ID: vkhuttcusqubteseifui)
+**TWH-0.3 — Partially complete**
+- GitHub: `aquariusrps/witchinghour`
+- Supabase project: `the-witching-hour` (ID: vkhuttcusqubteseifui)
+  URL: `https://vkhuttcusqubteseifui.supabase.co`
 - Storage buckets created: `portraits`, `characters`, `rich-text-images`
-- `.env.local` created with all 5 required env vars
-- Vercel project connected to GitHub, auto-deploy on push to main confirmed
-- Supabase Auth configured: email confirmation ON, SMTP via Resend, redirect URLs set
-- **Lesson recorded:** `.env.local` must be created and verified before any subsequent
-  build begins. Missing env vars cause silent runtime 404s, not build errors.
+- `.env.local` created with all 5 required env vars (confirmed working)
+- Vercel project: `the-witching-hour` → `https://the-witching-hour.vercel.app`
+- Supabase Auth: email confirmation ON, SMTP via Resend, redirect URLs set
+- **Pending:** Migration 001 has NOT been applied on the clean slate. All
+  database migrations need to be re-run from TWH-1.1 onward.
 
-### Phase 1 — Authentication & User Accounts (June 2026)
+### Phase 1 — Landing Page (June 2026)
 
-**TWH-1.1 — Complete** (commit: e5eb864 area)
-Migration 001 applied. Tables created:
-- `site_settings` — key/value, RLS: SELECT authenticated, write service role only
-  Seed rows: `launch_date=''`, `max_characters_per_user='5'`, `xp_per_rp_post='10'`
-- `users` — account profiles, RLS: SELECT all authenticated, UPDATE own row only
-  `active_character_id` nullable, no FK yet (deferred to Migration 005)
-- `session_logs` — INSERT own rows only, no SELECT policy (service role reads)
-- `ip_bans` — all ops via service role only
+**TWH-1.2a — Complete** (commit: 0927c4c area)
+Landing page live at `https://the-witching-hour.vercel.app`
+- `app/page.tsx` — fully static, no Supabase, no auth check, no async
+- `app/layout.tsx` — minimal, Google Fonts only
+- `app/globals.css` — Blood Moon tokens, no `@theme` block, no `[data-theme]`
+  overrides yet (those come when theme switcher is built)
+- Blood moon logo mark SVG inline (crescent + pentacle + gold cardinal dots)
+- Hero: "The Witching Hour" (gold, weight 600) + "is upon us." (roseash,
+  weight 300) on one continuous line using `clamp()` for responsive sizing
+- Tagline: "For those who never stopped believing in magic." (EB Garamond italic)
+- CTAs: "Enter the Circle" → /register, "I already belong" → /login
+- Show ribbon (7 canons with colour-coded dots, bottom of viewport)
+- Pentacle watermark SVG at 4% opacity
+- CSS animations: `moonRise` on logo, `fadeUp` stagger on content
+- `prefers-reduced-motion` respected
+- SEO: title, description, Open Graph tags
 
-**TWH-1.2 — Complete**
-- Registration flow: `app/(auth)/register/page.tsx` + `RegisterForm.tsx`
-- Server action: `app/actions/auth.ts` → `registerUser()`
-  Validates fields, checks display_name uniqueness via admin client,
-  calls `supabase.auth.signUp()` with `emailRedirectTo` → `/auth/callback`,
-  inserts `users` row via admin client, redirects to `/confirm`
-- `app/(auth)/confirm/page.tsx` — "Check your email" page
-- `app/auth/callback/route.ts` — exchanges code for session, inserts welcome
-  Council Notice into `mail_messages` (try/catch — deferred until mail migration),
-  redirects to `/dashboard`
-- `app/(auth)/login/page.tsx` + `LoginForm.tsx` — email/password login
-- `app/(auth)/layout.tsx` — auth page shell
-- ESLint added: `eslint.config.mjs`, `eslint-config-next` installed
+### What was attempted and deleted (lessons only — not current state)
 
-**TWH-1.2a — Complete**
-- `app/page.tsx` — landing page
-  Hero: "The Witching Hour" (Cormorant Upright, weight 600, gold) + "is upon us."
-  (weight 300, roseash) on one continuous line via `clamp()`
-  Tagline: "For those who never stopped believing in magic." (EB Garamond italic)
-  CTAs: "Enter the Circle" → /register, "I already belong" → /login
-  Blood moon logo mark SVG (120px), pentacle watermark (4% opacity)
-  Show ribbon (7 canons, colour-coded dots)
-  CSS animations: fade-in + scale on logo, stagger fade on content
-  `prefers-reduced-motion` respected
-  SEO: title, meta description, Open Graph tags
-  Authenticated users redirected to /dashboard
-- `app/components/BloodMoonMark.tsx` — reusable SVG logo mark component
+The following were built, encountered issues, and were deleted in the clean slate.
+The code does not exist in the repo. These lessons are recorded here to prevent
+repeating mistakes.
 
-**TWH-1.3 — Complete** (commits: e5eb864, d20096d)
-- `middleware.ts` — Next.js middleware (MUST be named middleware.ts, export as
-  `middleware` — see §19 Middleware Convention). Protects 11 route prefixes,
-  refreshes session cookies via `@supabase/ssr` updateSession pattern.
-  **Critical lesson:** Claude Code incorrectly named this `proxy.ts` with
-  `export function proxy()` — this broke all routing. Fixed to `middleware.ts`
-  with `export async function middleware()`.
-- `lib/cached-settings.ts` — `getCachedSiteSettings()` implemented with
-  `unstable_cache`, tag `site-settings`, TTL 300s, uses `getAdminClient()`
-  (must work for unauthenticated pages). `getSetting(key)` helper added.
-- `app/layout.tsx` — parallel `Promise.all` pattern, `data-theme` on body,
-  fire-and-forget `logSession()`
-- `app/(authenticated)/layout.tsx` — route group layout for all authenticated pages
-- `app/(authenticated)/dashboard/page.tsx` — dashboard shell
-- `app/components/Masthead.tsx` — sticky nav with show ribbon
-- `app/components/Sidebar.tsx` — left nav (Client Component for `usePathname()`)
-- `app/components/PageLayout.tsx` — grid layout wrapper (220px sidebar + 1fr)
+**Attempted: TWH-1.1 through TWH-1.4**
+All deleted. Key lessons extracted:
 
-**TWH-1.4 — Complete**
-- `app/globals.css` — complete rewrite:
-  `@theme` block for Tailwind v4 (16 color utility classes + 4 font classes)
-  4 new alpha tokens: `--ember-glow`, `--gold-glow`, `--moon-glow`, `--masthead-bg`
-  Body three-layer radial gradient (ember top-left, gold mid-right, moon bottom)
-  4 `[data-theme]` override blocks: silver-onyx, victorian-apothecary,
-  crimson-athenaeum, midnight-garden
-- Component audit: all hardcoded rgba values replaced with CSS variable tokens
+1. **`@theme var()` causes runtime 404s** — The `@theme` block had
+   `--color-ember: var(--ember)` style references. Tailwind v4 cannot resolve
+   `var()` at build time inside `@theme`. Build succeeds, runtime 404s. Fixed
+   by removing `@theme` entirely from the clean slate. If `@theme` is used in
+   future, all values must be static hex codes.
 
-### Known Issues / Active Q-items
-- Alternate theme palette hex values are first-pass scaffolds — verify against
-  visual mocks before shipping theme switcher publicly
-- Body gradient + landing page HERO_GRADIENT may double-layer — verify visually
-- React cache() / DAL deduplication deferred — getUser() runs twice per
-  authenticated page render (acceptable at current scale, revisit at Phase 5+)
+2. **Vercel framework preset must be set manually** — Vercel did not auto-detect
+   Next.js 16 as the framework. All routes returned 404 until "Next.js" was
+   manually selected in Settings → General → Framework Preset. This is now the
+   first thing to verify on any new Vercel project.
+
+3. **`proxy.ts` not `middleware.ts` in Next.js 16** — Next.js 16 deprecated
+   `middleware.ts` and uses `proxy.ts` with `export function proxy()`. The build
+   log warns: "The middleware file convention is deprecated. Please use proxy
+   instead." Using `middleware.ts` causes `MIDDLEWARE_INVOCATION_FAILED`.
+
+4. **`.env.local` must be verified before any build begins** — Missing env vars
+   do not cause build failures but cause silent runtime errors.
+
+5. **Vercel SSO / Deployment Protection** — The old `the-witching-hour` Vercel
+   project had SSO protection enabled at the team level which redirected all
+   requests to `vercel.com/sso-api`. Setting the framework preset correctly
+   resolved this in the new clean setup.
+
+### Current repo state (post clean slate)
+Files that exist:
+- `app/page.tsx` — landing page (static)
+- `app/layout.tsx` — minimal root layout
+- `app/globals.css` — Blood Moon tokens, body defaults
+- `lib/supabase/browserClient.ts` — empty shell
+- `lib/supabase/serverClient.ts` — empty shell
+- `lib/supabase/adminClient.ts` — empty shell
+- `lib/cached-settings.ts` — empty shell
+- `TWH_BRIEF_v1.md`, `TWH_PROCESS_v1.md` — master documents
+- `package.json` — all dependencies installed
+
+Files that do NOT exist (to be built):
+- No middleware/proxy
+- No auth pages (register, login, confirm, callback)
+- No dashboard
+- No Masthead, Sidebar, PageLayout components
+- No database migrations applied
+
+### Next steps (resuming from roadmap)
+- TWH-0.3 completion: verify Supabase env vars in Vercel dashboard
+- TWH-1.1: Migration 001 — users, site_settings, session_logs, ip_bans
+- TWH-1.2: Registration flow with email confirmation
+- TWH-1.3: Login, proxy.ts middleware, layout shell, dashboard, Masthead, Sidebar
+- TWH-1.4: globals.css multi-theme scaffold (NO @theme var() references)
 
 *This document is updated at the completion of each build phase.*
-*Cross-reference: TWH_PROCESS_v1.md (build governance), TWH_ROADMAP (in planning chat)*
+*Cross-reference: TWH_PROCESS_v1.md (build governance)*
