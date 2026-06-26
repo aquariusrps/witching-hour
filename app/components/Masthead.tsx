@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import MastheadNav from '@/app/components/MastheadNav'
+import MastheadUser from '@/app/components/MastheadUser'
 
 interface MastheadProps {
   user: {
@@ -21,10 +22,6 @@ const SHOWS = [
   { label: 'Witches of East End', href: '/forums?canon=witches-ee',      dotVar: 'var(--dot-witches-ee)',    glow: false },
   { label: 'Practical Magic',     href: '/forums?canon=practical-magic', dotVar: 'var(--dot-practical)',     glow: false },
 ]
-
-function getInitial(name: string): string {
-  return (name.trim()[0] ?? '?').toUpperCase()
-}
 
 export default function Masthead({ user }: MastheadProps) {
   return (
@@ -167,59 +164,12 @@ export default function Masthead({ user }: MastheadProps) {
           {/* Separator */}
           <div style={{ width: 1, height: 26, background: 'var(--border)', flexShrink: 0, margin: '0 4px' }} aria-hidden="true" />
 
-          {/* User chip */}
+          {/* User chip + dropdown */}
           {user && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'default',
-            }}>
-              <div style={{
-                width: 30,
-                height: 30,
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: '1px solid var(--cov-border)',
-                flexShrink: 0,
-                background: 'var(--claret)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                {user.avatar_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={user.avatar_url}
-                    alt={user.display_name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <span style={{
-                    fontFamily: 'var(--f-ui)',
-                    fontSize: '0.66rem',
-                    color: 'var(--mist)',
-                    fontWeight: 600,
-                  }}>
-                    {getInitial(user.display_name)}
-                  </span>
-                )}
-              </div>
-              <span style={{
-                fontFamily: 'var(--f-body)',
-                fontSize: '0.875rem',
-                color: 'var(--roseash)',
-                maxWidth: 120,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                {user.display_name}
-              </span>
-              <svg viewBox="0 0 10 6" fill="currentColor" style={{ width: 9, height: 5, color: 'var(--faded)', flexShrink: 0 }}>
-                <path d="M0 0l5 6 5-6H0z" />
-              </svg>
-            </div>
+            <MastheadUser
+              displayName={user.display_name}
+              avatarUrl={user.avatar_url}
+            />
           )}
         </div>
       </div>
