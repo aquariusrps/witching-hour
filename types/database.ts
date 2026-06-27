@@ -14,6 +14,208 @@ export type Database = {
   }
   public: {
     Tables: {
+      character_level_thresholds: {
+        Row: {
+          created_at: string
+          label: string
+          level: number
+          unlocks_description: string | null
+          xp_required: number
+        }
+        Insert: {
+          created_at?: string
+          label: string
+          level: number
+          unlocks_description?: string | null
+          xp_required: number
+        }
+        Update: {
+          created_at?: string
+          label?: string
+          level?: number
+          unlocks_description?: string | null
+          xp_required?: number
+        }
+        Relationships: []
+      }
+      character_powers: {
+        Row: {
+          acquired_at: string
+          character_id: string
+          id: string
+          power_description: string | null
+          power_name: string
+          source: string
+        }
+        Insert: {
+          acquired_at?: string
+          character_id: string
+          id?: string
+          power_description?: string | null
+          power_name: string
+          source: string
+        }
+        Update: {
+          acquired_at?: string
+          character_id?: string
+          id?: string
+          power_description?: string | null
+          power_name?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_powers_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_relationships: {
+        Row: {
+          character_id: string
+          created_at: string
+          created_by: string
+          id: string
+          is_mutual: boolean
+          related_character_id: string
+          relationship_label: string | null
+          relationship_type: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_mutual?: boolean
+          related_character_id: string
+          relationship_label?: string | null
+          relationship_type: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_mutual?: boolean
+          related_character_id?: string
+          relationship_label?: string | null
+          relationship_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_relationships_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_relationships_related_character_id_fkey"
+            columns: ["related_character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_xp_log: {
+        Row: {
+          amount: number
+          awarded_by: string | null
+          character_id: string
+          created_at: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          amount: number
+          awarded_by?: string | null
+          character_id: string
+          created_at?: string
+          id?: string
+          reason: string
+        }
+        Update: {
+          amount?: number
+          awarded_by?: string | null
+          character_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_xp_log_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      characters: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          canon_source: string
+          created_at: string
+          faction_id: string | null
+          id: string
+          is_npc: boolean
+          level: number
+          name: string
+          status: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          canon_source?: string
+          created_at?: string
+          faction_id?: string | null
+          id?: string
+          is_npc?: boolean
+          level?: number
+          name: string
+          status?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          canon_source?: string
+          created_at?: string
+          faction_id?: string | null
+          id?: string
+          is_npc?: boolean
+          level?: number
+          name?: string
+          status?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "characters_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "characters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       factions: {
         Row: {
           color_hex: string
@@ -74,6 +276,39 @@ export type Database = {
           id?: string
           ip_address?: string
           reason?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -272,7 +507,15 @@ export type Database = {
           theme_preference?: string | null
           watching_status?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_active_character_id_fkey"
+            columns: ["active_character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       waitlist_signups: {
         Row: {

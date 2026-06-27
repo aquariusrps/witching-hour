@@ -12,3 +12,31 @@ export const getCachedSiteSettings = unstable_cache(
   ['site-settings'],
   { tags: ['site-settings'], revalidate: 300 }
 )
+
+export const getCachedFactions = unstable_cache(
+  async () => {
+    const admin = getAdminClient()
+    const { data, error } = await admin
+      .from('factions')
+      .select('id, name, slug, color_hex, description, lore, leader_user_id, display_order')
+      .order('display_order', { ascending: true })
+    if (error) throw error
+    return data ?? []
+  },
+  ['factions'],
+  { revalidate: 3600, tags: ['factions'] }
+)
+
+export const getCachedCharacterLevelThresholds = unstable_cache(
+  async () => {
+    const admin = getAdminClient()
+    const { data, error } = await admin
+      .from('character_level_thresholds')
+      .select('level, xp_required, label, unlocks_description')
+      .order('level', { ascending: true })
+    if (error) throw error
+    return data ?? []
+  },
+  ['level-thresholds'],
+  { revalidate: 3600, tags: ['level-thresholds'] }
+)
