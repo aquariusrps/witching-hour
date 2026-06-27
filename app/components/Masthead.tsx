@@ -12,6 +12,7 @@ interface MastheadProps {
     active_character_id: string | null
   } | null
   settings: Record<string, string>
+  permissions: string[]
 }
 
 export default function Masthead({ user }: MastheadProps) {

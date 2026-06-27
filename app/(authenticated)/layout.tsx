@@ -4,6 +4,7 @@ import { getServerClient } from '@/lib/supabase/serverClient'
 import { getCachedSiteSettings } from '@/lib/cached-settings'
 import { getUserRow } from '@/lib/db/users'
 import { logSession } from '@/lib/db/session'
+import { getUserPermissions } from '@/lib/permissions'
 import Masthead from '@/app/components/Masthead'
 import Footer from '@/app/components/Footer'
 
@@ -16,10 +17,13 @@ export default async function AuthenticatedLayout({
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user?.id
 
-  const [settings, { data: { user } }, userRow] = await Promise.all([
+  const [settings, { data: { user } }, userRow, permissions] = await Promise.all([
     getCachedSiteSettings(),
     supabase.auth.getUser(),
     getUserRow(userId),
+    userId
+      ? getUserPermissions(userId)
+      : Promise.resolve([] as string[])
   ])
 
   if (!user) redirect('/login')
@@ -31,7 +35,7 @@ export default async function AuthenticatedLayout({
 
   return (
     <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--char)', display: 'flex', flexDirection: 'column' }}>
-      <Masthead user={userRow} settings={settings} />
+      <Masthead user={userRow} settings={settings} permissions={permissions} />
       <div style={{ flex: 1 }}>
         {children}
       </div>

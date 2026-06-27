@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      factions: {
+        Row: {
+          color_hex: string
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          leader_user_id: string | null
+          lore: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color_hex: string
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+          leader_user_id?: string | null
+          lore?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+          leader_user_id?: string | null
+          lore?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       ip_bans: {
         Row: {
           banned_by: string | null
@@ -38,6 +74,90 @@ export type Database = {
           id?: string
           ip_address?: string
           reason?: string | null
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          id: string
+          is_enabled: boolean
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          id?: string
+          is_enabled?: boolean
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          id?: string
+          is_enabled?: boolean
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          is_invisible: boolean
+          is_permanent: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id?: string
+          is_invisible?: boolean
+          is_permanent?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_invisible?: boolean
+          is_permanent?: boolean
+          name?: string
         }
         Relationships: []
       }
@@ -82,6 +202,41 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      user_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          role_id: string
+          scope_id: string | null
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role_id: string
+          scope_id?: string | null
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role_id?: string
+          scope_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -151,7 +306,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: never; Returns: boolean }
+      is_moderator: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
