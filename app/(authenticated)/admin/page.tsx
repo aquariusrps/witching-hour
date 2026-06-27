@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
           <h1 style={{
-            fontFamily: 'var(--f-heading)',
+            fontFamily: 'var(--f-head)',
             fontSize: '1.9rem',
             fontWeight: 700,
             color: 'var(--roseash)',
@@ -90,7 +90,7 @@ export default async function AdminDashboardPage() {
             }}
           >
             <div style={{
-              fontFamily: 'var(--f-heading)',
+              fontFamily: 'var(--f-head)',
               fontSize: '2.4rem',
               fontWeight: 700,
               color: stat.highlight ? 'var(--ember)' : 'var(--roseash)',

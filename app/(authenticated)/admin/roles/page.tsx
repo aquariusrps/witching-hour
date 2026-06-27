@@ -112,7 +112,7 @@ export default async function AdminRolesPage({
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
           <h1 style={{
-            fontFamily: 'var(--f-heading)',
+            fontFamily: 'var(--f-head)',
             fontSize: '1.9rem',
             fontWeight: 700,
             color: 'var(--roseash)',
@@ -320,7 +320,7 @@ export default async function AdminRolesPage({
               )}
               <div>
                 <div style={{
-                  fontFamily: 'var(--f-heading)',
+                  fontFamily: 'var(--f-head)',
                   fontSize: '1.3rem',
                   fontWeight: 700,
                   color: 'var(--roseash)',

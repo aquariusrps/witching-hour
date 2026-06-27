@@ -77,6 +77,7 @@ export default async function AdminPlayersPage({
     display_name: string
     avatar_url: string | null
     created_at: string | null
+    essence: number
   }
   type DetailRole = {
     id: string
@@ -88,13 +89,19 @@ export default async function AdminPlayersPage({
       is_permanent: boolean
     } | null
   }
+  type ActiveCharacter = {
+    id: string
+    name: string
+    level: number
+    xp: number
+  }
 
   const detail = selectedUserId
     ? await (async () => {
-        const [userRow, rolesRow, charRow, bannedFlag] = await Promise.all([
+        const [userRow, rolesRow, charCountRow, bannedFlag, charDataRow] = await Promise.all([
           admin
             .from('users')
-            .select('id, display_name, avatar_url, created_at')
+            .select('id, display_name, avatar_url, created_at, essence')
             .eq('id', selectedUserId)
             .single(),
           admin
@@ -106,12 +113,19 @@ export default async function AdminPlayersPage({
             .select('*', { count: 'exact', head: true })
             .eq('user_id', selectedUserId),
           checkIsBanned(selectedUserId),
+          admin
+            .from('characters')
+            .select('id, name, level, xp')
+            .eq('user_id', selectedUserId)
+            .eq('status', 'active')
+            .order('name'),
         ])
         return {
           user: userRow.data as unknown as DetailUser | null,
           roles: (rolesRow.data ?? []) as unknown as DetailRole[],
-          charCount: charRow.count ?? 0,
+          charCount: charCountRow.count ?? 0,
           isBanned: bannedFlag,
+          activeCharacters: (charDataRow.data ?? []) as unknown as ActiveCharacter[],
         }
       })()
     : null
@@ -120,6 +134,7 @@ export default async function AdminPlayersPage({
   const detailRoles = detail?.roles ?? []
   const charCount = detail?.charCount ?? 0
   const isBanned = detail?.isBanned ?? false
+  const activeCharacters = detail?.activeCharacters ?? []
 
   const formatDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
@@ -129,7 +144,7 @@ export default async function AdminPlayersPage({
       {/* Page heading */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{
-          fontFamily: 'var(--f-heading)',
+          fontFamily: 'var(--f-head)',
           fontSize: '1.9rem',
           fontWeight: 700,
           color: 'var(--roseash)',
@@ -326,7 +341,7 @@ export default async function AdminPlayersPage({
               )}
               <div>
                 <div style={{
-                  fontFamily: 'var(--f-heading)',
+                  fontFamily: 'var(--f-head)',
                   fontSize: '1.4rem',
                   fontWeight: 700,
                   color: 'var(--roseash)',
@@ -375,12 +390,39 @@ export default async function AdminPlayersPage({
                   Characters
                 </div>
               </div>
+              <div style={{
+                background: 'var(--raised)',
+                border: '1px solid var(--gold-dim)',
+                borderRadius: 4,
+                padding: '12px 18px',
+                flex: 1,
+              }}>
+                <div style={{
+                  fontFamily: 'var(--f-display)',
+                  fontSize: '1.6rem',
+                  fontWeight: 600,
+                  color: 'var(--gold)',
+                  lineHeight: 1,
+                }}>
+                  {detailUser?.essence ?? 0}
+                </div>
+                <div style={{
+                  fontFamily: 'var(--f-ui)',
+                  fontSize: '0.55rem',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--faded)',
+                  marginTop: 4,
+                }}>
+                  Essence
+                </div>
+              </div>
             </div>
 
             {/* Divider */}
             <div style={{ height: 1, background: 'var(--ember-dim)', marginBottom: 24 }} />
 
-            {/* Role list + ban/unban actions (client component) */}
+            {/* Role list + ban/unban + economy actions (client component) */}
             <PlayerActions
               targetUserId={detailUser.id}
               targetDisplayName={detailUser.display_name}
@@ -392,6 +434,8 @@ export default async function AdminPlayersPage({
                 isInvisible: ur.roles?.is_invisible ?? false,
                 isPermanent: ur.roles?.is_permanent ?? false,
               }))}
+              essence={detailUser.essence}
+              characters={activeCharacters}
             />
 
             {/* Link to role manager */}

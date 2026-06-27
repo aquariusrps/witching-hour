@@ -3,6 +3,7 @@
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 import { hasPermission, isSuperAdmin } from '@/lib/permissions'
+import { createNotification } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 
 export async function searchUsers(query: string) {
@@ -39,20 +40,125 @@ export async function searchUsers(query: string) {
   return { data }
 }
 
-// Q1: grantEssence deferred — users.essence column does not exist yet.
-// Apply a migration to add `essence integer not null default 0` and
-// `last_offering_at timestamptz` to the users table, then implement:
-//
-// export async function grantEssence(
-//   targetUserId: string,
-//   amount: number,
-//   reason: string
-// ) { ... }
-//
-// The action should:
-// 1. Call rpc('increment_user_essence', { p_user_id, p_amount })
-// 2. Insert a row into essence_log (user_id, amount, reason, awarded_by)
-// 3. revalidatePath('/admin/players')
+export async function grantEssence(
+  targetUserId: string,
+  amount: number,
+  reason: string
+): Promise<{ error: string } | { success: true; newBalance: number }> {
+  const supabase = await getServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const canGrant =
+    await hasPermission(user.id, 'manage_users') ||
+    await hasPermission(user.id, 'award_xp')
+  if (!canGrant) return { error: 'Forbidden' }
+
+  if (!amount || amount <= 0) {
+    return { error: 'Amount must be a positive number' }
+  }
+  if (!reason?.trim()) {
+    return { error: 'A reason is required' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: newBalance, error: rpcError } = await admin
+    .rpc('increment_user_essence', {
+      p_user_id: targetUserId,
+      p_amount:  amount,
+    })
+
+  if (rpcError) {
+    return { error: 'Failed to grant Essence' }
+  }
+
+  const { error: logError } = await admin
+    .from('essence_log')
+    .insert({
+      user_id:    targetUserId,
+      amount:     amount,
+      reason:     reason.trim(),
+      awarded_by: user.id,
+    })
+
+  if (logError) {
+    console.error(
+      '[grantEssence] log write failed:', logError.message
+    )
+  }
+
+  return { success: true, newBalance: newBalance as number }
+}
+
+export async function awardXp(
+  characterId: string,
+  targetUserId: string,
+  amount: number,
+  reason: string
+): Promise<{ error: string } | { success: true; newXp: number }> {
+  const supabase = await getServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const canAward = await hasPermission(user.id, 'award_xp')
+  if (!canAward) return { error: 'Forbidden' }
+
+  if (!amount || amount <= 0) {
+    return { error: 'Amount must be a positive number' }
+  }
+  if (!reason?.trim()) {
+    return { error: 'A reason is required' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: character } = await admin
+    .from('characters')
+    .select('id, name, user_id')
+    .eq('id', characterId)
+    .eq('user_id', targetUserId)
+    .single()
+
+  if (!character) {
+    return { error: 'Character not found or does not belong to this user' }
+  }
+
+  const { data: newXp, error: rpcError } = await admin
+    .rpc('award_character_xp', {
+      p_character_id: characterId,
+      p_amount:       amount,
+    })
+
+  if (rpcError) {
+    return { error: 'Failed to award XP' }
+  }
+
+  const { error: logError } = await admin
+    .from('character_xp_log')
+    .insert({
+      character_id: characterId,
+      amount:       amount,
+      reason:       reason.trim(),
+      awarded_by:   user.id,
+    })
+
+  if (logError) {
+    console.error(
+      '[awardXp] log write failed:', logError.message
+    )
+  }
+
+  void createNotification({
+    userId: targetUserId,
+    type:   'xp_awarded',
+    title:  'XP Awarded',
+    body:   `${amount} XP has been awarded to ${character.name}. Reason: ${reason.trim()}`,
+    link:   `/characters/${characterId}`,
+  })
+
+  return { success: true, newXp: newXp as number }
+}
 
 export async function banUser(
   targetUserId: string,

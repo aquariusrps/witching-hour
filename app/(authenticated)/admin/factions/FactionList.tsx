@@ -40,7 +40,7 @@ export default function FactionList({ factions, characterCounts }: FactionListPr
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
         <h1 style={{
-          fontFamily: 'var(--f-heading)',
+          fontFamily: 'var(--f-head)',
           fontSize: '1.9rem',
           fontWeight: 700,
           color: 'var(--roseash)',
@@ -112,7 +112,7 @@ export default function FactionList({ factions, characterCounts }: FactionListPr
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{
-                      fontFamily: 'var(--f-heading)',
+                      fontFamily: 'var(--f-head)',
                       fontSize: '1.15rem',
                       fontWeight: 700,
                       color: 'var(--roseash)',

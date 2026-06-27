@@ -108,7 +108,7 @@ export default function FactionForm({ mode, faction }: FactionFormProps) {
     <div style={{ maxWidth: 680 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
         <h1 style={{
-          fontFamily: 'var(--f-heading)',
+          fontFamily: 'var(--f-head)',
           fontSize: '1.9rem',
           fontWeight: 700,
           color: 'var(--roseash)',

@@ -365,6 +365,41 @@ export type Database = {
           },
         ]
       }
+      essence_log: {
+        Row: {
+          amount: number
+          awarded_by: string | null
+          created_at: string
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          awarded_by?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          awarded_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "essence_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       factions: {
         Row: {
           color_hex: string
@@ -808,7 +843,9 @@ export type Database = {
           bio: string | null
           created_at: string | null
           display_name: string
+          essence: number
           id: string
+          last_offering_at: string | null
           show_preference: string | null
           theme_preference: string | null
           watching_status: Json | null
@@ -819,7 +856,9 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           display_name: string
+          essence?: number
           id: string
+          last_offering_at?: string | null
           show_preference?: string | null
           theme_preference?: string | null
           watching_status?: Json | null
@@ -830,7 +869,9 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           display_name?: string
+          essence?: number
           id?: string
+          last_offering_at?: string | null
           show_preference?: string | null
           theme_preference?: string | null
           watching_status?: Json | null
@@ -877,6 +918,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_character_xp: {
+        Args: { p_amount: number; p_character_id: string }
+        Returns: number
+      }
+      increment_user_essence: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: number
+      }
       is_admin: { Args: never; Returns: boolean }
       is_moderator: { Args: never; Returns: boolean }
     }

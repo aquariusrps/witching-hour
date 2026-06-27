@@ -54,7 +54,7 @@ export default async function AdminWaitlistPage() {
   return (
     <div>
       <h1 style={{
-        fontFamily: 'var(--f-heading)',
+        fontFamily: 'var(--f-head)',
         fontSize: '1.9rem',
         fontWeight: 700,
         color: 'var(--roseash)',
