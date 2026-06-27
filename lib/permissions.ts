@@ -1,5 +1,27 @@
 import { getAdminClient } from '@/lib/supabase/adminClient'
 
+export async function isSuperAdmin(userId: string): Promise<boolean> {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('user_roles')
+    .select('id, roles!inner(name)')
+    .eq('user_id', userId)
+  if (error || !data) return false
+  return (data as Array<{ roles: { name: string } | null }>)
+    .some((ur) => ur.roles?.name === 'super_admin')
+}
+
+export async function isAdminOrSuperAdmin(userId: string): Promise<boolean> {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('user_roles')
+    .select('id, roles!inner(name)')
+    .eq('user_id', userId)
+  if (error || !data) return false
+  return (data as Array<{ roles: { name: string } | null }>)
+    .some((ur) => ['admin', 'super_admin'].includes(ur.roles?.name ?? ''))
+}
+
 type UserRoleRow = {
   scope_id: string | null
   roles: {

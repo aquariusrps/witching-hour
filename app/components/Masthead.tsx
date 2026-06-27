@@ -14,6 +14,7 @@ interface MastheadProps {
   settings: Record<string, string>
   permissions: string[]
   unreadWhisperCount: number
+  superAdmin: boolean
 }
 
 export default function Masthead({ user, unreadWhisperCount }: MastheadProps) {

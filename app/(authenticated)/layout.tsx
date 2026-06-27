@@ -4,7 +4,7 @@ import { getServerClient } from '@/lib/supabase/serverClient'
 import { getCachedSiteSettings } from '@/lib/cached-settings'
 import { getUserRow } from '@/lib/db/users'
 import { logSession } from '@/lib/db/session'
-import { getUserPermissions } from '@/lib/permissions'
+import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
 import { getUnreadWhisperCount } from '@/lib/db/whispers'
 import Masthead from '@/app/components/Masthead'
 import Footer from '@/app/components/Footer'
@@ -18,7 +18,7 @@ export default async function AuthenticatedLayout({
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user?.id
 
-  const [settings, { data: { user } }, userRow, permissions, unreadWhisperCount] = await Promise.all([
+  const [settings, { data: { user } }, userRow, permissions, unreadWhisperCount, superAdmin] = await Promise.all([
     getCachedSiteSettings(),
     supabase.auth.getUser(),
     getUserRow(userId),
@@ -28,6 +28,9 @@ export default async function AuthenticatedLayout({
     userId
       ? getUnreadWhisperCount(userId)
       : Promise.resolve(0),
+    userId
+      ? isSuperAdmin(userId)
+      : Promise.resolve(false),
   ])
 
   if (!user) redirect('/login')
@@ -39,7 +42,7 @@ export default async function AuthenticatedLayout({
 
   return (
     <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--char)', display: 'flex', flexDirection: 'column' }}>
-      <Masthead user={userRow} settings={settings} permissions={permissions} unreadWhisperCount={unreadWhisperCount} />
+      <Masthead user={userRow} settings={settings} permissions={permissions} unreadWhisperCount={unreadWhisperCount} superAdmin={superAdmin} />
       <div style={{ flex: 1 }}>
         {children}
       </div>
