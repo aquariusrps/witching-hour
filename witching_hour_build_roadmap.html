@@ -293,8 +293,19 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
         <span class="prompt-name">Thread bookmarks, Discord webhook on new thread</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">thread_bookmarks table (user_id, thread_id). Bookmark star on thread view. /my-bookmarks page. On new thread creation in discord_announce boards: fire-and-forget POST to discord_webhook_url site_setting. Payload: title, board, canon, author, link.</div>
-      <div class="prompt-note">Fire-and-forget — never block thread creation on webhook</div>
+      <div class="prompt-body">thread_bookmarks table (user_id, thread_id, created_at, UNIQUE). Bookmark star on thread view. /my-bookmarks page lists bookmarked threads with last activity.
+
+        Discord webhook integration: on new thread creation in boards with discord_announce = true, fire a fire-and-forget POST to the discord_webhook_url site_setting. Payload: thread title, board name, canon source, author display_name, direct link. Never block thread creation on the webhook — always fire-and-forget.
+
+        MANUAL SETUP REQUIRED IN THIS PROMPT: Before the webhook can fire, the Discord server must exist. Steps to document and complete as part of this prompt:
+        (1) Create the TWH Discord server.
+        (2) Create the initial channel structure: #announcements (new threads, site events), #new-threads (all public forum threads), #rewatch-club (rewatch events and watch parties), #character-showcase (approved character announcements), #level-ups (character level milestone announcements), #the-offering (Blessing result announcements), #general (community chat).
+        (3) Generate a webhook in #new-threads via Discord Server Settings → Integrations → Webhooks.
+        (4) Paste the webhook URL into the admin panel under Site Settings → Integrations → discord_webhook_url.
+        (5) Toggle discord_announce = true on the boards that should announce to Discord.
+
+        The Discord server is an amplifier — it surfaces site activity in a social layer. It does not replace any site function. All RP, character management, Whispers, and Essence transactions happen exclusively on the site.</div>
+      <div class="prompt-note">Fire-and-forget only — never await webhook POST · Discord server setup is a manual step within this prompt</div>
     </div>
   </div>
 </div>
@@ -762,7 +773,7 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
       <div class="phase-title">Polish, Discord Integration & Launch Prep</div>
       <div class="phase-desc">Founding member badge, pre-launch content seeding, Discord webhook, full RLS audit, hydration error pass.</div>
     </div>
-    <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
+    <div class="phase-meta">5 prompts &ensp;·&ensp; ~2–3 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
@@ -796,6 +807,36 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
         <div class="prompt-badges"><span class="badge b-design">◈ Setup</span></div>
       </div>
       <div class="prompt-body">Run first-admin SQL (INSERT INTO user_roles for admin role). Verify all six env vars in Vercel. Confirm Supabase Auth redirect URLs. Flip registration_open in site_settings. Set launch_date. Grant founding_member role to all early registrants. Final smoke test of full user journey: register → confirm → create character → get approved → post in RP board.</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-13.5</span>
+        <span class="prompt-name">Discord launch setup — richer announcement
+          webhooks across site events</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">Extend Discord integration beyond new-thread
+        announcements. Add webhook firings to existing server actions — all
+        fire-and-forget, never blocking:
+        #character-showcase: fires from approveCharacter() when a character
+          is approved — payload: character name, faction, canon source,
+          link to character profile.
+        #level-ups: fires from award_character_xp() when XP crosses a
+          level threshold — payload: character name, new level label,
+          link to character profile.
+        #the-offering: fires from the Offering resolution action when a
+          Blessing is drawn — payload: username, item name, item type.
+        #rewatch-club: fires when a rewatch event status transitions to
+          'live' — payload: show name, episode title, watch party link.
+        #announcements: fires when a site event (The Convergence) goes
+          active — payload: event name, banner text, site link.
+        All webhook URLs are stored as separate site_settings keys:
+        discord_webhook_character, discord_webhook_levelup,
+        discord_webhook_offering, discord_webhook_rewatch,
+        discord_webhook_events. Each is optional — empty string = disabled.
+        Admin configures all webhook URLs in Site Settings → Integrations.</div>
+      <div class="prompt-note">All fire-and-forget · empty URL = silently
+        skip · never block the triggering action</div>
     </div>
   </div>
 </div>
@@ -868,7 +909,7 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   <span class="total-num">~5 sessions</span>
 </div>
 <div class="total-bar" style="margin-top:6px">
-  <span class="total-label">Phase 15+ — Dueling, Oracle AI, relationship graph, canon expansions, additional post-launch features</span>
+  <span class="total-label">Phase 15+ — Discord bot slash commands (/character, /faction — requires bot application + public API endpoint), Dueling, Oracle AI, relationship graph, canon expansions</span>
   <span class="total-num">~20–30 additional prompts</span>
 </div>
 
