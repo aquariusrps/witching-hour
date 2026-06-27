@@ -40,3 +40,22 @@ export const getCachedCharacterLevelThresholds = unstable_cache(
   ['level-thresholds'],
   { revalidate: 3600, tags: ['level-thresholds'] }
 )
+
+export const getCachedPublicBoards = unstable_cache(
+  async () => {
+    const admin = getAdminClient()
+    const { data, error } = await admin
+      .from('boards')
+      .select(
+        'id, name, description, category, scope, ' +
+        'is_rp_board, forced_theme, min_level_required, ' +
+        'discord_announce, display_order'
+      )
+      .in('scope', ['public', 'rp'])
+      .order('display_order', { ascending: true })
+    if (error) throw error
+    return data ?? []
+  },
+  ['public-boards'],
+  { revalidate: 300, tags: ['boards'] }
+)
