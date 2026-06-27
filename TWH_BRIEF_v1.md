@@ -1,6 +1,6 @@
 # The Witching Hour — Master Project Brief
-### Comprehensive Build Document v1 — Complete & Authoritative
-### Created: June 2026
+### Comprehensive Build Document v1.5 — Complete & Authoritative
+### Created: June 2026 | Last Updated: 2026-06-27
 
 ---
 
@@ -14,6 +14,7 @@ The site recreates and modernises the early-2000s fansite experience of communit
 - Community forums with multi-show discussion, organised by canon
 - Post-by-post collaborative roleplay with in-character (IC) posting
 - Character sub-profiles linked to user accounts, with faction affiliation, powers, XP, and levelling
+- Sub-RP spaces called Chronicles — discrete collaborative stories with their own character rosters, Keeper leadership, membership approval, and private boards
 - A rewatch club with live watch party events
 - A lore compendium (The Grimoire) covering powers, demons, locations, and mythology
 
@@ -329,7 +330,7 @@ do NOT work with CSS variable-backed colors. Use inline styles for alpha variant
 ### Sidebar Personal Links
 - Whispers (private messages — with unread badge)
 - My Characters
-- The Apothecary (XP store)
+- The Apothecary (Essence store)
 - Bookmarks
 - Edit Profile
 - Settings
@@ -343,6 +344,10 @@ do NOT work with CSS variable-backed colors. Use inline styles for alpha variant
 ## 6. Factions
 
 Three factions. Characters choose a faction on creation. Factions are not strictly good/evil — moral complexity is intentional. Users can have characters in different factions.
+
+Factions are fully admin-editable — name, slug, color_hex, description, lore, leader_title, and display_order are all configurable via the faction manager in the admin panel. The seed data in Migration 010 is a starting placeholder.
+
+Each faction supports multiple leaders simultaneously. Leaders are assigned via user_roles with scope_id = faction_id and the faction_leader role. The display name for a faction's leadership tier is stored in factions.leader_title (default: 'Keeper') and is faction-configurable — examples: 'Elders' for a light-aligned faction, 'The Triad' for a dark-aligned faction. This title appears wherever faction leadership is displayed in the UI.
 
 ### The Covenant
 - **Alignment:** Light-leaning, protective, structured
@@ -376,15 +381,23 @@ Characters are sub-profiles of user accounts. The maximum number of characters p
 - `canon_source` — which show this character is from, or 'original'
 - `xp` — integer, accumulates from RP posts and admin awards
 - `level` — integer 1–N, derived from xp vs character_level_thresholds
-- `status` — `'pending'` (awaiting approval) | `'active'` | `'suspended'`
+- `status` — `'pending'` (submitted, awaiting first review) | `'needs_revision'` (reviewer has requested changes) | `'active'` (approved) | `'suspended'` (removed from play)
 - `is_npc` — boolean, admin-only set. NPC characters controlled by staff.
 
 ### Approval Flow
-1. User submits character (multi-step form: name → faction → bio → review)
-2. Character status = 'pending'; notification fires to admin queue
-3. Admin approves → status = 'active', notification to user
-4. Admin rejects → reason required, notification to user with reason
-5. Approved characters appear in the user's character selector for IC posting
+The character approval flow supports multiple rounds of feedback between the reviewer and the submitting user. This applies to both site-wide characters and Chronicle characters.
+
+1. User submits character (multi-step form: name → faction → bio → review). Status set to 'pending'.
+2. Notification fires to admin/Keeper approval queue.
+3. Reviewer can: Approve, Reject, or Request Revision.
+   - Approve: status → 'active'. Notification to user.
+   - Reject: reason required. Status → 'suspended'. Notification to user with reason. Character is not deleted — user can appeal via Whisper.
+   - Request Revision: reviewer writes feedback. Status → 'needs_revision'. Notification to user with feedback.
+4. User receives feedback, edits the character, and resubmits. Status returns to 'pending'.
+5. Steps 3–4 repeat as many times as needed.
+6. On approval, character status → 'active'. Approved characters appear in the user's character selector for IC posting.
+
+Each round of feedback and resubmission is recorded in the character_revisions table (reviewer_id, feedback text, submitted_at, reviewed_at).
 
 ### XP & Levelling
 - XP accumulates per character (not per user)
@@ -454,9 +467,10 @@ theme-switch.
 ```
 Admin
 Moderator
-Lore Keeper    (manages Grimoire wiki)
-Faction Leader  (scoped to faction_id)
-Founding Member (display/prestige role — no mod permissions by default)
+Lore Keeper      (manages Grimoire wiki)
+Faction Leader   (scoped to faction_id)
+Keeper           (leads a Chronicle, scoped to chronicle_id)
+Founding Member  (display/prestige — no mod permissions)
 [Regular User]
 ```
 
@@ -472,6 +486,7 @@ All permissions are additive across roles — no role can negate another. System
 - `award_xp` — manually award XP to characters
 - `post_announcement` — post faction/site-wide system announcements
 - `manage_faction` — Faction Leader, scoped to their faction
+- `manage_chronicle` — Keeper, scoped to their chronicle_id. Create/edit chronicle details, manage membership, approve characters, moderate chronicle boards.
 
 **Critical:** Permission column is `is_enabled` (boolean). NEVER `is_granted`. This is a hard rule inherited from WM's build experience.
 
@@ -514,14 +529,44 @@ System messages trigger the "Council Notice" sidebar indicator (glowing/pulsing)
 
 ---
 
-## 12. The Apothecary (XP Store)
+## 12. The Apothecary (Essence Store)
 
-Users spend character XP on:
-- **Powers** — adds to character's power list; some require minimum level
-- **Cosmetics** — avatar frames, title badges, profile accents
-- **Artifacts** — RP-usable items (flavour, no mechanical effect at launch)
+The Apothecary is the site's reward store. Users spend Essence — the site's account-level spendable currency — to acquire items for their characters.
 
-XP deduction is atomic: `UPDATE characters SET xp = xp - cost WHERE id = $1 AND xp >= cost RETURNING id`. If no row returned, insufficient XP — reject.
+### Essence
+Essence is an account-level currency (stored on the users table as essence integer default 0). It is distinct from XP:
+- XP is character-level, earned only, permanent. It drives levelling and represents a character's growth.
+- Essence is account-level, earned and spent. It pools across all of a user's characters, allowing faster accumulation for higher-priced items. The user then chooses which character receives the purchased boon.
+
+Essence sources (admin-configurable amounts via site_settings):
+- RP post submission (auto-award, same trigger as XP)
+- Admin manual grant
+- Event bonus multiplier
+- Partial refund from The Offering (see below)
+
+Essence is tracked in the essence_log table (user_id, amount, reason, awarded_by nullable, created_at). Deduction is atomic:
+```sql
+UPDATE users SET essence = essence - cost
+WHERE id = $1 AND essence >= cost
+RETURNING id
+```
+If no row returned: insufficient Essence — reject with error.
+
+### Apothecary Listings
+Three item types:
+- Powers — added to a chosen character's power list; some require minimum character level (min_level_required)
+- Cosmetics — avatar frames, title badges, profile accents applied to the user account or a chosen character
+- Artifacts — RP-usable flavour items; no mechanical effect at launch
+
+### The Offering
+A ritual mechanic where users sacrifice a fixed amount of Essence (admin-configurable via site_settings key offering_cost, default '50') to "call the spirits" and receive a randomized Blessing — one item drawn from the eligible pool of Apothecary listings.
+
+Offering behavior:
+- Only listings with blessing_eligible = true enter the pool
+- Draw is weighted by blessing_weight (integer, default 10; lower = rarer). Common cosmetics might be weight 50, rare powers weight 2.
+- If the drawn item is already owned by the user (exists in apothecary_purchases for any of their characters), the spirits return a partial Essence refund (amount admin-configurable via offering_refund_amount site_setting, default '25'). The refund behavior is admin-configurable.
+- Per-user cooldown: admin-configurable via offering_cooldown_hours site_setting (default '24'). Tracked via last_offering_at timestamptz on the users table.
+- The Offering has its own page or prominent section within the Apothecary — it is a ritual moment, not a button.
 
 ---
 
@@ -623,6 +668,8 @@ users            — id (uuid PK = auth.users.id), display_name (text unique),
                    show_preference (text nullable),
                    watching_status (jsonb default '{}'),
                    active_character_id (uuid nullable FK characters.id),
+                   essence (integer default 0),
+                   last_offering_at (timestamptz nullable),
                    created_at (timestamptz default now())
 
 -- SESSIONS / SECURITY
@@ -647,7 +694,10 @@ user_roles       — id (uuid), user_id (uuid FK auth.users), role_id (uuid FK r
 -- FACTIONS
 factions         — id (uuid), name (text unique), slug (text unique),
                    color_hex (text), description (text), lore (text HTML),
-                   leader_user_id (uuid nullable FK auth.users), created_at
+                   leader_user_id (uuid nullable FK auth.users),
+                   leader_title (text default 'Keeper'),
+                   display_order (integer default 0),
+                   created_at
 
 -- RP CHARACTERS
 characters       — id (uuid), user_id (uuid FK users.id ON DELETE CASCADE),
@@ -656,7 +706,8 @@ characters       — id (uuid), user_id (uuid FK users.id ON DELETE CASCADE),
                    faction_id (uuid nullable FK factions),
                    canon_source (text default 'original'),
                    xp (integer default 0), level (integer default 1),
-                   status (text CHECK pending/active/suspended default 'pending'),
+                   status (text CHECK pending/needs_revision/active/suspended
+                     default 'pending'),
                    is_npc (boolean default false),
                    created_at (timestamptz)
                    -- Index: (user_id), (faction_id), (status)
@@ -675,6 +726,13 @@ character_xp_log — id (uuid), character_id (uuid FK characters ON DELETE CASCA
                    created_at (timestamptz)
                    -- Index: (character_id)
 
+essence_log      — id (uuid), user_id (uuid FK users.id ON DELETE CASCADE),
+                   amount (integer),
+                   reason (text),
+                   awarded_by (uuid nullable FK auth.users ON DELETE SET NULL),
+                   created_at (timestamptz)
+                   -- Index: (user_id)
+
 character_relationships — id (uuid),
                    character_id (uuid FK characters ON DELETE CASCADE),
                    related_character_id (uuid FK characters ON DELETE CASCADE),
@@ -683,6 +741,15 @@ character_relationships — id (uuid),
                    is_mutual (boolean default false),
                    created_by (uuid FK auth.users), created_at
                    UNIQUE (character_id, related_character_id)
+
+character_revisions — id (uuid),
+                   character_id (uuid FK characters ON DELETE CASCADE),
+                   reviewer_id (uuid FK auth.users ON DELETE SET NULL),
+                   feedback (text),
+                   status_before (text),
+                   status_after (text),
+                   created_at (timestamptz)
+                   -- Index: (character_id)
 
 -- NOTIFICATIONS
 notifications    — id (uuid), user_id (uuid FK auth.users),
@@ -765,10 +832,13 @@ chat_messages    — id (uuid), user_id (uuid FK auth.users),
                    -- In Realtime publication
                    -- GIN index on mentioned_user_ids
 
--- THE APOTHECARY (XP Store)
+-- THE APOTHECARY (Essence Store)
 apothecary_listings — id (uuid), name (text), description (text),
-                   xp_cost (integer), listing_type (text CHECK power/cosmetic/artifact),
+                   essence_cost (integer),
+                   listing_type (text CHECK power/cosmetic/artifact),
                    min_level_required (integer default 1),
+                   blessing_eligible (boolean default false),
+                   blessing_weight (integer default 10),
                    is_active (boolean default true), created_at
 
 apothecary_purchases — id (uuid), character_id (uuid FK characters ON DELETE CASCADE),
@@ -1146,18 +1216,113 @@ way but the wrong name causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
 - `charmed-reborn-palette-sampler-v3.html` — theme
   palette reference
 
-### Phase 2 — Core Data Model (upcoming)
+### Phase 2 — Core Data Model (in progress)
 
-**TWH-2.1** — Migrations 007–010: roles, permissions,
-  user_roles, factions (with seed data)
-**TWH-2.2** — Migrations 011–013: characters,
-  character_level_thresholds (seeded), character_xp_log,
-  character_powers. Character creation flow.
-**TWH-2.3** — Mail system: mail_messages migration,
-  Whispers UI
-**TWH-2.4** — Forums: boards, threads, posts migrations
-  and UI
+**TWH-2.1 — Complete** (commit: 49cb3ca)
+- Migration 007: permissions table, 16 seed permissions
+- Migration 008: roles + role_permissions tables, 5 seed roles, CROSS JOIN permission matrix seeded
+- Migration 009: user_roles table, 2 indexes, RLS
+- Migration 010: is_admin() + is_moderator() SECURITY DEFINER functions, factions table, 3 seed factions
+- lib/permissions.ts: hasPermission() and getUserPermissions() using getAdminClient()
+- app/(authenticated)/layout.tsx: getUserPermissions added to Promise.all as 4th item
+- app/components/Masthead.tsx: permissions prop added
+- types/database.ts: regenerated
+- Deviation: is_admin() stub added to Migration 007 (Postgres validates function existence at CREATE POLICY time — spec note was incorrect). Migration 010 replaces stub with real implementation via CREATE OR REPLACE FUNCTION.
+
+**TWH-2.2 — Complete** (commit: 31afe0a)
+- Migration 011: characters table, 3 indexes, 4 RLS policies, FK added to users.active_character_id
+- Migration 012: character_level_thresholds (5 levels seeded), character_xp_log, character_powers, 6 RLS policies
+- Migration 013: character_relationships, 2 indexes, 2 RLS policies
+- Migration 014: notifications, 2 indexes (1 partial), 3 RLS policies, added to Realtime publication
+- lib/cached-settings.ts: getCachedFactions() (1hr TTL) and getCachedCharacterLevelThresholds() (1hr TTL) added
+- lib/actions/characters.ts: shell file created
+- types/database.ts: regenerated
+- Deviation: active_character_id already existed on users (bare uuid, no FK). Used ADD CONSTRAINT instead of ADD COLUMN. End state identical to spec intent.
+- Standing answers: createNotification() and XP award actions use getAdminClient() (confirmed). character_relationships SELECT policy checks initiating character only until is_mutual = true (confirmed intentional).
+
+**TWH-2.3 — Complete** (commit: eb37698)
+- Migration 015: mail_messages, 3 indexes (1 partial), 4 RLS policies, REPLICA IDENTITY FULL, added to Realtime publication
+- Migration 016: factions.leader_title column (default 'Keeper')
+- lib/notifications.ts: createNotification() and createCouncilNotice() helpers using getAdminClient()
+- lib/actions/whispers.ts: sendWhisper(), markWhisperRead(), deleteWhisper() Server Actions
+- app/(authenticated)/whispers/: inbox, compose, thread view pages
+- app/auth/callback/route.ts: welcome Council Notice activated (was previously swallowed silently)
+- app/(authenticated)/layout.tsx: getUnreadWhisperCount added to Promise.all as 5th item
+- app/components/Masthead.tsx: unreadWhisperCount prop + badge render added
+- types/database.ts: regenerated
+
+### Current repo state (end of TWH-2.3)
+
+Migrations applied: 001–016
+TypeScript types: current (types/database.ts)
+Live URL: https://atwitchinghour.com
+
+### Phase 2 remaining (TWH-2.4 onward)
+
+**TWH-2.4** — Forums schema (boards, threads, posts)
 **TWH-2.5** — Admin panel foundation
+**TWH-2.6** — Admin panel: site settings, waitlist manager, faction manager
+**TWH-2.7** — Admin panel: users, roles, character approval
+
+---
+
+## 21. Chronicles System
+
+Chronicles are discrete sub-RP spaces within The Witching Hour. Each Chronicle is a self-contained collaborative story with its own character roster, Keeper leadership, membership approval flow, and private boards. They sit below the site-wide RP layer and are independent of the faction system.
+
+### What Chronicles Are
+A Chronicle might be a closed Charmed-era story set in San Francisco, a Buffy-era mystery at Sunnydale High, or an original setting that draws on multiple canons. Users create characters specifically for each Chronicle they join — these characters are separate from their site-wide RP characters but appear on the user's profile alongside them, labeled with the Chronicle name.
+
+### Keepers
+Each Chronicle has one or more Keepers (equivalent to Game Masters). Multiple Keepers per Chronicle are supported. Keepers are assigned via user_roles with scope_id = chronicle_id and the keeper role. Keepers hold the manage_chronicle permission scoped to their chronicle, giving them the ability to:
+- Edit the Chronicle name, description, and settings
+- Set the character limit per user for their Chronicle (overrides site-wide max_characters_per_user for this Chronicle only, stored on the chronicles table)
+- Review, approve, reject, or request revision on character applications
+- Send feedback to applicants and request resubmission
+- Moderate Chronicle boards
+- Manage Chronicle membership
+
+Admins can perform all Keeper actions on any Chronicle.
+
+### Visibility and Membership
+Chronicles have three visibility modes:
+- open — any user can join with an approved character
+- apply — users submit a character for Keeper review
+- closed — invitation only, Keeper adds members directly
+
+Membership is character-based: users join a Chronicle as a specific character, not as themselves. A user can have characters in multiple Chronicles simultaneously.
+
+### Character Application Lifecycle
+Chronicle character applications use the same revision loop as site-wide characters (§7): pending → needs_revision → pending (loop) → active / suspended. The character_revisions table records each round of feedback.
+
+### Schema (Phase 14+)
+```sql
+chronicles       — id (uuid), name (text), slug (text unique),
+                   description (text), canon_source (text nullable),
+                   visibility (text CHECK open/apply/closed
+                     default 'apply'),
+                   status (text CHECK active/archived/draft
+                     default 'draft'),
+                   max_characters_per_user (integer nullable —
+                     null inherits site_settings value),
+                   created_by (uuid FK auth.users),
+                   created_at, updated_at
+
+chronicle_members — id (uuid),
+                   chronicle_id (uuid FK chronicles ON DELETE CASCADE),
+                   character_id (uuid FK characters ON DELETE CASCADE),
+                   status (text CHECK pending/active/removed
+                     default 'pending'),
+                   joined_at (timestamptz nullable),
+                   UNIQUE (chronicle_id, character_id)
+```
+
+Board scope: when Chronicles are built, 'chronicle' is added to the boards.scope CHECK constraint and scope_id = chronicle_id. Chronicle boards are private to active members by RLS.
+
+### Boards and Location Gating (site-wide RP)
+The boards table includes a min_level_required integer column (nullable, null = no gate). Boards with a minimum level set are accessible only to characters meeting or exceeding that level. This is enforced at the application layer (not RLS) — the board appears in the list with a "your character hasn't unlocked this location yet" message rather than being invisible. Applies to both site-wide RP boards and Chronicle boards.
+
+---
 
 *This document is updated at the completion of each
 build phase.*

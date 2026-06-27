@@ -1,4 +1,3 @@
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-text-primary)}
@@ -7,6 +6,7 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
 .phase-block{margin-bottom:28px}
 .phase-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);margin-bottom:8px;cursor:pointer}
 .phase-header:hover{background:var(--color-background-tertiary)}
+.phase-header.done{opacity:0.55}
 .phase-num{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:0.1em;flex-shrink:0;width:68px}
 .phase-title{font-size:14px;font-weight:500;color:var(--color-text-primary);flex:1}
 .phase-meta{font-size:11px;color:var(--color-text-secondary);flex-shrink:0;text-align:right}
@@ -15,6 +15,7 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
 .prompts{display:flex;flex-direction:column;gap:6px;padding-left:4px}
 .prompt-row{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 13px;cursor:pointer;transition:border-color 0.12s,background 0.12s}
 .prompt-row:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary)}
+.prompt-row.done{opacity:0.45}
 .prompt-head{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
 .prompt-id{font-size:10px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:0.1em;flex-shrink:0;width:56px}
 .prompt-name{font-size:12px;font-weight:500;color:var(--color-text-primary);flex:1}
@@ -24,8 +25,9 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
 .b-adapt{border-color:var(--color-border-warning);color:var(--color-text-warning);background:var(--color-background-warning)}
 .b-new{border-color:var(--color-border-danger);color:var(--color-text-danger);background:var(--color-background-danger)}
 .b-design{border-color:var(--color-border-info);color:var(--color-text-info);background:var(--color-background-info)}
+.b-done{border-color:var(--color-border-success);color:var(--color-text-success);background:var(--color-background-success);opacity:0.7}
 .prompt-body{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
-.prompt-wm{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;font-style:italic}
+.prompt-note{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;font-style:italic}
 
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
 .section-rule{height:0.5px;background:var(--color-border-tertiary);margin:12px 0 16px}
@@ -41,47 +43,48 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   <span class="badge b-adapt">~ Adapt from WM</span>
   <span class="badge b-new">✦ New build</span>
   <span class="badge b-design">◈ Design / setup</span>
+  <span class="badge b-done">● Complete</span>
 </div>
 
 <!-- ══════════════════════════════
   PHASE 0 — PROJECT SETUP
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me more about Phase 0 of the Witching Hour build — project setup and repo scaffolding')">
+  <div class="phase-header done">
     <div class="phase-num">Phase 0</div>
     <div>
       <div class="phase-title">Project Setup & Foundation</div>
-      <div class="phase-desc">New repo, environment config, Supabase project, master documents. The scaffold on which everything else rests.</div>
+      <div class="phase-desc">Repo, environment, Supabase project, storage buckets, Vercel deployment, master documents. Complete.</div>
     </div>
-    <div class="phase-meta">3 prompts &ensp;·&ensp; ~1 session</div>
+    <div class="phase-meta">3 prompts &ensp;·&ensp; ● Complete</div>
   </div>
   <div class="prompts">
-    <div class="prompt-row" onclick="sendPrompt('What exactly goes into the TWH-0.1 new repo and Next.js scaffold prompt?')">
+    <div class="prompt-row done">
       <div class="prompt-head">
         <span class="prompt-id">TWH-0.1</span>
-        <span class="prompt-name">New repo, Next.js 14 scaffold, Tailwind, TypeScript config</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
+        <span class="prompt-name">New repo, Next.js 16 scaffold, Tailwind v4, TypeScript config</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
       </div>
-      <div class="prompt-body">Identical stack to WM: Next.js 14 App Router, TypeScript, Tailwind, Supabase client setup. Copy the package.json dependencies verbatim. Set up the lib/supabase/ client structure (browserClient.ts, serverClient.ts pattern).</div>
-      <div class="prompt-wm">Model after: WM root scaffold + lib/supabase/ structure</div>
+      <div class="prompt-body">Next.js 16.2.9 App Router, TypeScript, Tailwind v4, Supabase client setup. lib/supabase/ structure: browserClient.ts, serverClient.ts, adminClient.ts. Dependencies installed. proxy.ts middleware convention confirmed.</div>
+      <div class="prompt-note">Commit: see TWH-0.1 in Brief §20</div>
     </div>
-    <div class="prompt-row" onclick="sendPrompt('What goes into the TWH-0.2 master documents prompt?')">
+    <div class="prompt-row done">
       <div class="prompt-head">
         <span class="prompt-id">TWH-0.2</span>
-        <span class="prompt-name">Create TWH master documents — Brief v1, Process v1, Roadmap v1</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+        <span class="prompt-name">Create master documents — TWH_BRIEF_v1.md, TWH_PROCESS_v1.md</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
       </div>
-      <div class="prompt-body">Adapt WM's three-document system for TWH. Write TWH_BRIEF_v1.md (tech stack, design system tokens, faction definitions, canon show list), TWH_PROCESS_v1.md (all WM process rules verbatim — Session Starter Block, Schema Verification Rule, Phase A/B pattern, all §15–§16 rules), TWH_ROADMAP_v1.md (this roadmap). The Process doc is copied nearly verbatim — these rules are universal.</div>
-      <div class="prompt-wm">Model after: WIZARD_MANSION_PROCESS_v7.md — copy all governance rules directly</div>
+      <div class="prompt-body">TWH_BRIEF_v1.md (tech stack, design system, schema, decisions) and TWH_PROCESS_v1.md (governance rules) written and maintained. Updated through v1.5 after TWH-2.3.</div>
+      <div class="prompt-note">Living documents — updated after each phase batch</div>
     </div>
-    <div class="prompt-row" onclick="sendPrompt('What goes into the TWH-0.3 Supabase project and environment setup prompt?')">
+    <div class="prompt-row done">
       <div class="prompt-head">
         <span class="prompt-id">TWH-0.3</span>
         <span class="prompt-name">Supabase project, storage buckets, env vars, Vercel deploy</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
       </div>
-      <div class="prompt-body">Create Supabase project. Create storage buckets: portraits, characters (new — character avatars), themes (new — theme assets), rich-text-images. Set env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY. Connect Vercel. Confirm auto-deploy on push.</div>
-      <div class="prompt-wm">Model after: WM bucket setup, env var conventions, Vercel Hobby constraints</div>
+      <div class="prompt-body">Supabase project: the-witching-hour (vkhuttcusqubteseifui). Buckets: avatars, character-portraits, rich-text-images. All 6 env vars set locally and in Vercel. Domain atwitchinghour.com live. Framework preset manually set to Next.js.</div>
+      <div class="prompt-note">Live: https://atwitchinghour.com</div>
     </div>
   </div>
 </div>
@@ -90,260 +93,269 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   PHASE 1 — AUTH & USER ACCOUNTS
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me more about Phase 1 of the Witching Hour build — auth and user accounts')">
+  <div class="phase-header done">
     <div class="phase-num">Phase 1</div>
     <div>
-      <div class="phase-title">Authentication & User Accounts</div>
-      <div class="phase-desc">Registration, login, sessions, the characters table (user profile layer), and the core sidebar/nav shell.</div>
+      <div class="phase-title">Authentication, User Accounts & Foundation UI</div>
+      <div class="phase-desc">Registration, login, sessions, waitlist, themes, canons, masthead. Complete.</div>
+    </div>
+    <div class="phase-meta">6 prompts &ensp;·&ensp; ● Complete</div>
+  </div>
+  <div class="prompts">
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-1.1</span>
+        <span class="prompt-name">Migration 001 — users, site_settings, session_logs, ip_bans</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">Core tables with RLS. site_settings seeded: site_name, registration_open, max_characters_per_user, xp_per_rp_post, maintenance_mode, launch_date. Supabase client shells implemented.</div>
+      <div class="prompt-note">Commit: 4c418fc · Migrations 001</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-1.2</span>
+        <span class="prompt-name">Migrations 002–004 — auth trigger, display name, registration flow</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">handle_new_user() trigger creates users row on auth confirmation. Email confirmation ON via Resend. Registration, confirm, and PKCE callback pages built. Welcome Council Notice deferred (mail_messages not yet created — activated in TWH-2.3).</div>
+      <div class="prompt-note">Commit: 486d01d · Migrations 002–004</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-1.3</span>
+        <span class="prompt-name">Login, proxy.ts, layout shell, dashboard</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">proxy.ts middleware (IP ban, maintenance, auth guard). getCachedSiteSettings() with unstable_cache. Login flow. Authenticated layout with Promise.all pattern and theme attribute. Full three-column dashboard with graceful empty states.</div>
+      <div class="prompt-note">Commit: 3319a4f</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-1.4</span>
+        <span class="prompt-name">All six themes, logo, favicon, theme switcher</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">globals.css: 25 CSS tokens, body gradient, custom scrollbar, all six [data-theme] override blocks functional. Blood Moon (default), Silver & Onyx, Midnight Garden, Crimson Athenaeum, Blackthorn & Parchment, The Craft 1996. Logo PNG. Favicon. Theme switcher writes to DB, revalidates, optimistic DOM update.</div>
+      <div class="prompt-note">Commits: 079d8b7 → 556f281</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-1.5</span>
+        <span class="prompt-name">Migration 005 — waitlist_signups, waitlist page, Resend integration</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">Pre-launch waitlist page live at /waitlist. Collects name, email, canon preference. Inserts to Supabase + adds to Resend audience (best-effort). Audience ID: 63f32f0b-5198-4308-a60e-4c07cf5a9989.</div>
+      <div class="prompt-note">Commit: bcf09be · Migration 005</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-1.6</span>
+        <span class="prompt-name">Migration 006 — lib/canons.ts, 11-canon expansion</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">lib/canons.ts as single source of truth for all UI canon lists. 11 canons across two tiers (7 primary, 4 secondary). Waitlist canon CHECK updated. Masthead ribbon updated.</div>
+      <div class="prompt-note">Commit: fe77bc0 · Migration 006</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  PHASE 2 — CORE DATA MODEL
+══════════════════════════════ -->
+<div class="phase-block">
+  <div class="phase-header">
+    <div class="phase-num">Phase 2</div>
+    <div>
+      <div class="phase-title">Core Data Model & Admin Foundation</div>
+      <div class="phase-desc">Roles, permissions, factions, characters, notifications, Whispers, forums schema, admin panel. TWH-2.1 through TWH-2.3 complete. TWH-2.4 onward upcoming.</div>
+    </div>
+    <div class="phase-meta">7 prompts &ensp;·&ensp; 3 complete</div>
+  </div>
+  <div class="prompts">
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.1</span>
+        <span class="prompt-name">Migrations 007–010 — roles, permissions, user_roles, factions</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">permissions (16 seed rows), roles (5: admin/moderator/lore_keeper/faction_leader/founding_member), role_permissions with is_enabled CROSS JOIN matrix, user_roles with scope_id. is_admin() + is_moderator() SECURITY DEFINER functions. factions table with 3 seed factions (Covenant/Cabal/Unbound). lib/permissions.ts: hasPermission() + getUserPermissions(). Layout Promise.all extended to 4 items.</div>
+      <div class="prompt-note">Commit: 49cb3ca · Migrations 007–010 · Factions are admin-editable — seed is placeholder only</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.2</span>
+        <span class="prompt-name">Migrations 011–014 — characters, progression, relationships, notifications</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">characters table (status: pending/needs_revision/active/suspended), 4 RLS policies, FK added to users.active_character_id. character_level_thresholds seeded (5 levels: Novice → Elder). character_xp_log, character_powers, character_relationships. notifications with partial index + Realtime publication. getCachedFactions() + getCachedCharacterLevelThresholds() added to lib/cached-settings.ts.</div>
+      <div class="prompt-note">Commit: 31afe0a · Migrations 011–014</div>
+    </div>
+    <div class="prompt-row done">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.3</span>
+        <span class="prompt-name">Migrations 015–016 — mail_messages, factions.leader_title, Whispers UI</span>
+        <div class="prompt-badges"><span class="badge b-done">● Done</span></div>
+      </div>
+      <div class="prompt-body">mail_messages with REPLICA IDENTITY FULL and Realtime publication. 4 RLS policies (split sender/system insert). factions.leader_title column (default 'Keeper', faction-configurable). lib/notifications.ts: createNotification() + createCouncilNotice() using admin client. Whispers inbox/compose/thread UI. Unread badge in Masthead. Welcome Council Notice activated in auth callback.</div>
+      <div class="prompt-note">Migrations 015–016 · Layout Promise.all extended to 5 items</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.4</span>
+        <span class="prompt-name">Migrations 017–018 — forums schema (boards, threads, posts)</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">boards (scope: public/faction/rp/staff/admin, is_rp_board, forced_theme, min_level_required, discord_announce), board_threads (canon_source, is_spoiler), board_posts (character_id FK, is_ic), ooc_posts, post_enchantments, post_reports. Full RLS coverage on all tables. No UI yet — schema and RLS only.</div>
+      <div class="prompt-note">Schema-only prompt. UI built in Phase 3.</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.5</span>
+        <span class="prompt-name">Admin panel shell — layout, nav, permission gates</span>
+        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+      </div>
+      <div class="prompt-body">Admin panel at /admin with grouped permission-gated nav. Sections stubbed: Dashboard (active users, notification queue), and shells for all future admin sections. Uses permissions array already in layout. Mod Panel shell at /mod for Moderator + Faction Leader roles.</div>
+      <div class="prompt-note">Model after: WM /admin layout pattern</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.6</span>
+        <span class="prompt-name">Admin: site settings manager, waitlist manager, faction manager</span>
+        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+      </div>
+      <div class="prompt-body">Site settings: read/write all site_settings rows, revalidateTag('site-settings') on every write. Waitlist manager: view signups, canon breakdown. Faction manager: create/edit/delete factions including name, slug, color_hex, description, lore, leader_title — revalidateTag('factions') on every mutation. First admin bootstrap procedure documented here.</div>
+      <div class="prompt-note">faction manager makes seed data admin-editable · revalidateTag required on all mutations</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-2.7</span>
+        <span class="prompt-name">Admin: player manager, role manager, character approval queue</span>
+        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+      </div>
+      <div class="prompt-body">Player manager: search users, view profile, assign/revoke roles (scoped), grant Essence, ban. Role manager: view all roles, toggle is_enabled per permission. Character approval queue: list pending characters, approve (status → active), reject (status → suspended + reason), request revision (status → needs_revision + feedback). character_revisions row written on every reviewer action. Notifications fire-and-forget on all outcomes.</div>
+      <div class="prompt-note">characters.status expands to include needs_revision here if not already migrated</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  PHASE 3 — FORUMS UI
+══════════════════════════════ -->
+<div class="phase-block">
+  <div class="phase-header">
+    <div class="phase-num">Phase 3</div>
+    <div>
+      <div class="phase-title">Forums (The Boards)</div>
+      <div class="phase-desc">Forum index, thread list, thread view, post composer, canon tagging, spoiler tags. Schema built in TWH-2.4.</div>
     </div>
     <div class="phase-meta">5 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
       <div class="prompt-head">
-        <span class="prompt-id">TWH-1.1</span>
-        <span class="prompt-name">Migration 001 — core tables: characters, site_settings, session_logs, ip_bans</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">The characters table in WM holds wizard_name, hall_id, gold, xp, level, etc. For TWH, this becomes the user profile layer — display_name, xp, level, avatar_url, created_at. Remove hall_id. Add: show_preference (text nullable — which canon show they primarily identify with). No faction yet — that's Phase 4. site_settings table verbatim from WM.</div>
-      <div class="prompt-wm">Model after: WM characters table + site_settings + session_logs</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-1.2</span>
-        <span class="prompt-name">Registration flow — email/password, display name, welcome email</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">Lift WM's registration action verbatim. Supabase Auth email/password, no email confirmation. On register: create characters row, send welcome Whisper (system message). Remove Hall sorting — no exam at this stage. The show selection (Charmed/Buffy/etc) is an optional profile field, not a gate.</div>
-      <div class="prompt-wm">Model after: WM complete-registration/actions.ts</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-1.3</span>
-        <span class="prompt-name">Login, session handling, middleware, layout.tsx shell</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">WM's middleware and layout.tsx structure ports directly. Adapt layout.tsx's Promise.all pattern (3-tier parallel queries). Remove hall/club/class-specific queries for now. Wire session_logs fire-and-forget. Set up the cached-settings.ts pattern for site_settings.</div>
-      <div class="prompt-wm">Model after: WM middleware.ts + app/layout.tsx query structure</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-1.4</span>
-        <span class="prompt-name">Blood Moon theme — global CSS variables, font imports, body treatments</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">Implement the Blood Moon design token system as CSS custom properties on :root. Import Cormorant Upright, Playfair Display, EB Garamond, Cinzel from Google Fonts. Set body background gradients. This is the design foundation all subsequent UI builds on top of. Wire Tailwind to extend with custom color tokens.</div>
-      <div class="prompt-wm">Reference: dashboard-blood-moon.html design tokens — all six hero colors + extended tones</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-1.5</span>
-        <span class="prompt-name">Masthead + show ribbon + basic sidebar shell</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">Build the masthead (logo mark, nav links, user chip) and the show ribbon (Charmed/Buffy/Angel primary + supporting shows). Static initially — nav links go to placeholder pages. Mobile: single-row header + hamburger drawer. Wire the Blood Moon theme throughout. This is the first visual milestone.</div>
-      <div class="prompt-wm">Reference: witching-hour-dashboard.html — masthead + ribbon HTML/CSS</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════
-  PHASE 2 — ROLES & PERMISSIONS
-══════════════════════════════ -->
-<div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me more about Phase 2 — roles and permissions for The Witching Hour')">
-    <div class="phase-num">Phase 2</div>
-    <div>
-      <div class="phase-title">Roles, Permissions & Admin Foundation</div>
-      <div class="phase-desc">The permission matrix system, admin panel shell, and player manager. Nearly identical to WM — enormous leverage.</div>
-    </div>
-    <div class="phase-meta">4 prompts &ensp;·&ensp; ~1 session</div>
-  </div>
-  <div class="prompts">
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-2.1</span>
-        <span class="prompt-name">Migration 002 — roles, role_permissions, user_roles tables</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">WM's role system ports almost verbatim. Rename roles: Admin (was Headmaster), Moderator (was Hall Master), Lore Keeper (new — manages Grimoire wiki), Staff (was Professor). Remove hall-scoped roles. Add: faction_leader (scoped to faction_id — Phase 4). Permissions list adapts: remove hall-specific permissions, add new ones: manage_lore, approve_characters, award_xp.</div>
-      <div class="prompt-wm">Model after: WM roles + role_permissions + user_roles schema + hasPermission() lib function</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-2.2</span>
-        <span class="prompt-name">hasPermission() lib function, RLS helper functions</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">The lib/permissions.ts hasPermission() function and the Postgres is_admin() / is_moderator() RLS helper functions port directly. Critical: column is is_enabled NOT is_granted (WM's hardest-learned lesson — must carry forward). Wire into layout.tsx permission checks.</div>
-      <div class="prompt-wm">Model after: WM lib/permissions.ts + Postgres RLS helper functions exactly</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-2.3</span>
-        <span class="prompt-name">Admin panel shell — dashboard, player manager</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">WM's admin panel architecture (grouped nav, permission-gated sections) ports directly. Remove WM-specific sections (wand manager, academic year, etc). Keep: Player Manager (search, view profile, bestow XP/items, role assignment, ban), Dashboard (active users, notifications queue). Apply Blood Moon theme.</div>
-      <div class="prompt-wm">Model after: WM /admin layout + Player Manager + Dashboard pattern</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-2.4</span>
-        <span class="prompt-name">Site settings manager, cached-settings.ts, revalidation wiring</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">The cached-settings.ts system (unstable_cache, tag-based revalidation) is one of WM's most important architectural pieces. Port verbatim. Wire admin site-settings mutations to call revalidateTag(). This prevents the stale-cache bugs that plagued WM early builds.</div>
-      <div class="prompt-wm">Model after: WM lib/cached-settings.ts — copy the pattern exactly</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════
-  PHASE 3 — FORUMS & MESSAGING
-══════════════════════════════ -->
-<div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me more about Phase 3 — forums and private messaging for The Witching Hour')">
-    <div class="phase-num">Phase 3</div>
-    <div>
-      <div class="phase-title">Forums (The Boards) & Private Messaging (Whispers)</div>
-      <div class="phase-desc">The message board engine and private messaging lift almost directly from WM. The biggest new addition: canon show tagging on every thread.</div>
-    </div>
-    <div class="phase-meta">6 prompts &ensp;·&ensp; ~2 sessions</div>
-  </div>
-  <div class="prompts">
-    <div class="prompt-row">
-      <div class="prompt-head">
         <span class="prompt-id">TWH-3.1</span>
-        <span class="prompt-name">Migration 003 — boards, board_threads, board_posts, post_enchantments, post_reports</span>
+        <span class="prompt-name">Forum index — board categories, show filter, canon badges</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">WM's message board schema ports almost verbatim. Add two new columns to board_threads: canon_source (text nullable — 'charmed'/'buffy'/'angel'/'secret_circle'/'the_craft'/'witches_of_east_end'/'practical_magic'/'all'), is_spoiler (boolean default false). Add scope value 'rp' to boards scope enum. Everything else: identical.</div>
-      <div class="prompt-wm">Model after: WM boards schema — boards, board_threads, board_posts, post_enchantments, post_reports</div>
+      <div class="prompt-body">Forum index at /forums with board categories (Show Discussion, Fan Creations, Hot Takes, Beyond the Show, The Manor Lounge). Show filter bar filters by canon. Canon badges use lib/canons.ts hex — fixed brand colors, not CSS variables. Should feel like a grimoire table of contents.</div>
+      <div class="prompt-note">Model after: WM board category structure</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-3.2</span>
-        <span class="prompt-name">MessageBoard component — thread list, create thread, canon tag selector</span>
+        <span class="prompt-name">Thread list + create thread modal with canon tag + spoiler toggle</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Port WM's MessageBoard component. Add the canon source tag selector to the Create Thread form. Add the source badge rendering to thread list rows (matches the show ribbon color coding). Add spoiler toggle checkbox to Create Thread. Apply Blood Moon theme — card surfaces in claret, gold accents.</div>
-      <div class="prompt-wm">Model after: WM MessageBoard.tsx + CreateThreadModal — extend with canon tag + spoiler toggle</div>
+      <div class="prompt-body">Thread list with canon source badge, spoiler indicator, author, reply count, last activity. Create Thread form: title, canon_source selector (from lib/canons.ts), spoiler toggle. Pinned threads float to top.</div>
+      <div class="prompt-note">Model after: WM MessageBoard.tsx + CreateThreadModal</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-3.3</span>
-        <span class="prompt-name">Thread view, post editor (Tiptap), spoiler tag extension</span>
+        <span class="prompt-name">Thread view, post editor (Tiptap), spoiler extension, post enchantments</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Port WM's thread view and Tiptap editor setup. Add a custom Tiptap extension for spoiler tags (wraps content in a click-to-reveal element). DOMPurify sanitization preserved verbatim. Port WM's post enchant system (the equivalent of post reactions). Apply Blood Moon theme to the thread reading experience.</div>
-      <div class="prompt-wm">Model after: WM Tiptap setup + RichTextEditor + DOMPurify — add spoiler extension</div>
+      <div class="prompt-body">Thread view with post list. Tiptap editor with custom spoiler extension (click-to-reveal). DOMPurify sanitization. Post enchant system (reactions). Users with incomplete watching_status for a show see spoiler warning on spoiler-tagged threads.</div>
+      <div class="prompt-note">Model after: WM Tiptap setup + RichTextEditor + DOMPurify</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-3.4</span>
-        <span class="prompt-name">Forum index page — all boards, category groups, show filter</span>
+        <span class="prompt-name">Mod tools — pin, lock, delete post, report queue</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Build the forum index with the board categories from our site tree (Show Discussion, Fan Creations, Hot Takes, Beyond the Show, The Manor Lounge). Add a show filter bar so users can filter all boards by canon. Apply Blood Moon theme — the forum index should feel like a grimoire table of contents.</div>
-      <div class="prompt-wm">Model after: WM board category structure — adapt scope to TWH's forum categories</div>
+      <div class="prompt-body">Moderators can pin/lock threads, soft-delete posts (renders placeholder). Post report button for all users → post_reports table. Admin/mod report queue in admin panel lists flagged posts with action buttons.</div>
+      <div class="prompt-note">Permission-gated: moderate_boards</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-3.5</span>
-        <span class="prompt-name">Migration 004 — mail_messages, mail_gifts (Whispers system)</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
+        <span class="prompt-name">Thread bookmarks, Discord webhook on new thread</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">WM's mail_messages and mail_gifts schema ports verbatim. The entire private messaging system (inbox, compose, system messages, gift claims, Realtime subscription, Mansion Notice equivalent) lifts directly. Rename UI labels: "Wizard Mail" → "Whispers", "Mansion Notice" → "Council Notice". Apply Blood Moon theme.</div>
-      <div class="prompt-wm">Model after: WM Wizard Mail system — mail_messages, mail_gifts, Realtime UPDATE subscription</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-3.6</span>
-        <span class="prompt-name">Notification system — notifications table, Realtime, nav badge</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">WM's notification system (notifications table, ActivityFeed.tsx with Realtime INSERT subscription, nav badge, mark-as-read) ports directly. Add new notification types: xp_awarded, character_approved, faction_news. Remove WM-specific types (hall_announcement, class_completion). Apply Blood Moon theme to the activity feed on the home dashboard.</div>
-      <div class="prompt-wm">Model after: WM ActivityFeed.tsx + notifications Realtime subscription pattern</div>
+      <div class="prompt-body">thread_bookmarks table (user_id, thread_id). Bookmark star on thread view. /my-bookmarks page. On new thread creation in discord_announce boards: fire-and-forget POST to discord_webhook_url site_setting. Payload: title, board, canon, author, link.</div>
+      <div class="prompt-note">Fire-and-forget — never block thread creation on webhook</div>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════
-  PHASE 4 — CHARACTER SYSTEM
+  PHASE 4 — CHARACTER SYSTEM UI
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me more about Phase 4 — the character system, the most novel part of the build')">
+  <div class="phase-header">
     <div class="phase-num">Phase 4</div>
     <div>
-      <div class="phase-title">Character System — The Core RP Engine</div>
-      <div class="phase-desc">The most novel build territory. Characters are sub-profiles of user accounts. This is the foundation everything RP-related rests on.</div>
+      <div class="phase-title">Character System UI</div>
+      <div class="phase-desc">Character creation, profiles, My Characters page, powers display. Schema built in TWH-2.2.</div>
     </div>
-    <div class="phase-meta">7 prompts &ensp;·&ensp; ~3 sessions</div>
+    <div class="phase-meta">5 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-4.1</span>
-        <span class="prompt-name">Migration 005 — factions table, then characters table (sub-profiles)</span>
+        <span class="prompt-name">Character creation — multi-step form, avatar upload, approval submission</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">factions: id, name (Covenant/Cabal/Unbound), color_hex, description, lore, created_at. characters: id, user_id (FK auth.users), name, avatar_url, bio, faction_id (nullable FK factions), canon_source (which show they're from or 'original'), xp (integer default 0), level (integer default 1), status (pending/active/suspended), created_at. Index on user_id. A user can have multiple characters.</div>
-      <div class="prompt-wm">Model after: WM characters table structure — adapt: remove hall_id, add faction_id, canon_source, approval status</div>
+      <div class="prompt-body">Multi-step form: name + canon source + avatar upload (P-DC pattern to character-portraits bucket) → faction selection with lore previews → bio (Tiptap, ~1000 chars) → review and submit. On submit: status = pending, notification to admin queue. Max characters enforced from site_settings.max_characters_per_user.</div>
+      <div class="prompt-note">P-DC upload pattern — never route portraits through Server Action</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-4.2</span>
-        <span class="prompt-name">Migration 006 — character_powers, character_level_thresholds</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+        <span class="prompt-name">My Characters page — dashboard, active character selector</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">character_powers: id, character_id, power_name, power_description, acquired_at. character_level_thresholds: level (integer PK), xp_required, label (Novice/Adept/Practitioner/etc), unlocks_description. Admin-configurable thresholds. Model after WM's level_thresholds table and academic_year_thresholds pattern. Add indexes on character_id.</div>
-      <div class="prompt-wm">Model after: WM level_thresholds + academic_year_thresholds — same admin-editable pattern</div>
+      <div class="prompt-body">/my-characters: all user characters with status badges. Active character selector sets users.active_character_id. Only approved (status = active) characters appear in selector. Pending and needs_revision characters show status + reviewer feedback link. Create new character button.</div>
+      <div class="prompt-note">Status needs_revision shows feedback — user can edit and resubmit</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-4.3</span>
-        <span class="prompt-name">Character creation form — multi-step wizard with approval submission</span>
+        <span class="prompt-name">Character profile page — public view with powers, faction, XP</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Multi-step form: Step 1 — name, canon source, avatar upload. Step 2 — faction selection (with lore description of each). Step 3 — bio/backstory (Tiptap editor, max 1000 chars). Step 4 — review and submit. On submit: status = 'pending', notification to admin queue. Show "Character awaiting approval" state. User can have up to 3 characters (admin-configurable).</div>
-      <div class="prompt-wm">Model after: WM Entrance Exam flow (multi-step) + WM avatar upload (P-DC pattern)</div>
+      <div class="prompt-body">/characters/[id]: avatar, name, canon source badge, faction badge with diamond pip in faction color, level + XP bar, bio (DOMPurify), powers list grouped by show origin, character relationships list, achievement badges. "Played by [username]" links to user profile. All characters (site-wide + Chronicles) listed on user profile.</div>
+      <div class="prompt-note">Characters from Chronicles show Chronicle name as context badge</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-4.4</span>
-        <span class="prompt-name">Character profile page — public view with powers, faction, XP</span>
+        <span class="prompt-name">Character edit flow — resubmit after needs_revision</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Public character profile at /characters/[id]. Shows: avatar, name, canon source badge, faction badge (colored diamond), level + XP bar, bio, powers list. Links back to the owning user's profile. Multiple characters per user shown on user profile as a "Characters" section. Apply Blood Moon theme — character profiles should feel like registry entries in a magical organization.</div>
-      <div class="prompt-wm">Model after: WM /profile/[username] structure — adapt for character sub-profile pattern</div>
+      <div class="prompt-body">Users with a needs_revision character see reviewer feedback and an Edit button. Edit form re-uses creation form steps. On resubmit: status → pending, character_revisions row written. Revision history visible to admin/reviewer in approval queue.</div>
+      <div class="prompt-note">Same revision lifecycle as Chronicles characters</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-4.5</span>
-        <span class="prompt-name">Character approval admin queue + approval/rejection flow</span>
+        <span class="prompt-name">XP + Essence auto-award on RP post, level-up detection</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Admin Panel section: Character Approvals. Lists all pending characters with: user name, character name, faction, canon source, bio preview, avatar. Approve button: sets status = 'active', fires notification to user ("Your character [name] has been approved!"). Reject button: opens reason modal, fires notification with reason. Moderate complexity — new workflow but follows WM's admin action patterns.</div>
-      <div class="prompt-wm">Model after: WM admin bestow/grant action pattern + notification fire-and-forget</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-4.6</span>
-        <span class="prompt-name">XP awarding system — admin manual grant, auto-grant from RP posts</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">Two XP pathways: (1) Admin manual award from Character Approvals / Player Manager — same pattern as WM's bestow XP action, fires notification. (2) Auto-award on RP post submission — a server action hook that awards a small XP amount (admin-configurable) per qualifying RP post. XP logged in a character_xp_log table (character_id, amount, reason, created_at). Level-up detection on every XP write.</div>
-      <div class="prompt-wm">Model after: WM XP award action + gold_log pattern → character_xp_log</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-4.7</span>
-        <span class="prompt-name">My Characters page — dashboard view, switch active character</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">/my-characters page (sidebar link). Shows all user's characters with status badges. Active character selector — sets a active_character_id on the user session/cookie (used by IC posting mode). Create new character button. Each character card shows: avatar, name, faction pip, level, XP bar, status, quick-manage actions. Pending characters show approval status.</div>
-      <div class="prompt-wm">Model after: WM /familiars page card pattern — vertical register rows per character</div>
+      <div class="prompt-body">On RP board post submission: award XP to active character (xp_per_rp_post site_setting, multiplied by active event xp_multiplier). Award Essence to user account (essence_per_rp_post site_setting). Both writes use admin client. Level-up detection on every XP write — if new XP crosses threshold, fire level-up notification. Log both in character_xp_log and essence_log.</div>
+      <div class="prompt-note">XP = character-level gain-only. Essence = account-level earn + spend.</div>
     </div>
   </div>
 </div>
@@ -352,72 +364,61 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   PHASE 5 — IC POSTING & RP FORUMS
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 5 — IC posting mode and the RP forum system')">
+  <div class="phase-header">
     <div class="phase-num">Phase 5</div>
     <div>
       <div class="phase-title">IC Posting Mode & RP Forums</div>
       <div class="phase-desc">The signature RP feature: posts in designated forums render with character identity. OOC sidebar. The heart of the community experience.</div>
     </div>
-    <div class="phase-meta">5 prompts &ensp;·&ensp; ~2 sessions</div>
+    <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-5.1</span>
-        <span class="prompt-name">Migration 007 — add ic_post fields to board_posts, rp_board flag to boards</span>
+        <span class="prompt-name">IC post composer — character selector, IC/OOC toggle in RP boards</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Add to boards: is_rp_board (boolean default false) — enables IC mode for that board. Add to board_posts: character_id (nullable FK characters ON DELETE SET NULL), is_ic (boolean default false). When is_ic = true and character_id is set, the post renders with character identity. When character is deleted, post reverts to user identity gracefully (SET NULL).</div>
-      <div class="prompt-wm">Extends: Migration 003 board_posts table</div>
+      <div class="prompt-body">In is_rp_board boards, post editor shows IC/OOC toggle above Tiptap. IC mode: character selector dropdown (active characters only). Selected character avatar + name shown as preview. Toggle state persists in sessionStorage per board. On submit with IC: post saved with character_id + is_ic = true.</div>
+      <div class="prompt-note">Only status = active characters appear in selector</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-5.2</span>
-        <span class="prompt-name">IC post composer — character selector dropdown in RP forums</span>
+        <span class="prompt-name">IC post rendering — character identity in thread view</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">In RP boards, the post editor shows an IC/OOC toggle above the Tiptap editor. When IC is selected: a character dropdown appears showing the user's active characters (approved only). Selected character's avatar + name shown as a preview. On submit: post saved with character_id + is_ic = true. On OOC: normal post with user identity. The toggle state persists in sessionStorage per board.</div>
-      <div class="prompt-wm">Model after: WM RichTextEditor component — extend with IC mode toggle above editor</div>
+      <div class="prompt-body">IC posts render with: character avatar (not user avatar), character name in Cormorant Upright, faction diamond pip in faction color, canon source badge, level badge. "Played by [username]" in muted EB Garamond links to user profile. Left border-left in faction color distinguishes IC posts. OOC posts render with user identity as normal.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-5.3</span>
-        <span class="prompt-name">IC post rendering — character avatar, name, faction in post header</span>
+        <span class="prompt-name">OOC sidebar on RP threads</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">In thread view, IC posts render with: character avatar (not user avatar), character name (larger, in character name font), faction diamond pip in faction color, canon source badge, level badge. A small "played by [username]" link in muted text below the character name links to the user's profile. OOC posts render normally. A visual border-left in faction color distinguishes IC posts at a glance.</div>
-      <div class="prompt-wm">Model after: WM board_posts rendering in thread view — extend post header component</div>
+      <div class="prompt-body">Collapsible OOC panel on RP threads — plain text only, no Tiptap. Stored in ooc_posts (thread_id, user_id, content, created_at). Sidebar on desktop, below main thread on mobile. Always renders with user identity. Toggle button in thread header.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-5.4</span>
-        <span class="prompt-name">OOC sidebar on RP threads</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">RP threads get a collapsible OOC panel — a separate light-weight thread for out-of-character coordination. Stored as ooc_posts (thread_id, user_id, content text, created_at) — plain text only, no Tiptap. Renders in a sidebar panel or below the main thread on mobile. Toggle button in thread header. Always renders with user identity, never character identity.</div>
-      <div class="prompt-wm">New build — but follows WM's lightweight board pattern for simple content</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-5.5</span>
-        <span class="prompt-name">RP forum setup — The Circle location boards, admin rp_board toggle</span>
+        <span class="prompt-name">RP forum setup — The Circle location boards, faction-only locations</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Seed the RP location boards (San Francisco, The Underworld, Whitelighter Realm, Sunnydale, Neutral Ground, etc). Add is_rp_board toggle to the admin board manager. Create the Samhain Convergence event board as the first active RP board. Wire the XP auto-award hook (from TWH-4.6) to fire on post submission in is_rp_board boards.</div>
-      <div class="prompt-wm">Model after: WM Admin board manager — add is_rp_board toggle</div>
+      <div class="prompt-body">Seed common location boards (scope = rp): San Francisco, The Underworld, Whitelighter Realm, Sunnydale, Neutral Ground. Seed faction-only location boards (scope = faction): Elders' Realm (Covenant), The Underworld Throne Room (Cabal), The Wanderers' Cross (Unbound). Boards with min_level_required show gated message to under-level characters. Admin is_rp_board toggle in board manager.</div>
+      <div class="prompt-note">min_level_required enforced at application layer, not RLS</div>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════
-  PHASE 6 — FACTION SYSTEM
+  PHASE 6 — FACTION SYSTEM UI
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 6 — the faction system for The Witching Hour')">
+  <div class="phase-header">
     <div class="phase-num">Phase 6</div>
     <div>
-      <div class="phase-title">Faction System</div>
-      <div class="phase-desc">Covenant, Cabal, Unbound. Private faction forums, faction leadership, announcements. Largely modelled on WM's hall+club hybrid.</div>
+      <div class="phase-title">Faction System UI</div>
+      <div class="phase-desc">Faction hub pages, leadership tools, announcements, member roster, public faction browser. Factions seeded in TWH-2.1, admin-editable from TWH-2.6.</div>
     </div>
     <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
@@ -425,207 +426,192 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-6.1</span>
-        <span class="prompt-name">Migration 008 — faction boards, faction_announcements, faction_announcement_reads</span>
+        <span class="prompt-name">Migration — faction_announcements, faction_announcement_reads</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Create faction-scoped boards (scope = 'faction', scope_id = faction_id). RLS: only characters with matching faction_id can read/write. faction_announcements table mirrors WM's hall_announcements. faction_announcement_reads mirrors hall_announcement_reads. Wire the nav badge for unread faction announcements.</div>
-      <div class="prompt-wm">Model after: WM hall boards RLS pattern + hall_announcements + hall_announcement_reads</div>
+      <div class="prompt-body">faction_announcements (faction_id, author_id, title, body HTML, created_at). faction_announcement_reads (user_id, announcement_id, read_at). Unread count wired into Masthead/sidebar badge. RLS: faction members only.</div>
+      <div class="prompt-note">Model after: WM hall_announcements pattern</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-6.2</span>
-        <span class="prompt-name">Faction hub page — lore, announcements, member roster, private board</span>
+        <span class="prompt-name">Faction hub page — lore, leader title, announcements, roster, private board</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">The faction page (/factions/[slug]) shows: faction lore block, leader info, active announcements, faction-private message board, member character roster. Only visible to characters in that faction (plus admin). Non-members see a public teaser with join info. Apply Blood Moon theme with faction accent colors — Covenant gold, Cabal ember, Unbound moonstone.</div>
-      <div class="prompt-wm">Model after: WM /my-hall page structure — adapt all three sections (master panel, announcements, board, roster)</div>
+      <div class="prompt-body">/factions/[slug]: faction lore (DOMPurify HTML), leadership block showing leader_title from factions row + leader display names, active announcements, faction-private board, character roster. Faction accent colors applied throughout (Covenant gold, Cabal ember, Unbound moonstone). Non-members see public teaser. Multiple leaders displayed as a group.</div>
+      <div class="prompt-note">leader_title read from factions.leader_title — never hardcoded</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-6.3</span>
-        <span class="prompt-name">Faction leader tools — announce, manage members, send whispers</span>
+        <span class="prompt-name">Faction leader (Keeper) tools — announce, roster, faction-wide Whispers</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Faction leaders (faction_leader role) get a Mod Panel section for their faction: post announcements, view member roster, send faction-wide system Whispers. Mirrors WM's Hall Master mod panel tools. Admin can appoint faction leaders via Player Manager (scoped to faction_id).</div>
-      <div class="prompt-wm">Model after: WM Mod Panel — Hall Master announcement + roster tools</div>
+      <div class="prompt-body">Faction leaders see a Mod Panel section for their faction: post announcements, view + manage character roster, send faction-wide Council Notice. Multiple leaders can all access these tools (scoped by scope_id = faction_id in user_roles). Admin can appoint/remove leaders via Player Manager.</div>
+      <div class="prompt-note">Model after: WM Mod Panel hall master tools</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-6.4</span>
-        <span class="prompt-name">Factions index page + public faction browser</span>
+        <span class="prompt-name">Factions index — public browser with lore, member counts, join CTA</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">/factions — public page showing all three factions with lore summaries, member counts, and current character count per faction. Unaligned users can browse and choose a faction for their next character. Links to individual faction pages. This is a major recruitment/onboarding tool — make it visually stunning with the full Blood Moon faction color system.</div>
-      <div class="prompt-wm">Reference: dashboard-blood-moon.html faction color system (Covenant gold, Cabal ember, Unbound moonstone)</div>
+      <div class="prompt-body">/factions: all three factions with lore summaries, active character counts, leader_title and leader names. Unaligned users can browse and choose a faction for their next character. Faction color system in full effect — the most visually ambitious page on the site.</div>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════
-  PHASE 7 — THE APOTHECARY
+  PHASE 7 — THE APOTHECARY & THE OFFERING
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 7 — The Apothecary XP store for The Witching Hour')">
+  <div class="phase-header">
     <div class="phase-num">Phase 7</div>
     <div>
-      <div class="phase-title">The Apothecary — XP Store & Power Unlocks</div>
-      <div class="phase-desc">Spend XP on powers, cosmetics, and artifacts. WM's shop system is the perfect foundation — XP replaces gold as the currency.</div>
-    </div>
-    <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
-  </div>
-  <div class="prompts">
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-7.1</span>
-        <span class="prompt-name">Migration 009 — apothecary_listings, apothecary_purchases, power_catalog</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">Adapt WM's shop/shop_listings schema. apothecary_listings: id, name, description, xp_cost, listing_type (power/cosmetic/artifact), min_level_required, is_active. apothecary_purchases: id, character_id, listing_id, purchased_at. power_catalog: id, name, description, show_origin (which canon show this power is from), effect_description. Purchases of power type auto-create a character_powers row.</div>
-      <div class="prompt-wm">Model after: WM shops + shop_listings + shop_purchase_history schema</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-7.2</span>
-        <span class="prompt-name">The Apothecary page — browse listings, purchase with XP</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">The /apothecary page shows available listings filtered by the user's active character's level. Purchase flow: confirm modal showing XP cost, current XP balance, remaining XP after purchase. On confirm: deduct XP from character, create purchase row, fire notification. Atomic XP deduction (UPDATE WHERE xp >= cost). Cannot purchase twice (unique constraint on character_id + listing_id for powers).</div>
-      <div class="prompt-wm">Model after: WM shop purchase flow — atomic gold deduction pattern → atomic XP deduction</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-7.3</span>
-        <span class="prompt-name">Apothecary admin — manage listings, power catalog, pricing</span>
-        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
-      </div>
-      <div class="prompt-body">Admin section: Apothecary Manager. Create/edit/delete listings. Toggle active status. Set XP costs and level requirements. Manage the power catalog (add new powers, set show origins). View purchase history per character. This is the equivalent of WM's Shop Manager — same pattern, different content.</div>
-      <div class="prompt-wm">Model after: WM Shop Manager admin section</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-7.4</span>
-        <span class="prompt-name">My Character powers display — profile + character sheet</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">Update character profiles and the My Characters page to display owned powers with their show-origin badges. On the character sheet: powers grouped by show origin (Charmed powers, Buffy powers, original). Powers earned through both Apothecary purchases and level-up unlocks. The power list is the character's most expressive self-description — make it look like a registry entry.</div>
-      <div class="prompt-wm">Reference: WM familiar abilities display pattern — adapt for character powers</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════
-  PHASE 8 — MULTI-THEME ENGINE
-══════════════════════════════ -->
-<div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 8 — the multi-theme engine for The Witching Hour')">
-    <div class="phase-num">Phase 8</div>
-    <div>
-      <div class="phase-title">Multi-Theme Engine</div>
-      <div class="phase-desc">CSS variable swap system. Blood Moon is default. Silver & Onyx, Victorian Apothecary, and others available. Admin can lock themes per section.</div>
-    </div>
-    <div class="phase-meta">3 prompts &ensp;·&ensp; ~1 session</div>
-  </div>
-  <div class="prompts">
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-8.1</span>
-        <span class="prompt-name">Theme variable system — :root overrides, theme switcher component</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">Each theme is a set of CSS custom property overrides applied to :root via a data-theme attribute on body. Five themes: blood-moon (default), silver-onyx, victorian-apothecary, crimson-athenaeum, midnight-garden. Theme preference stored in user site_settings (via characters table column: theme_preference text default 'blood-moon'). Applied in layout.tsx via a data-theme prop on body.</div>
-      <div class="prompt-wm">Reference: palette-sampler-v3.html color tokens — encode all five palettes as :root variable sets</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-8.2</span>
-        <span class="prompt-name">Silver & Onyx theme — full token set + verification pass</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">Implement Silver & Onyx as the second complete theme. Test all major UI surfaces under both themes (masthead, sidebar, forum index, thread view, character profile). Verify faction colors adapt correctly (each faction's color reads well on both dark backgrounds). Fix any contrast issues discovered.</div>
-      <div class="prompt-wm">Reference: dashboard-silver-onyx.html — full token implementation</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-8.3</span>
-        <span class="prompt-name">Admin theme lock — override user theme for specific boards/sections</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
-      </div>
-      <div class="prompt-body">Admin can set a forced_theme on boards (a nullable column on the boards table). When a user enters a board with forced_theme set, their user preference is overridden. Example: the Cabal faction board forces Crimson Athenaeum. The lock is communicated to the user: "This area has its own atmosphere." User theme restores on exit.</div>
-      <div class="prompt-wm">Extends: boards table from Migration 003 — add forced_theme column</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════
-  PHASE 9 — LIVE CHAT & REWATCH
-══════════════════════════════ -->
-<div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 9 — live chat and the Rewatch Club system')">
-    <div class="phase-num">Phase 9</div>
-    <div>
-      <div class="phase-title">The Séance (Live Chat) & Rewatch Club</div>
-      <div class="phase-desc">WM's Whispering Chamber is a fully built, battle-tested realtime chat — the most expensive lesson WM learned. Port it.</div>
+      <div class="phase-title">The Apothecary — Essence Store, Powers & The Offering</div>
+      <div class="phase-desc">Spend Essence (account-level currency) on powers, cosmetics, and artifacts. The Offering: sacrifice Essence for a randomized Blessing. XP is gain-only and never spent.</div>
     </div>
     <div class="phase-meta">5 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
       <div class="prompt-head">
-        <span class="prompt-id">TWH-9.1</span>
-        <span class="prompt-name">Migration 010 — chat_messages table, RLS, Realtime publication, REPLICA IDENTITY</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">WM's chat_messages schema is battle-hardened across 13 build parts. Port verbatim: id, user_id, content, created_at, deleted_at (soft delete), mentioned_user_ids (jsonb), channel_id. RLS: INSERT policy gated by is_active user. REPLICA IDENTITY FULL (required for UPDATE realtime events — WM learned this the hard way). Add to supabase_realtime publication.</div>
-      <div class="prompt-wm">Model after: WM Migration 107+108+109 — copy these three migrations exactly, critical ordering matters</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-9.2</span>
-        <span class="prompt-name">The Séance — realtime chat component with all WM features</span>
-        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
-      </div>
-      <div class="prompt-body">Port WM's WhisperingChamber component with all CHAT-1 through CHAT-3c features: message grouping, typing indicator, @-autocomplete, mention click, block filter, idle drop, soft-delete with mod controls. IC mode toggle (post as character). Apply Blood Moon theme. This is 13 build parts of WM work arriving for free.</div>
-      <div class="prompt-wm">Model after: WM WhisperingChamberClient.tsx — direct port + IC toggle addition</div>
-    </div>
-    <div class="prompt-row">
-      <div class="prompt-head">
-        <span class="prompt-id">TWH-9.3</span>
-        <span class="prompt-name">Chat channels — general, faction-specific, watch party mode</span>
+        <span class="prompt-id">TWH-7.1</span>
+        <span class="prompt-name">Migration — apothecary_listings, apothecary_purchases, power_catalog, essence_log</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Add channel_id to chat_messages (nullable, null = general). Create channel selector in The Séance. Channels: General, Covenant (faction-gated), Cabal (faction-gated), Unbound (faction-gated). Watch party channels are temporary (created per rewatch event, auto-archived after). Admin can create/archive channels via site settings.</div>
-      <div class="prompt-wm">Extends: WM chat system — add channel multiplexing</div>
+      <div class="prompt-body">apothecary_listings: essence_cost (not xp_cost), listing_type (power/cosmetic/artifact), min_level_required, blessing_eligible (boolean), blessing_weight (integer, lower = rarer), is_active. apothecary_purchases: character_id FK (item assigned to a specific character even though Essence is account-level). power_catalog: name, description, show_origin, effect_description. essence_log: user_id, amount, reason, awarded_by nullable. Also add users.last_offering_at if not already present.</div>
+      <div class="prompt-note">essence_cost not xp_cost — Essence is account-level, XP is never spent</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
-        <span class="prompt-id">TWH-9.4</span>
-        <span class="prompt-name">Migration 011 — rewatch_events, rewatch_rsvps tables</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+        <span class="prompt-id">TWH-7.2</span>
+        <span class="prompt-name">The Apothecary page — browse by level, purchase with Essence</span>
+        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">rewatch_events: id, canon_source, season, episode_number, episode_title, scheduled_at, chat_channel_id (FK chat_channels), discussion_thread_id (FK board_threads), status (scheduled/live/archived), created_by. rewatch_rsvps: id, event_id, user_id, created_at. UNIQUE (event_id, user_id). Admin creates events; users RSVP. At scheduled time, event goes live (status = 'live').</div>
-      <div class="prompt-wm">New table — model the admin create pattern after WM event manager</div>
+      <div class="prompt-body">/apothecary: listings filtered by active character's level. Purchase flow: confirm modal shows Essence cost, current Essence balance, remaining after purchase, and which character receives the item. On confirm: atomic Essence deduction from users table (UPDATE WHERE essence >= cost), create purchase row, create essence_log debit row, fire notification. Cannot purchase twice (UNIQUE on character_id + listing_id).</div>
+      <div class="prompt-note">Atomic deduction on users.essence — never characters.xp</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
-        <span class="prompt-id">TWH-9.5</span>
-        <span class="prompt-name">Rewatch Club page — schedule, RSVP, event view, watch party entry</span>
+        <span class="prompt-id">TWH-7.3</span>
+        <span class="prompt-name">The Offering — ritual Essence sacrifice for randomized Blessing</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">/rewatch page: upcoming events grid (show, season/episode, date, RSVP count, RSVP button). Current live event highlighted with "Join Watch Party" CTA. Past events archived with discussion thread link. Each event page (/rewatch/[id]): episode info, live/upcoming status, RSVP list, linked discussion thread, entry to watch party chat channel.</div>
-      <div class="prompt-wm">Reference: WM Clubs page card grid pattern — adapt for rewatch events</div>
+      <div class="prompt-body">Dedicated page or prominent Apothecary section. User sacrifices offering_cost Essence (site_setting). Weighted random draw from blessing_eligible listings (blessing_weight determines rarity). If item already owned: partial Essence refund (offering_refund_amount site_setting) instead of item. Cooldown enforced server-side via users.last_offering_at (offering_cooldown_hours site_setting). Ritual UI — not a button, an experience.</div>
+      <div class="prompt-note">Cooldown checked server-side at action time — never trust client time</note>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-7.4</span>
+        <span class="prompt-name">Apothecary admin — listings manager, power catalog, Offering config</span>
+        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+      </div>
+      <div class="prompt-body">Admin section: create/edit/delete listings, set essence_cost and level requirements, toggle blessing_eligible and blessing_weight, toggle is_active. Power catalog management. Configure Offering settings (offering_cost, offering_refund_amount, offering_cooldown_hours) via site_settings UI. View purchase history per character.</div>
+      <div class="prompt-note">Model after: WM Shop Manager admin section</note>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-7.5</span>
+        <span class="prompt-name">Powers display on character profiles and character sheet</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">Character profile powers section: grouped by show_origin (Charmed powers, Buffy powers, Original). Source badge per power (Apothecary purchase / Level unlock / Admin grant). Powers earned via The Offering appear as Apothecary purchases. The power list is the character's most expressive self-description — styled as a magical registry entry.</div>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════
-  PHASE 10 — GRIMOIRE & LORE
+  PHASE 8 — LIVE CHAT (THE SÉANCE)
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 10 — the Grimoire lore wiki for The Witching Hour')">
+  <div class="phase-header">
+    <div class="phase-num">Phase 8</div>
+    <div>
+      <div class="phase-title">The Séance (Live Chat)</div>
+      <div class="phase-desc">WM's Whispering Chamber ported with IC mode and faction channels added. Battle-tested across 13 WM build parts — enormous leverage.</div>
+    </div>
+    <div class="phase-meta">3 prompts &ensp;·&ensp; ~1–2 sessions</div>
+  </div>
+  <div class="prompts">
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-8.1</span>
+        <span class="prompt-name">Migration — chat_messages, REPLICA IDENTITY FULL, Realtime publication</span>
+        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
+      </div>
+      <div class="prompt-body">chat_messages: user_id, character_id nullable FK (ON DELETE SET NULL), is_ic, channel_id (default 'general'), content, mentioned_user_ids (jsonb, GIN index), deleted_at (soft delete), created_at. REPLICA IDENTITY FULL required. Add to supabase_realtime publication. Both steps required — neither alone is sufficient.</div>
+      <div class="prompt-note">Port WM Migration 107+108+109 ordering exactly</note>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-8.2</span>
+        <span class="prompt-name">The Séance — realtime chat with all WM features + IC mode</span>
+        <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
+      </div>
+      <div class="prompt-body">Port WM WhisperingChamber: message grouping, typing indicator, @-autocomplete (online-first, 8 results), mention click, block filter, idle drop, soft-delete with mod controls, structured mentions data flow. TWH additions: IC mode toggle (post as active character, renders with character identity), channel selector. Apply Blood Moon theme.</div>
+      <div class="prompt-note">Model after: WM WhisperingChamberClient.tsx — direct port + IC toggle</note>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-8.3</span>
+        <span class="prompt-name">Chat channels — General, faction-gated, Watch Party temporary</span>
+        <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
+      </div>
+      <div class="prompt-body">Channels: General (all), Covenant (faction-gated), Cabal (faction-gated), Unbound (faction-gated). Watch Party channels created per rewatch event, auto-archived after. Admin can create/archive channels via site settings. Channel selector in Séance header.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  PHASE 9 — REWATCH CLUB
+══════════════════════════════ -->
+<div class="phase-block">
+  <div class="phase-header">
+    <div class="phase-num">Phase 9</div>
+    <div>
+      <div class="phase-title">Rewatch Club</div>
+      <div class="phase-desc">Scheduled episode rewatches with RSVP, live watch party chat channels, and post-event discussion threads.</div>
+    </div>
+    <div class="phase-meta">3 prompts &ensp;·&ensp; ~1 session</div>
+  </div>
+  <div class="prompts">
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-9.1</span>
+        <span class="prompt-name">Migration — rewatch_events, rewatch_rsvps</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">rewatch_events: canon_source, season, episode_number, episode_title, scheduled_at, chat_channel_id, discussion_thread_id FK, status (scheduled/live/archived), created_by. rewatch_rsvps: event_id, user_id, UNIQUE. Admin creates events; status transitions to live at scheduled_at.</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-9.2</span>
+        <span class="prompt-name">Rewatch Club page — schedule, RSVP, event view, watch party entry</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">/rewatch: upcoming events grid (show, season/episode, date, RSVP count, RSVP button). Live event highlighted with Join Watch Party CTA. Past events archived with discussion thread link. Event page: episode info, status, RSVP list, entry to watch party channel.</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-9.3</span>
+        <span class="prompt-name">Rewatch admin — create events, manage schedule, archive</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">Admin section: create/edit rewatch events, set canon + episode details + scheduled_at. Transition event to live (creates watch party channel, links discussion thread). Archive after event ends.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  PHASE 10 — THE GRIMOIRE
+══════════════════════════════ -->
+<div class="phase-block">
+  <div class="phase-header">
     <div class="phase-num">Phase 10</div>
     <div>
       <div class="phase-title">The Grimoire — Lore Wiki</div>
-      <div class="phase-desc">Community-editable lore compendium. Powers, demons, spells, locations — tagged by canon. Analogous to WM's Library but wiki-shaped.</div>
+      <div class="phase-desc">Community-editable lore compendium. Powers, demons, spells, locations — tagged by canon. Revision history. Lore Keeper role manages it.</div>
     </div>
     <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
@@ -633,11 +619,10 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-10.1</span>
-        <span class="prompt-name">Migration 012 — grimoire_entries, grimoire_categories, grimoire_revisions</span>
+        <span class="prompt-name">Migration — grimoire_entries, grimoire_categories, grimoire_revisions</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">grimoire_entries: id, title, slug, category_id, canon_source, body (HTML), created_by, status (draft/published), created_at, updated_at. grimoire_categories: id, name, display_order (Powers, Demons, Locations, Spells, Creatures, Lore). grimoire_revisions: id, entry_id, editor_id, body_before, body_after, created_at (audit trail). Full-text search index on title + body.</div>
-      <div class="prompt-wm">Model after: WM books/book_pages pattern for content structure — adapt for wiki shape</div>
+      <div class="prompt-body">grimoire_entries: title, slug (unique), category_id, canon_source, body (HTML), created_by, status (draft/published), is_featured, created_at, updated_at. grimoire_categories: name, display_order (Powers, Demons, Locations, Spells, Creatures, Lore). grimoire_revisions: entry_id, editor_id, body_before, body_after, created_at. Full-text search index on title + body.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
@@ -645,26 +630,24 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
         <span class="prompt-name">Grimoire index — category browsing, search, canon filter</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">/grimoire: category sidebar + entry grid. Filter by canon source (matches show ribbon colors). Search bar with full-text results. Each entry card: title, canon badge, category, excerpt. Recently updated section. Featured entries (admin-pinned). Should feel like an ancient reference library with a modern search interface.</div>
-      <div class="prompt-wm">Reference: WM /library page structure — adapt card grid + category filtering</div>
+      <div class="prompt-body">/grimoire: category sidebar + entry grid. Canon filter. Full-text search. Recently updated + admin-featured sections. Feels like an ancient reference library with a modern search interface.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-10.3</span>
-        <span class="prompt-name">Grimoire entry view + edit (Tiptap, revision history)</span>
+        <span class="prompt-name">Grimoire entry view + Tiptap edit + revision history</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">/grimoire/[slug]: full entry display (DOMPurify sanitized HTML). Edit button for users with manage_lore permission. Edit view uses Tiptap editor — on save: creates grimoire_revision row, updates entry. Revision history sidebar (collapsible): shows all editors + dates. Lore Keeper and Admin can publish/unpublish entries.</div>
-      <div class="prompt-wm">Model after: WM book reading experience + Tiptap editor pattern</div>
+      <div class="prompt-body">/grimoire/[slug]: DOMPurify HTML display. Edit button for manage_lore permission holders. Tiptap editor — on save: write grimoire_revision row, update entry. Collapsible revision history sidebar. Lore Keeper + Admin can publish/unpublish.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-10.4</span>
-        <span class="prompt-name">Grimoire admin — entry management, category management, featured pins</span>
+        <span class="prompt-name">Grimoire admin — entry management, categories, featured pins</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">Admin Panel: Grimoire Manager. Create/edit/delete entries and categories. Toggle featured status. Review revision history. Publish/unpublish draft entries. View full-text search performance. Mirrors WM's Library admin section in function.</div>
-      <div class="prompt-wm">Model after: WM Library admin section</div>
+      <div class="prompt-body">Admin section: create/edit/delete entries and categories, toggle featured, review revision history, publish/unpublish drafts.</div>
+      <div class="prompt-note">Model after: WM Library admin section</note>
     </div>
   </div>
 </div>
@@ -673,11 +656,11 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   PHASE 11 — EVENTS & ACHIEVEMENTS
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 11 — site events and achievement badges')">
+  <div class="phase-header">
     <div class="phase-num">Phase 11</div>
     <div>
       <div class="phase-title">Site Events (The Convergence) & Achievement Badges</div>
-      <div class="phase-desc">Seasonal RP events with XP bonuses, plus a badge system for milestones. Both are community engagement engines.</div>
+      <div class="phase-desc">Seasonal RP events with XP + Essence bonus multipliers. Achievement badge system for milestones. Both are community engagement engines.</div>
     </div>
     <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
@@ -685,38 +668,35 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-11.1</span>
-        <span class="prompt-name">Migration 013 — site_events table, event_xp_multiplier logic</span>
+        <span class="prompt-name">Migration — site_events, event bonus multiplier logic</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">WM has getActiveEvent() already cached. Adapt: site_events: id, name, description, starts_at, ends_at, xp_multiplier (numeric default 1.0), banner_text, is_active. The XP auto-award hook (TWH-4.6) checks getActiveEvent() and applies the multiplier. Admin creates events via Admin Panel → Events Manager. One active event at a time.</div>
-      <div class="prompt-wm">Model after: WM eventsAdmin.ts + getActiveEvent() cached function — extend with xp_multiplier</div>
+      <div class="prompt-body">site_events: name, description, banner_text, starts_at, ends_at, xp_multiplier (numeric, applies to XP awards), essence_multiplier (numeric, applies to Essence awards), is_active. getActiveEvent() cached (5min TTL, 'active-event' tag). XP + Essence auto-award hooks (TWH-4.5) check active event and apply both multipliers. One active event at a time.</div>
+      <div class="prompt-note">Both XP and Essence multipliers — model after WM getActiveEvent() pattern</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-11.2</span>
-        <span class="prompt-name">Event banner on dashboard + event forum boards</span>
+        <span class="prompt-name">Event banner on dashboard + event RP boards</span>
         <div class="prompt-badges"><span class="badge b-adapt">~ Adapt</span></div>
       </div>
-      <div class="prompt-body">When an active event exists: the hero banner on the home dashboard shows the event (already designed in the mockup — the Samhain Convergence banner). Event-specific RP boards are created and linked to the event record. XP multiplier shown prominently. Event ends_at countdown. Wire getActiveEvent() caching — one of WM's most important performance lessons.</div>
-      <div class="prompt-wm">Reference: WM Active Event display on Entrance page — adapt for TWH dashboard hero</div>
+      <div class="prompt-body">Active event shows hero banner on dashboard (Samhain Convergence design). Event-specific RP boards linked to event record. Multiplier shown prominently. ends_at countdown timer.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-11.3</span>
-        <span class="prompt-name">Migration 014 — achievement_definitions, character_achievements</span>
+        <span class="prompt-name">Migration — achievement_definitions, character_achievements</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">achievement_definitions: id, name, description, badge_image_url, trigger_type (post_count/event_participation/character_level/admin_grant/founding_member), trigger_value (integer nullable), created_at. character_achievements: id, character_id, achievement_id, earned_at. UNIQUE(character_id, achievement_id). Trigger_type 'founding_member' grants to all characters created before launch_date site setting.</div>
-      <div class="prompt-wm">Model after: WM familiar bond level system pattern for milestone tracking</div>
+      <div class="prompt-body">achievement_definitions: name, description, badge_image_url, trigger_type (post_count/event_participation/character_level/admin_grant/founding_member), trigger_value nullable. character_achievements: character_id, achievement_id, earned_at. UNIQUE(character_id, achievement_id). founding_member triggers on characters created before launch_date site_setting.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-11.4</span>
-        <span class="prompt-name">Achievement badge display on character profiles + admin grant tool</span>
+        <span class="prompt-name">Achievement display on character profiles + admin grant tool</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Character profile achievements section: badge grid with name + description tooltip. Auto-trigger checks run on: RP post submission (post_count), event participation (event join), character level-up (character_level). Admin can manually grant any achievement from Player Manager (admin_grant type). The founding_member badge triggers on launch day via a one-time admin action.</div>
-      <div class="prompt-wm">Model after: WM admin bestow action + notification pattern</div>
+      <div class="prompt-body">Badge grid on character profiles with name + description tooltip. Auto-triggers: post_count on RP post, event_participation on RSVP, character_level on level-up. Admin manual grant from Player Manager. Founding member badge via one-time admin action at launch.</div>
     </div>
   </div>
 </div>
@@ -725,50 +705,49 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   PHASE 12 — SOCIAL & PROFILES
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 12 — social features and user profiles for The Witching Hour')">
+  <div class="phase-header">
     <div class="phase-num">Phase 12</div>
     <div>
       <div class="phase-title">Social Features — Profiles, Friends, Character Relationships</div>
-      <div class="phase-desc">User profiles, friendships, and the character relationship web. Most of this is WM verbatim.</div>
+      <div class="phase-desc">User profiles, friendships, character relationship web, NPC staff accounts, watcher status + spoiler gating.</div>
     </div>
-    <div class="phase-meta">4 prompts &ensp;·&ensp; ~1–2 sessions</div>
+    <div class="phase-meta">5 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-12.1</span>
-        <span class="prompt-name">Migration 015 — friendships, user public profile columns</span>
+        <span class="prompt-name">Migration — friendships; user profile columns</span>
         <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
       </div>
-      <div class="prompt-body">WM's friendships table ports verbatim (without the now-obsolete email token columns — WM already removed those). Add to characters: website, social_link, bio (user-level bio separate from character bios). User public profile at /profile/[username]: avatar, display name, join date, characters grid, friend count, post count.</div>
-      <div class="prompt-wm">Model after: WM friendships table + /profile/[username] page — remove token columns, simplify</div>
+      <div class="prompt-body">friendships: user_id, friend_id, status (pending/accepted/declined), UNIQUE(user_id, friend_id). Add to users: website, social_link (for profile display). User public profile at /profile/[username]: avatar, display name, join date, all characters grid (site-wide + Chronicles with context labels), friend count, post count.</div>
+      <div class="prompt-note">All characters listed — site-wide and Chronicle characters together</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-12.2</span>
-        <span class="prompt-name">My Friends page — friend list, requests, send Whisper from profile</span>
+        <span class="prompt-name">My Friends page — friend list, requests, online status</span>
         <div class="prompt-badges"><span class="badge b-port">✓ Port</span></div>
       </div>
-      <div class="prompt-body">WM's /my-friends page ports directly. Friend rows with online status dot (last_seen_at within 5 min). Send Whisper, View Profile actions. Friend request flow: internal notification (no email). Accept/decline from My Friends page. Apply Blood Moon theme.</div>
-      <div class="prompt-wm">Model after: WM /my-friends page — port almost verbatim, retheme</div>
+      <div class="prompt-body">Friend rows with online status dot (last_seen_at within 5 min). Send Whisper, View Profile actions. Friend request flow via internal notification (no email). Accept/decline from My Friends page.</div>
+      <div class="prompt-note">Model after: WM /my-friends page</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-12.3</span>
-        <span class="prompt-name">Migration 016 — character_relationships table</span>
+        <span class="prompt-name">Character relationship web — display and management</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">character_relationships: id, character_id, related_character_id, relationship_type (ally/rival/family/mentor/apprentice/other), relationship_label (text, custom), is_mutual (boolean — both characters acknowledged), created_by, created_at. UNIQUE(character_id, related_character_id). Display on character profiles as a relationship web — list format initially, graph visualization Phase 3.</div>
-      <div class="prompt-wm">New table — follows WM FK + index patterns</div>
+      <div class="prompt-body">Character relationships (already in schema from TWH-2.2): ally/rival/family/mentor/apprentice/other with custom label. One-sided until target character owner acknowledges (flips is_mutual). Acknowledgement fires notification to target. List format on character profiles initially.</div>
+      <div class="prompt-note">is_mutual = false until target acknowledges — see Process §21 R9</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-12.4</span>
-        <span class="prompt-name">NPC staff accounts — admin-controlled canon character profiles</span>
+        <span class="prompt-name">NPC staff characters + watcher status spoiler gating</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">An is_npc boolean on characters table (admin-only set). NPC characters are controlled by staff accounts, appear in RP forums with their character identity, but link to a generic "Staff" profile rather than a personal user profile. Admin creates NPC characters via Character Manager. First NPCs: Piper Halliwell, Giles (for Buffy events), Angel (for crossover events).</div>
-      <div class="prompt-wm">Extends: characters table (TWH-4.1) — add is_npc flag</div>
+      <div class="prompt-body">is_npc characters (admin-only set) link to generic Staff profile rather than personal user. First NPCs: Piper Halliwell, Giles, Angel. Watcher status: users.watching_status jsonb stores per-show progress ('charmed': 'complete', 'buffy': 'watching_s3'). Edit Profile allows per-show status. Profile shows "Currently watching Charmed S3" badge. Spoiler-tagged threads show warning to users with incomplete status for that show.</div>
     </div>
   </div>
 </div>
@@ -777,59 +756,103 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
   PHASE 13 — POLISH & LAUNCH PREP
 ══════════════════════════════ -->
 <div class="phase-block">
-  <div class="phase-header" onclick="sendPrompt('Tell me about Phase 13 — launch preparation for The Witching Hour')">
+  <div class="phase-header">
     <div class="phase-num">Phase 13</div>
     <div>
       <div class="phase-title">Polish, Discord Integration & Launch Prep</div>
-      <div class="phase-desc">Thread bookmarking, spoiler tag polish, Discord webhook, founding member setup, pre-launch community seeding.</div>
+      <div class="phase-desc">Founding member badge, pre-launch content seeding, Discord webhook, full RLS audit, hydration error pass.</div>
     </div>
-    <div class="phase-meta">5 prompts &ensp;·&ensp; ~2 sessions</div>
+    <div class="phase-meta">4 prompts &ensp;·&ensp; ~2 sessions</div>
   </div>
   <div class="prompts">
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-13.1</span>
-        <span class="prompt-name">Thread bookmarking — saved threads per user</span>
+        <span class="prompt-name">Founding member badge setup + Essence site_settings additions</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">thread_bookmarks: id, user_id, thread_id, created_at. UNIQUE(user_id, thread_id). Bookmark button on thread view (star icon). /my-bookmarks page lists all bookmarked threads with last activity. RP players typically track 5–10 threads — this is essential for retention.</div>
-      <div class="prompt-wm">Simple new table — follows WM junction table patterns</div>
+      <div class="prompt-body">Create founding_member achievement definition. Set launch_date in site_settings. Add any missing Essence-related site_settings: essence_per_rp_post, offering_cost, offering_refund_amount, offering_cooldown_hours. Confirm all economy settings are present and seeded with sensible defaults.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-13.2</span>
-        <span class="prompt-name">First-time watcher flag — profile field + spoiler gate</span>
+        <span class="prompt-name">Pre-launch content seeding</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Add to characters (user level): watching_status jsonb — stores per-show completion status {'charmed': 'complete', 'buffy': 'watching_s3', etc}. Edit Profile allows users to set their status per show. Profile displays "Currently watching Charmed S3" badge. Forum threads can check this and display a spoiler warning for users who haven't completed a show.</div>
-      <div class="prompt-wm">Extends: characters table — new jsonb column follows WM's jsonb pattern</div>
+      <div class="prompt-body">Seed: initial Grimoire entries (5–10 canon power entries), forum welcome threads per major board, faction lore pages, the first Convergence event (Samhain). Seed NPC characters. The "empty restaurant" problem — the site must look lived-in at launch.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-13.3</span>
-        <span class="prompt-name">Discord webhook integration — new thread announcements</span>
-        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+        <span class="prompt-name">Pre-launch audit — RLS coverage, hydration errors, performance</span>
+        <div class="prompt-badges"><span class="badge b-design">◈ Audit</span></div>
       </div>
-      <div class="prompt-body">On new published thread creation: fire a webhook POST to a Discord channel. Admin configures webhook URL in site_settings (discord_webhook_url). Payload: thread title, forum name, canon source, author name, link. Fire-and-forget (don't await, never block the user action). Admin can toggle per-board (discord_announce boolean on boards table).</div>
-      <div class="prompt-wm">Model after: WM fire-and-forget notification pattern — same non-blocking approach</div>
+      <div class="prompt-body">Phase A: query pg_policies for every table — verify all RLS policies cover read AND write paths. Check for two-cookie-aware-client 503 pattern in every Server Action. Check for hydration error storm (WM's unfixed issue — don't repeat). Check for any hardcoded values that should be in site_settings. Phase B: targeted fixes only.</div>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
         <span class="prompt-id">TWH-13.4</span>
-        <span class="prompt-name">Founding member badge setup + pre-launch seeding</span>
+        <span class="prompt-name">First admin bootstrap + launch checklist</span>
+        <div class="prompt-badges"><span class="badge b-design">◈ Setup</span></div>
+      </div>
+      <div class="prompt-body">Run first-admin SQL (INSERT INTO user_roles for admin role). Verify all six env vars in Vercel. Confirm Supabase Auth redirect URLs. Flip registration_open in site_settings. Set launch_date. Grant founding_member role to all early registrants. Final smoke test of full user journey: register → confirm → create character → get approved → post in RP board.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  PHASE 14 — CHRONICLES (POST-LAUNCH)
+══════════════════════════════ -->
+<div class="phase-block">
+  <div class="phase-header">
+    <div class="phase-num">Phase 14</div>
+    <div>
+      <div class="phase-title">Chronicles — Sub-RP Spaces (Post-Launch)</div>
+      <div class="phase-desc">Discrete collaborative stories with their own character rosters, Keeper leadership, membership approval, private boards. Character-based membership. Full revision loop for character applications.</div>
+    </div>
+    <div class="phase-meta">~6 prompts &ensp;·&ensp; post-launch</div>
+  </div>
+  <div class="prompts">
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-14.1</span>
+        <span class="prompt-name">Migration — chronicles, chronicle_members, chronicle boards scope</span>
         <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Create the Founding Member achievement definition. Set a launch_date in site_settings. Create seed content: initial Grimoire entries (5–10 canon power entries), initial forum boards with welcome threads, faction lore pages, the first Convergence event. Seed the three NPC characters. This is the "empty restaurant" problem — the site needs to look lived-in at launch.</div>
-      <div class="prompt-wm">Reference: WM's seeded clubs/content approach — apply same philosophy to TWH launch content</div>
+      <div class="prompt-body">chronicles: name, slug, description, canon_source nullable, visibility (open/apply/closed), status (active/archived/draft), max_characters_per_user nullable (null = inherit site_settings), created_by. chronicle_members: chronicle_id, character_id, status (pending/active/removed), UNIQUE. Add 'chronicle' to boards.scope CHECK constraint. RLS: chronicle members only for chronicle boards.</div>
+      <div class="prompt-note">See Brief §21 for full schema spec</note>
     </div>
     <div class="prompt-row">
       <div class="prompt-head">
-        <span class="prompt-id">TWH-13.5</span>
-        <span class="prompt-name">Pre-launch audit — RLS coverage, hydration errors, performance pass</span>
-        <div class="prompt-badges"><span class="badge b-design">◈ Audit</span></div>
+        <span class="prompt-id">TWH-14.2</span>
+        <span class="prompt-name">Chronicle creation, discovery, and application flow</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
       </div>
-      <div class="prompt-body">Following WM's verification discipline exactly: Phase A — query pg_policies for every table, verify all RLS policies cover read AND write paths. Check for the two-cookie-aware-client 503 pattern in every Server Action. Run npx next lint. Check for hydration error storm (WM's pre-existing unfixed issue — don't repeat it). Phase B — targeted fixes for anything found.</div>
-      <div class="prompt-wm">Follows: WM Process v7 §15–§16 verification rules — apply every rule to the TWH codebase</div>
+      <div class="prompt-body">Chronicle creation by any user (or permission-gated — TBD). Chronicle browser/discovery page. Application flow: user selects a character and submits to a Chronicle. Status: pending → needs_revision (loop) → active. character_revisions table records each round of Keeper feedback. Same revision lifecycle as site-wide character approval.</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-14.3</span>
+        <span class="prompt-name">Chronicle hub page — lore, roster, boards, Keeper tools</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">Chronicle page: lore/description, character roster, private boards, Keeper leadership display. Keeper tools: edit Chronicle details, manage membership, approve/reject/request-revision on character applications, send feedback, moderate boards. Multiple Keepers supported — all can access Keeper tools (scoped by scope_id = chronicle_id in user_roles).</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-14.4</span>
+        <span class="prompt-name">Chronicle IC posting and RP board integration</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">Chronicle boards support IC posting using Chronicle-specific characters. Character selector in IC mode shows Chronicle characters for Chronicle boards, site-wide characters for site-wide boards. Chronicle characters appear on user profile with Chronicle name badge.</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-head">
+        <span class="prompt-id">TWH-14.5</span>
+        <span class="prompt-name">Chronicle admin tools — admin oversight of all Chronicles</span>
+        <div class="prompt-badges"><span class="badge b-new">✦ New</span></div>
+      </div>
+      <div class="prompt-body">Admin can view/edit/archive any Chronicle, appoint/remove Keepers, override character approval decisions, access all Chronicle boards regardless of membership. Chronicle manager in admin panel.</div>
     </div>
   </div>
 </div>
@@ -837,11 +860,15 @@ body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-te
 <div class="section-rule"></div>
 
 <div class="total-bar">
-  <span class="total-label">Phase 0–13 total</span>
-  <span class="total-num">63 prompts &ensp;·&ensp; ~25–30 sessions to soft launch</span>
+  <span class="total-label">Phase 0–13 total (soft launch)</span>
+  <span class="total-num">~68 prompts &ensp;·&ensp; ~26–32 sessions</span>
 </div>
 <div class="total-bar" style="margin-top:6px">
-  <span class="total-label">Phase 14+ (post-launch) — Dueling, Oracle AI, relationship graph, canon expansions</span>
+  <span class="total-label">Phase 14 — Chronicles (post-launch) &ensp;·&ensp; ~6 prompts</span>
+  <span class="total-num">~5 sessions</span>
+</div>
+<div class="total-bar" style="margin-top:6px">
+  <span class="total-label">Phase 15+ — Dueling, Oracle AI, relationship graph, canon expansions, additional post-launch features</span>
   <span class="total-num">~20–30 additional prompts</span>
 </div>
 

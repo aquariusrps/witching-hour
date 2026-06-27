@@ -425,77 +425,43 @@ When a feature refers to "the user's profile", it queries `users`. When it refer
 The currently-selected RP character for IC posting is stored as `active_character_id` on the `users` table. This is a nullable FK to `characters.id`. It is set when the user selects a character from their My Characters page or the character selector.
 
 ### Approval Gate
-Only characters with `status = 'active'` can be selected for IC posting. Characters in `status = 'pending'` or `status = 'suspended'` must not appear in the IC character selector.
-
-### XP Deduction Pattern
-Always atomic:
-```sql
-UPDATE characters
-SET xp = xp - $cost
-WHERE id = $character_id AND xp >= $cost
-RETURNING id
-```
-If no row returned: reject with "Insufficient XP" error. Never read XP then subtract — always conditional UPDATE.
+Only characters with `status = 'active'` can be selected for IC posting. Characters in `status = 'pending'`, `status = 'needs_revision'`, or `status = 'suspended'` must not appear in the IC character selector. The full status lifecycle is: pending → needs_revision → pending (loop) → active / suspended. See §7 of the Brief for the complete approval flow.
 
 ---
 
 ## 17. Faction System Rules
 
-Factions are fixed at three: Covenant (gold), Cabal (ember), Unbound (moonstone). They will be seeded in Migration 007 (Phase 2) and are not admin-editable (the names and colors are part of the site's identity).
+Factions are fully admin-editable via the faction manager in the admin panel. Name, slug, color_hex, description, lore, leader_title, and display_order are all configurable. The three factions were seeded in Migration 010 as starting placeholders — they are not hardcoded.
 
-Faction boards use `scope = 'faction'` and `scope_id = faction.id`. RLS enforces that only users with an active character in that faction can read/write.
+### Multiple Leaders
+Each faction supports multiple leaders simultaneously. Leaders are assigned via user_roles with scope_id = faction_id and the faction_leader role. There is no single-leader constraint — grant the role to as many users as needed.
 
-The faction color must appear consistently: as a diamond pip in post headers, as a left-border accent on faction-scoped panels, as the `data-faction` CSS attribute for theming.
+### Leader Titles
+The display name for a faction's leadership tier is stored in factions.leader_title (text, default 'Keeper'). This is faction-configurable — examples: 'Elders' for a light-aligned faction, 'The Triad' for a dark-aligned faction. Always read leader_title from the factions row when displaying leadership in the UI. Never hardcode a leadership title in component code.
+
+### Faction Colors
+The faction color must appear consistently everywhere:
+- Diamond pip in IC post headers and online lists
+- Left-border accent on faction-scoped panels
+- Fill color on faction badges and character cards
+- data-faction CSS attribute for scoped theming
+
+Covenant = var(--gold) / #e0b028
+Cabal    = var(--ember) / #c83818
+Unbound  = var(--moonstone) / #3878a8
+
+These hex values are fixed brand colors. Do not invent alternatives.
+
+### Faction Boards
+Faction boards use scope = 'faction' and scope_id = faction_id. RLS enforces that only users with an active character in that faction can read and write. Each faction has its own set of private boards. The site-wide RP also has common location boards (scope = 'rp', no scope_id) accessible to all authenticated users, and faction-only location boards (scope = 'faction') visible only to that faction's members.
 
 ---
 
 ## 18. Outstanding Rules Queue
 
-*This section accumulates rules discovered during builds
-that don't yet fit a category. Promoted to a numbered
-section on next document update.*
+*This section accumulates rules discovered during builds that don't yet fit a category. Promoted to a numbered section on next document update.*
 
-**From Phase 1 builds — promote on next pass:**
-
-R1. **Discriminated union narrowing in Server Actions.**
-When a server action returns a discriminated union
-(e.g. `{ error: string } | { success: true }`), client
-code must narrow with `'error' in result` not
-`result?.error`. TypeScript correctly rejects the latter
-on the success branch. Pattern confirmed in TWH-1.5.
-
-R2. **next/image requires remotePatterns config.**
-`<Image>` from `next/image` cannot load Supabase Storage
-URLs without adding `vkhuttcusqubteseifui.supabase.co`
-to `images.remotePatterns` in `next.config`. Until that
-config exists, use `<img>` with
-`{/* eslint-disable-next-line @next/next/no-img-element */}`.
-This applies everywhere avatars and character portraits
-are displayed. Address when avatar upload is built.
-
-R3. **body gradient is Blood Moon–hardcoded.**
-The ambient radial gradients in the `body` rule in
-`globals.css` use hardcoded `rgba(200,56,24,...)` etc.
-rather than `var(--ember-glow)` etc. They do not shift
-with theme. Low visual impact. Fix in a future polish
-pass.
-
-R4. **--dot-* CSS variables in globals.css are orphaned.**
-The `--dot-charmed`, `--dot-buffy` etc. variables are
-defined in `:root` but nothing references them — the
-Masthead ribbon uses hex from `lib/canons.ts`. They may
-be useful when forum pages display canon badges. No
-action needed now.
-
-R5. **An orphaned `--swatch-*` variable remains in globals.css.**
-One `--swatch-` prefixed CSS variable is still defined in
-`:root` from a theme that was removed before the final
-theme list was set. Harmless. Remove in next globals.css
-pass (grep `--swatch-` to find it).
-
-R6. **Logo PNG is 834KB for a 38–52px display element.**
-`public/witchinghourlogo.png` should be resized to ~76×76px
-@2x and compressed in a future assets pass. Not blocking.
+No items currently queued. All prior items have been promoted to numbered sections (see version history).
 
 ---
 
@@ -559,7 +525,102 @@ All visual verification is done manually by the operator. Claude Code must not o
 
 ---
 
-*Last updated: June 2026 — v1.4 (Phase 1 complete — canon expansion, waitlist, theme system, all Phase 1 lessons incorporated)*
-*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds)*
+## 21. Promoted Rules from Phase 1 Builds
+
+These rules were discovered during Phase 1 and held in §18 pending promotion. They are now standing rules.
+
+### R1 — Discriminated Union Narrowing in Server Actions
+When a Server Action returns a discriminated union (e.g. `{ error: string } | { success: true }`), client code must narrow with `'error' in result`, not `result?.error`. TypeScript correctly rejects the latter on the success branch. Pattern confirmed in TWH-1.5.
+
+### R2 — next/image Requires remotePatterns Config
+`<Image>` from next/image cannot load Supabase Storage URLs without adding `vkhuttcusqubteseifui.supabase.co` to `images.remotePatterns` in next.config. Until that config exists, use `<img>` with the `no-img-element` ESLint disable comment. Applies everywhere avatars and character portraits are displayed. Address when avatar upload is built.
+
+### R3 — Body Gradient Is Blood Moon-Hardcoded
+The ambient radial gradients in the body rule in globals.css use hardcoded rgba values rather than CSS variables. They do not shift with theme. Low visual impact. Fix in a future polish pass.
+
+### R4 — --dot-* CSS Variables Are Orphaned
+The `--dot-charmed`, `--dot-buffy` etc. variables are defined in `:root` but nothing references them — the Masthead ribbon uses hex from `lib/canons.ts`. They may become useful when forum pages display canon badges. No action needed now.
+
+### R5 — Orphaned --swatch-* Variable in globals.css
+One `--swatch-` prefixed CSS variable remains in `:root` from a removed theme. Harmless. Remove in the next globals.css pass (grep `--swatch-` to locate it).
+
+### R6 — Logo PNG Is Oversized
+`public/witchinghourlogo.png` is 834KB for a 38–52px display element. Resize to ~76×76px @2x and compress in a future assets pass. Not blocking.
+
+### R7 — Stub Functions for Forward-Referenced RLS Policies
+When a migration creates RLS policies that call a Postgres function not yet defined, include a stub `CREATE OR REPLACE FUNCTION` returning a safe default (`SELECT false`) in that same migration. The real implementation replaces it via `CREATE OR REPLACE FUNCTION` in the migration where its dependency tables exist.
+
+Confirmed failure mode: Migration 007 RLS policies referenced `is_admin()` before Migration 010 defined it. Postgres validates function existence at `CREATE POLICY` time — the spec assumption that resolution is deferred was incorrect. The stub pattern prevents `ERROR: 42883: function does not exist` at policy creation time.
+
+### R8 — Notifications and Game-Mechanic Writes Use Admin Client
+`createNotification()` always uses `getAdminClient()`. XP award actions always use `getAdminClient()`. Essence award and deduction actions always use `getAdminClient()`. These are system writes — they bypass user RLS by design. Never route them through the cookie-aware server client. Confirmed in TWH-2.2 Q1 and Q2.
+
+### R9 — Character Relationships Are One-Sided Until Mutual
+The `character_relationships` SELECT policy checks only the initiating `character_id`. A relationship is only visible to both sides once `is_mutual = true`. The target character owner receives a notification to acknowledge the relationship, which flips `is_mutual`. This is confirmed intentional design — do not change the policy to expose unacknowledged relationships to the target.
+
+---
+
+## 22. Essence and Economy Rules
+
+### Two Currencies — Never Conflate Them
+- **XP** — character-level, earned only, permanent. Tracks a character's growth and drives levelling. Never deducted, never spent. Stored on the `characters` table.
+- **Essence** — account-level, earned and spent. The site's reward currency. Pools across all of a user's characters. Stored on the `users` table as `essence integer default 0`.
+
+### Essence Deduction Pattern
+Always atomic — never read then subtract:
+
+```sql
+UPDATE users
+SET essence = essence - $cost
+WHERE id = $user_id AND essence >= $cost
+RETURNING id
+```
+
+If no row is returned: insufficient Essence. Reject with a clear error. Never proceed with the purchase.
+
+### Essence Log
+Every Essence credit and debit is recorded in `essence_log` (`user_id`, `amount`, `reason`, `awarded_by` nullable, `created_at`). Amount is positive for credits, negative for debits. This is the audit trail — always write a log row alongside any essence UPDATE.
+
+### The Offering Cooldown
+Per-user Offering cooldown is enforced via `users.last_offering_at` (timestamptz nullable). Before processing an Offering, check:
+
+```sql
+last_offering_at IS NULL
+OR last_offering_at < now() - (cooldown_hours || ' hours')::interval
+```
+
+where `cooldown_hours` comes from the `offering_cooldown_hours` site_setting. Never rely on client-side time for cooldown enforcement — always check server-side at action time.
+
+### Apothecary Purchases Are Character-Assigned
+Although Essence is account-level, Apothecary purchases are assigned to a specific character (`character_id` FK on `apothecary_purchases`). When a user makes a purchase, they must select which of their active characters receives the item. The Essence deduction happens at the user level; the item grant happens at the character level.
+
+### Admin Client for All Economy Writes
+Essence award, Essence deduction, XP award, Offering resolution, and Apothecary purchase writes all use `getAdminClient()`. These are system-level or game-mechanic writes — they must not be blocked by user RLS.
+
+---
+
+## 23. Chronicles System Rules
+
+Chronicles are Phase 14+ features. These rules are established now so they are available when building begins. Do not build Chronicles features in earlier phases — flag as out of scope and add as Q-item.
+
+### Keeper Role
+The keeper role is scoped to `chronicle_id` via `scope_id` in `user_roles`. Multiple Keepers per Chronicle are supported — no single-keeper constraint. Keepers hold the `manage_chronicle` permission for their Chronicle only. Admins hold `manage_chronicle` on all Chronicles.
+
+### Character-Based Membership
+Users join Chronicles as specific characters, not as themselves. A user may have characters in multiple Chronicles simultaneously. Chronicle character limits are set per Chronicle (`max_characters_per_user` on the `chronicles` table, nullable — null inherits the site-wide `site_settings` value).
+
+### Approval Gate for Chronicles
+The same status lifecycle applies to Chronicle characters as to site-wide characters: pending → needs_revision → pending (loop) → active / suspended. Only characters with `status = 'active'` in a Chronicle appear in that Chronicle's member roster and can post to Chronicle boards.
+
+### Chronicle Boards
+When Chronicles are built, `'chronicle'` is added to the `boards.scope` CHECK constraint. Chronicle boards use `scope = 'chronicle'` and `scope_id = chronicle_id`. RLS enforces that only active Chronicle members can read and write Chronicle boards.
+
+### Do Not Build Chronicle Features Early
+No Chronicle tables, pages, or actions belong in Phases 1–13. If a build prompt appears to require Chronicle infrastructure, stop and flag it — the requirement is either a misread of scope or a reason to schedule a Phase 14 prompt.
+
+---
+
+*Last updated: June 2026 — v1.5 (Phase 2 TWH-2.1 through TWH-2.3 complete — roles, permissions, factions, character schema, notifications, Whispers, Essence economy, Chronicles system rules)*
+*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds) → v1.5 (Phase 2 TWH-2.1–2.3: §16 approval gate + status expansion, §17 faction rewrite, §18 queue cleared, §21 Phase 1 rules promoted + R7–R9 added, §22 Essence economy rules, §23 Chronicles system rules)*
 *This document must be updated whenever a new standing rule is agreed upon.*
 *Cross-reference: TWH_BRIEF_v1.md*
