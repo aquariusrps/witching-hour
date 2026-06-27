@@ -48,7 +48,9 @@ export async function createThread(
   }
 
   // 5. Validate canon_source — CANONS.db values are the allowed set; null and empty string are valid
-  const validCanonSources = new Set<string>(CANONS.map(c => c.db))
+  // 'angel' is a valid db value (shares Buffy & Angel display but has its own db tag)
+  // 'all' is valid for cross-canon threads
+  const validCanonSources = new Set<string>([...CANONS.map(c => c.db), 'angel', 'all'])
   if (input.canonSource && !validCanonSources.has(input.canonSource)) {
     return { error: 'Invalid canon source' }
   }
