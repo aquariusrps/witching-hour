@@ -10,6 +10,7 @@ export type BoardNode = {
   parent_id: string | null
   is_category: boolean
   is_rp_board: boolean
+  staff_only_threads: boolean
   display_order: number
   thread_count: number
   post_count: number
@@ -70,7 +71,7 @@ export const getCachedPublicBoards = unstable_cache(
       .select(
         'id, name, description, scope, ' +
         'is_rp_board, forced_theme, min_level_required, ' +
-        'discord_announce, display_order'
+        'discord_announce, display_order, staff_only_threads'
       )
       .in('scope', ['public', 'rp'])
       .order('display_order', { ascending: true })
@@ -88,7 +89,7 @@ export const getCachedBoardTree = unstable_cache(
       .from('boards')
       .select(
         'id, name, description, scope, scope_id, ' +
-        'parent_id, is_category, is_rp_board, ' +
+        'parent_id, is_category, is_rp_board, staff_only_threads, ' +
         'display_order, thread_count, post_count, ' +
         'last_post_at, last_post_user_id, icon_url, ' +
         'discord_announce, forced_theme, min_level_required'
@@ -118,4 +119,42 @@ export const getCachedBoardTree = unstable_cache(
   },
   ['board-tree'],
   { revalidate: 300, tags: ['board-tree'] }
+)
+
+export const getCachedFullBoardTree = unstable_cache(
+  async (): Promise<BoardNode[]> => {
+    const admin = getAdminClient()
+    const { data, error } = await admin
+      .from('boards')
+      .select(
+        'id, name, description, scope, scope_id, ' +
+        'parent_id, is_category, is_rp_board, staff_only_threads, ' +
+        'display_order, thread_count, post_count, ' +
+        'last_post_at, last_post_user_id, icon_url, ' +
+        'discord_announce, forced_theme, min_level_required'
+      )
+      .order('display_order', { ascending: true })
+      .order('name', { ascending: true })
+    if (error) throw error
+
+    const rows = (data ?? []) as unknown as Omit<BoardNode, 'children'>[]
+
+    const nodeMap = new Map<string, BoardNode>()
+    for (const row of rows) {
+      nodeMap.set(row.id, { ...row, children: [] })
+    }
+
+    const roots: BoardNode[] = []
+    for (const node of nodeMap.values()) {
+      if (node.parent_id && nodeMap.has(node.parent_id)) {
+        nodeMap.get(node.parent_id)!.children.push(node)
+      } else {
+        roots.push(node)
+      }
+    }
+
+    return roots
+  },
+  ['board-tree-admin'],
+  { revalidate: 300, tags: ['board-tree-admin'] }
 )

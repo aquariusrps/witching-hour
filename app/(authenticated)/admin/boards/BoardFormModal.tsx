@@ -51,6 +51,7 @@ export default function BoardFormModal({
   const [scopeId, setScopeId] = useState<string>(target?.scope_id ?? '')
   const [isRpBoard, setIsRpBoard] = useState(target?.is_rp_board ?? false)
   const [discordAnnounce, setDiscordAnnounce] = useState(target?.discord_announce ?? false)
+  const [staffOnlyThreads, setStaffOnlyThreads] = useState(target?.staff_only_threads ?? false)
   const [minLevel, setMinLevel] = useState<string>(
     target?.min_level_required != null ? String(target.min_level_required) : ''
   )
@@ -112,6 +113,7 @@ export default function BoardFormModal({
         scope_id: scopeId || null,
         is_rp_board: isRpBoard,
         discord_announce: discordAnnounce,
+        staff_only_threads: staffOnlyThreads,
         min_level_required: minLevel ? parseInt(minLevel, 10) : null,
         forced_theme: forcedTheme || null,
         icon_url: iconUrl || null,
@@ -125,6 +127,7 @@ export default function BoardFormModal({
         scope_id: scopeId || null,
         is_rp_board: isRpBoard,
         discord_announce: discordAnnounce,
+        staff_only_threads: staffOnlyThreads,
         min_level_required: minLevel ? parseInt(minLevel, 10) : null,
         forced_theme: forcedTheme || null,
       })
@@ -305,6 +308,32 @@ export default function BoardFormModal({
                   Announce new threads to Discord
                 </span>
               </label>
+            </Field>
+          )}
+
+          {/* Staff-only thread creation */}
+          {showScopeFields && (
+            <Field label="Thread Creation">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={staffOnlyThreads}
+                  onChange={(e) => setStaffOnlyThreads(e.target.checked)}
+                  style={{ accentColor: 'var(--ember)', width: 14, height: 14 }}
+                />
+                <span style={{ fontFamily: 'var(--f-body)', color: 'var(--roseash)', fontSize: '0.9rem' }}>
+                  Staff-only thread creation
+                </span>
+              </label>
+              <p style={{
+                fontFamily: 'var(--f-body)',
+                fontSize: '0.78rem',
+                fontStyle: 'italic',
+                color: 'var(--mist)',
+                marginTop: 4,
+              }}>
+                When enabled, only moderators and staff can start new threads in this board. All users can still reply.
+              </p>
             </Field>
           )}
 

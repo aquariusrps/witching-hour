@@ -79,8 +79,10 @@ export type Database = {
           created_at: string
           id: string
           is_locked: boolean
+          is_locked_for_edit: boolean
           is_pinned: boolean
           is_spoiler: boolean
+          thread_type: string
           title: string
           updated_at: string
         }
@@ -91,8 +93,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_locked?: boolean
+          is_locked_for_edit?: boolean
           is_pinned?: boolean
           is_spoiler?: boolean
+          thread_type?: string
           title: string
           updated_at?: string
         }
@@ -103,8 +107,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_locked?: boolean
+          is_locked_for_edit?: boolean
           is_pinned?: boolean
           is_spoiler?: boolean
+          thread_type?: string
           title?: string
           updated_at?: string
         }
@@ -137,6 +143,7 @@ export type Database = {
           post_count: number
           scope: string
           scope_id: string | null
+          staff_only_threads: boolean
           thread_count: number
         }
         Insert: {
@@ -157,6 +164,7 @@ export type Database = {
           post_count?: number
           scope?: string
           scope_id?: string | null
+          staff_only_threads?: boolean
           thread_count?: number
         }
         Update: {
@@ -177,6 +185,7 @@ export type Database = {
           post_count?: number
           scope?: string
           scope_id?: string | null
+          staff_only_threads?: boolean
           thread_count?: number
         }
         Relationships: [
@@ -201,6 +210,8 @@ export type Database = {
           created_at: string
           label: string
           level: number
+          max_hp: number
+          stat_points_awarded: number
           unlocks_description: string | null
           xp_required: number
         }
@@ -208,6 +219,8 @@ export type Database = {
           created_at?: string
           label: string
           level: number
+          max_hp?: number
+          stat_points_awarded?: number
           unlocks_description?: string | null
           xp_required: number
         }
@@ -215,6 +228,8 @@ export type Database = {
           created_at?: string
           label?: string
           level?: number
+          max_hp?: number
+          stat_points_awarded?: number
           unlocks_description?: string | null
           xp_required?: number
         }
@@ -378,45 +393,72 @@ export type Database = {
       }
       characters: {
         Row: {
+          arcana: number
+          aura: number
           avatar_url: string | null
           bio: string | null
           canon_source: string
           created_at: string
           faction_id: string | null
           id: string
+          intuition: number
           is_npc: boolean
+          last_combat_defeat_at: string | null
           level: number
           name: string
+          pending_promotion: boolean
           status: string
+          unspent_stat_points: number
+          updated_at: string
           user_id: string
+          vitality: number
+          ward: number
           xp: number
         }
         Insert: {
+          arcana?: number
+          aura?: number
           avatar_url?: string | null
           bio?: string | null
           canon_source?: string
           created_at?: string
           faction_id?: string | null
           id?: string
+          intuition?: number
           is_npc?: boolean
+          last_combat_defeat_at?: string | null
           level?: number
           name: string
+          pending_promotion?: boolean
           status?: string
+          unspent_stat_points?: number
+          updated_at?: string
           user_id: string
+          vitality?: number
+          ward?: number
           xp?: number
         }
         Update: {
+          arcana?: number
+          aura?: number
           avatar_url?: string | null
           bio?: string | null
           canon_source?: string
           created_at?: string
           faction_id?: string | null
           id?: string
+          intuition?: number
           is_npc?: boolean
+          last_combat_defeat_at?: string | null
           level?: number
           name?: string
+          pending_promotion?: boolean
           status?: string
+          unspent_stat_points?: number
+          updated_at?: string
           user_id?: string
+          vitality?: number
+          ward?: number
           xp?: number
         }
         Relationships: [
@@ -473,6 +515,7 @@ export type Database = {
       }
       factions: {
         Row: {
+          ascension_chamber_label: string | null
           color_hex: string
           created_at: string
           description: string
@@ -482,9 +525,11 @@ export type Database = {
           leader_user_id: string | null
           lore: string
           name: string
+          promotions_board_id: string | null
           slug: string
         }
         Insert: {
+          ascension_chamber_label?: string | null
           color_hex: string
           created_at?: string
           description?: string
@@ -494,9 +539,11 @@ export type Database = {
           leader_user_id?: string | null
           lore?: string
           name: string
+          promotions_board_id?: string | null
           slug: string
         }
         Update: {
+          ascension_chamber_label?: string | null
           color_hex?: string
           created_at?: string
           description?: string
@@ -506,9 +553,18 @@ export type Database = {
           leader_user_id?: string | null
           lore?: string
           name?: string
+          promotions_board_id?: string | null
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "factions_promotions_board_id_fkey"
+            columns: ["promotions_board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ip_bans: {
         Row: {

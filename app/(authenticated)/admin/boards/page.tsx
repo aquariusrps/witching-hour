@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
-import { getCachedBoardTree, getCachedFactions } from '@/lib/cached-settings'
+import { getCachedFullBoardTree, getCachedFactions } from '@/lib/cached-settings'
 import BoardManagerClient from './BoardManagerClient'
 
 export default async function AdminBoardsPage() {
@@ -30,7 +30,7 @@ export default async function AdminBoardsPage() {
   }
 
   const [boardTree, factions] = await Promise.all([
-    getCachedBoardTree(),
+    getCachedFullBoardTree(),
     getCachedFactions(),
   ])
 

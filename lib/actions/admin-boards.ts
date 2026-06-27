@@ -17,6 +17,7 @@ const VALID_THEMES = [
 function invalidateBoards() {
   revalidateTag('board-tree', {})
   revalidateTag('boards', {})
+  revalidateTag('board-tree-admin', {})
 }
 
 async function requireBoardPermission(userId: string) {
@@ -35,6 +36,7 @@ export type CreateBoardInput = {
   scope_id?: string | null
   is_rp_board?: boolean
   discord_announce?: boolean
+  staff_only_threads?: boolean
   min_level_required?: number | null
   forced_theme?: string | null
   display_order?: number
@@ -91,6 +93,7 @@ export async function createBoard(
       scope_id: input.scope_id ?? null,
       is_rp_board: input.is_rp_board ?? false,
       discord_announce: input.discord_announce ?? false,
+      staff_only_threads: input.staff_only_threads ?? false,
       min_level_required: input.min_level_required ?? null,
       forced_theme: input.forced_theme ?? null,
       display_order: input.display_order ?? 0,
@@ -115,6 +118,7 @@ export type UpdateBoardData = Partial<{
   scope_id: string | null
   is_rp_board: boolean
   discord_announce: boolean
+  staff_only_threads: boolean
   min_level_required: number | null
   forced_theme: string | null
   display_order: number
