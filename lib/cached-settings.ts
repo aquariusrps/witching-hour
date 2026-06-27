@@ -1,6 +1,27 @@
 import { unstable_cache } from 'next/cache'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 
+export type BoardNode = {
+  id: string
+  name: string
+  description: string | null
+  scope: string
+  scope_id: string | null
+  parent_id: string | null
+  is_category: boolean
+  is_rp_board: boolean
+  display_order: number
+  thread_count: number
+  post_count: number
+  last_post_at: string | null
+  last_post_user_id: string | null
+  icon_url: string | null
+  discord_announce: boolean
+  forced_theme: string | null
+  min_level_required: number | null
+  children: BoardNode[]
+}
+
 export const getCachedSiteSettings = unstable_cache(
   async () => {
     const admin = getAdminClient()
@@ -58,4 +79,43 @@ export const getCachedPublicBoards = unstable_cache(
   },
   ['public-boards'],
   { revalidate: 300, tags: ['boards'] }
+)
+
+export const getCachedBoardTree = unstable_cache(
+  async (): Promise<BoardNode[]> => {
+    const admin = getAdminClient()
+    const { data, error } = await admin
+      .from('boards')
+      .select(
+        'id, name, description, scope, scope_id, ' +
+        'parent_id, is_category, is_rp_board, ' +
+        'display_order, thread_count, post_count, ' +
+        'last_post_at, last_post_user_id, icon_url, ' +
+        'discord_announce, forced_theme, min_level_required'
+      )
+      .in('scope', ['public', 'rp'])
+      .order('display_order', { ascending: true })
+      .order('name', { ascending: true })
+    if (error) throw error
+
+    const rows = (data ?? []) as unknown as Omit<BoardNode, 'children'>[]
+
+    const nodeMap = new Map<string, BoardNode>()
+    for (const row of rows) {
+      nodeMap.set(row.id, { ...row, children: [] })
+    }
+
+    const roots: BoardNode[] = []
+    for (const node of nodeMap.values()) {
+      if (node.parent_id && nodeMap.has(node.parent_id)) {
+        nodeMap.get(node.parent_id)!.children.push(node)
+      } else {
+        roots.push(node)
+      }
+    }
+
+    return roots
+  },
+  ['board-tree'],
+  { revalidate: 300, tags: ['board-tree'] }
 )

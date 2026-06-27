@@ -126,12 +126,19 @@ export type Database = {
           discord_announce: boolean
           display_order: number
           forced_theme: string | null
+          icon_url: string | null
           id: string
+          is_category: boolean
           is_rp_board: boolean
+          last_post_at: string | null
+          last_post_user_id: string | null
           min_level_required: number | null
           name: string
+          parent_id: string | null
+          post_count: number
           scope: string
           scope_id: string | null
+          thread_count: number
         }
         Insert: {
           category: string
@@ -140,12 +147,19 @@ export type Database = {
           discord_announce?: boolean
           display_order?: number
           forced_theme?: string | null
+          icon_url?: string | null
           id?: string
+          is_category?: boolean
           is_rp_board?: boolean
+          last_post_at?: string | null
+          last_post_user_id?: string | null
           min_level_required?: number | null
           name: string
+          parent_id?: string | null
+          post_count?: number
           scope?: string
           scope_id?: string | null
+          thread_count?: number
         }
         Update: {
           category?: string
@@ -154,14 +168,36 @@ export type Database = {
           discord_announce?: boolean
           display_order?: number
           forced_theme?: string | null
+          icon_url?: string | null
           id?: string
+          is_category?: boolean
           is_rp_board?: boolean
+          last_post_at?: string | null
+          last_post_user_id?: string | null
           min_level_required?: number | null
           name?: string
+          parent_id?: string | null
+          post_count?: number
           scope?: string
           scope_id?: string | null
+          thread_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "boards_last_post_user_id_fkey"
+            columns: ["last_post_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boards_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       character_level_thresholds: {
         Row: {
@@ -966,6 +1002,16 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_moderator: { Args: never; Returns: boolean }
+      update_board_counts: {
+        Args: {
+          p_board_id: string
+          p_last_post_at?: string
+          p_last_post_uid?: string
+          p_post_delta?: number
+          p_thread_delta?: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
