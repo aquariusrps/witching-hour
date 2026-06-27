@@ -14,6 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
+      board_posts: {
+        Row: {
+          author_id: string
+          character_id: string | null
+          content: string
+          created_at: string
+          flag_reason: string | null
+          flagged_by: string | null
+          id: string
+          is_flagged: boolean
+          is_ic: boolean
+          thread_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          character_id?: string | null
+          content: string
+          created_at?: string
+          flag_reason?: string | null
+          flagged_by?: string | null
+          id?: string
+          is_flagged?: boolean
+          is_ic?: boolean
+          thread_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          character_id?: string | null
+          content?: string
+          created_at?: string
+          flag_reason?: string | null
+          flagged_by?: string | null
+          id?: string
+          is_flagged?: boolean
+          is_ic?: boolean
+          thread_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_posts_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_posts_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "board_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_threads: {
+        Row: {
+          author_id: string
+          board_id: string
+          canon_source: string | null
+          created_at: string
+          id: string
+          is_locked: boolean
+          is_pinned: boolean
+          is_spoiler: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          board_id: string
+          canon_source?: string | null
+          created_at?: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          is_spoiler?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          board_id?: string
+          canon_source?: string | null
+          created_at?: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          is_spoiler?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_threads_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boards: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          discord_announce: boolean
+          display_order: number
+          forced_theme: string | null
+          id: string
+          is_rp_board: boolean
+          min_level_required: number | null
+          name: string
+          scope: string
+          scope_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          discord_announce?: boolean
+          display_order?: number
+          forced_theme?: string | null
+          id?: string
+          is_rp_board?: boolean
+          min_level_required?: number | null
+          name: string
+          scope?: string
+          scope_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          discord_announce?: boolean
+          display_order?: number
+          forced_theme?: string | null
+          id?: string
+          is_rp_board?: boolean
+          min_level_required?: number | null
+          name?: string
+          scope?: string
+          scope_id?: string | null
+        }
+        Relationships: []
+      }
       character_level_thresholds: {
         Row: {
           created_at: string
@@ -363,6 +512,38 @@ export type Database = {
         }
         Relationships: []
       }
+      ooc_posts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ooc_posts_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "board_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           created_at: string
@@ -383,6 +564,73 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      post_enchantments: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_enchantments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          post_id: string
+          reason: string
+          reported_by: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          post_id: string
+          reason: string
+          reported_by: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          post_id?: string
+          reason?: string
+          reported_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -488,6 +736,35 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      thread_reads: {
+        Row: {
+          id: string
+          last_read_at: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_read_at?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_read_at?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_reads_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "board_threads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
