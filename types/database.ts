@@ -82,6 +82,7 @@ export type Database = {
           is_locked_for_edit: boolean
           is_pinned: boolean
           is_spoiler: boolean
+          reply_count: number
           thread_type: string
           title: string
           updated_at: string
@@ -96,6 +97,7 @@ export type Database = {
           is_locked_for_edit?: boolean
           is_pinned?: boolean
           is_spoiler?: boolean
+          reply_count?: number
           thread_type?: string
           title: string
           updated_at?: string
@@ -110,6 +112,7 @@ export type Database = {
           is_locked_for_edit?: boolean
           is_pinned?: boolean
           is_spoiler?: boolean
+          reply_count?: number
           thread_type?: string
           title?: string
           updated_at?: string
