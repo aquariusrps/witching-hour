@@ -19,8 +19,12 @@ The site recreates and modernises the early-2000s fansite experience of communit
 
 This is a fully custom build. No CMS. No game engine. Built from scratch.
 
-**Domain:** `atwitchinghour.com` (primary) + `atwitchinghour.net` (redirect to .com)
+**Domain:** `atwitchinghour.com` (primary) +
+`atwitchinghour.net` (redirect to .com)
+Domain purchased and connected via Vercel. Live and
+verified.
 Vercel preview URL: `https://the-witching-hour.vercel.app`
+(still active for preview deploys)
 
 **Landing page copy (confirmed):**
 - Hero line: *"The Witching Hour is upon us."* — "The Witching Hour" in Cormorant Upright weight 600 gold, "is upon us." in weight 300 roseash — one continuous line
@@ -41,7 +45,7 @@ Vercel preview URL: `https://the-witching-hour.vercel.app`
   Confirmation email sent via Resend. User lands on "Check your email" page after
   registration. Welcome Council Notice fires after confirmation, not on sign-up.
 - **Realtime:** Supabase Realtime (live chat, notifications, online presence)
-- **File Storage:** Supabase Storage (avatars, character portraits, theme assets)
+- **File Storage:** Supabase Storage (avatars, character-portraits, theme assets)
 - **Image Processing:** sharp (server-side, lossless PNG processing for all image uploads)
 - **Styling:** Tailwind CSS v4 (CSS-first configuration — no tailwind.config.ts)
   Tailwind v4 uses `postcss.config.mjs` with `@tailwindcss/postcss`. There is no
@@ -63,14 +67,20 @@ Vercel preview URL: `https://the-witching-hour.vercel.app`
   Never route large file uploads through Server Actions on Hobby plan.
 
 ### Required Environment Variables
-All four must be present in `.env.local` locally AND in Vercel Environment Variables
+All six must be present in `.env.local` locally AND in Vercel Environment Variables
 for production. The site will fail silently or 404 if any are missing.
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=        # Supabase project URL
+
 NEXT_PUBLIC_SUPABASE_ANON_KEY=   # Supabase anon/public key
+
 SUPABASE_SERVICE_ROLE_KEY=       # Supabase service role key (never expose client-side)
+
 RESEND_API_KEY=                  # Resend API key for transactional email
+
+RESEND_AUDIENCE_ID=              # Resend audience ID for waitlist contacts
+
 NEXT_PUBLIC_SITE_URL=            # Full site URL (https://atwitchinghour.com in production)
 ```
 
@@ -80,49 +90,89 @@ cause a build failure but WILL cause runtime 404s or auth failures.
 
 ### Supabase Configuration (Dashboard)
 Authentication → URL Configuration:
-- Site URL: `https://atwitchinghour.com` (update when domain is live)
+- Site URL: `https://atwitchinghour.com` (live and configured)
 - Redirect URLs: `https://atwitchinghour.com/auth/callback`
   Also add: `http://localhost:3000/auth/callback` for local dev
   Also add: `https://the-witching-hour.vercel.app/auth/callback` for Vercel preview
 
 ### Supabase Storage Buckets (all public)
-- `avatars` — user account profile images
+- `avatars` — user account profile images (one per user;
+  shown in masthead chip, profile page, posts, online list)
 - `character-portraits` — RP character portrait images
+  (one per character; shown on character profiles, IC post
+  headers, character selector)
 - `rich-text-images` — Tiptap editor image uploads (admin-only)
+
+Note: `avatars` and `character-portraits` mirror the
+two-table naming convention (`users` = the person,
+`characters` = their RP personas).
 ---
 
 ## 3. Canons & Show Hierarchy
 
-### Primary Canons (full forum wings, RP support, show ribbon colour-coded)
+TWH is a comprehensive hub for witch-focused media.
+Charmed is the soul and RP anchor; all other canons
+extend from it. Two tiers — primary canons receive full
+forum wings and RP support; secondary canons have
+subforum presence and character support.
 
-| Show | Ribbon colour | Hex | Notes |
+Canon data is centralised in `lib/canons.ts` — a single
+source of truth for all UI canon lists, ribbons, and
+dropdowns. Do not hardcode canon lists in components.
+
+### Primary Canons (7)
+Full forum wings, RP support, show ribbon colour-coded.
+Always listed in this order.
+
+| Show | Display Label | Ribbon Hex | db value |
 |---|---|---|---|
-| Charmed | Harvest Gold | #e0b028 | The heart of the site. Always listed first. |
-| Buffy the Vampire Slayer | Moonstone blue | #3878a8 | Combined with Angel in UI as "Buffy & Angel" |
-| Angel | Moonstone blue | #3878a8 | Companion to Buffy — separate DB value, combined UI entry |
-| The Craft | Sage green | #4a7c59 | Film, not series — aesthetically central |
-| Practical Magic | Dusty mauve | #9a7090 | Owens family lore |
-| AHS: Coven | Silver lavender | #a8a0b8 | American Horror Story: Coven |
-| Chilling Adventures | Deep violet | #6030a0 | Chilling Adventures of Sabrina (Netflix) |
-| The Secret Circle | Dusty purple | #7a6080 | Circle coven arc — natural fit |
+| Charmed | Charmed | `#e0b028` | `charmed` |
+| Buffy the Vampire Slayer + Angel | Buffy & Angel | `#3878a8` | `buffy` / `angel` |
+| The Craft | The Craft | `#4a7c59` | `the_craft` |
+| Practical Magic | Practical Magic | `#9a7090` | `practical_magic` |
+| AHS: Coven | AHS: Coven | `#a8a0b8` | `ahs_coven` |
+| Chilling Adventures of Sabrina | Chilling Adventures | `#6030a0` | `chilling_adventures` |
+| The Secret Circle | The Secret Circle | `#7a6080` | `secret_circle` |
 
-**Note on Buffy & Angel:** `'buffy'` and `'angel'` remain separate DB values for thread, post, and character tagging. All UI ribbons and dropdowns display them as a single combined entry "Buffy & Angel" (using `db: 'buffy'` where a single value is needed, e.g. the waitlist dropdown).
+**Buffy & Angel display note:** Buffy the Vampire Slayer
+and Angel are displayed as a single combined entry
+"Buffy & Angel" in all UI ribbons and dropdowns. The
+database keeps `buffy` and `angel` as separate values —
+threads, posts, and characters can be tagged with either.
+Where a single value is required (e.g. waitlist canon
+preference), `buffy` is used for the combined entry.
 
-### Secondary Canons (subforum presence, character support, lighter ribbon treatment)
+### Secondary Canons (4)
+Subforum presence, character support, lighter ribbon
+treatment.
 
-| Show | Hex | Notes |
-|---|---|---|
-| Witches of East End | #806040 | Norse mythology angle |
-| Motherland: Fort Salem | #706880 | Military witch alt-history |
-| A Discovery of Witches | #507060 | Oxford / All Souls Trilogy |
-| Sabrina (90s) | #806870 | Original Melissa Joan Hart series |
+| Show | Display Label | Ribbon Hex | db value |
+|---|---|---|---|
+| Witches of East End | Witches of East End | `#806040` | `witches_of_east_end` |
+| Motherland: Fort Salem | Motherland: Fort Salem | `#706880` | `motherland_fort_salem` |
+| A Discovery of Witches | A Discovery of Witches | `#507060` | `discovery_of_witches` |
+| Sabrina the Teenage Witch (90s) | Sabrina (90s) | `#806870` | `sabrina_90s` |
 
-**Canon source field values (used throughout the database):**
-Primary: `'charmed'` `'buffy'` `'angel'` `'the_craft'` `'practical_magic'` `'ahs_coven'` `'chilling_adventures'` `'secret_circle'`
-Secondary: `'witches_of_east_end'` `'motherland_fort_salem'` `'discovery_of_witches'` `'sabrina_90s'`
-System: `'original'` `'all'`
+### Canon source field values (used throughout the database)
+All valid `canon_source` strings — exact, case-sensitive,
+no spaces:
 
-The value `'original'` is used for characters and content not tied to any specific show. The value `'all'` is used for cross-canon content (events, site-wide threads).
+**Primary:** `'charmed'` `'buffy'` `'angel'` `'the_craft'`
+`'practical_magic'` `'ahs_coven'` `'chilling_adventures'`
+`'secret_circle'`
+
+**Secondary:** `'witches_of_east_end'`
+`'motherland_fort_salem'` `'discovery_of_witches'`
+`'sabrina_90s'`
+
+**System:** `'original'` `'all'`
+
+The value `'original'` is used for characters and content
+not tied to any specific show. The value `'all'` is used
+for cross-canon content (events, site-wide threads).
+
+CHECK constraints on all `canon_source` columns must
+include all 14 show values plus `'original'` and `'all'`.
 
 ---
 
@@ -357,19 +407,44 @@ Characters are sub-profiles of user accounts. The maximum number of characters p
 
 ## 8. Multi-Theme Engine
 
-Five themes available. Blood Moon is the default. Theme preference stored on the user's `users` row (`theme_preference` text, default `'blood-moon'`).
+Six themes available. Blood Moon is the default. Theme
+preference stored on the user's `users` row
+(`theme_preference` text, default `'blood-moon'`).
 
-Theme is applied via `data-theme` attribute on `<body>`. Each theme is a `:root` CSS variable override block in `globals.css`.
+Theme is applied via `data-theme` attribute on the
+authenticated layout wrapper div. Each theme is a
+CSS variable override block in `globals.css`. All
+[data-theme] blocks are implemented and functional.
+The theme switcher in the dashboard right sidebar
+updates the DB via `updateTheme()` server action in
+`lib/actions/settings.ts` and applies optimistically
+to the DOM.
 
 | Theme key | Name | Base feeling |
 |---|---|---|
 | `blood-moon` | Blood Moon | Char black, ember, harvest gold, moonstone — default |
-| `silver-onyx` | Silver & Onyx | Pure onyx, graphite, moonlight, iris violet, garnet, tourmaline |
-| `victorian-apothecary` | Victorian Apothecary | Bottle green, sage paper, amber, rust, wisteria |
+| `silver-onyx` | Silver & Onyx | Pure onyx, graphite, moonlight, iris violet, dark garnet, tourmaline |
+| `midnight-garden` | Midnight Garden | Teal-black, cold frost, true copper, damask rose, amethyst |
 | `crimson-athenaeum` | Crimson Athenaeum | Void black, bordeaux, blush vellum, true crimson, antique gold, smoke blue |
-| `midnight-garden` | Midnight Garden | Teal-black, cold frost, copper, damask rose, amethyst |
+| `blackthorn-parchment` | Blackthorn & Parchment | Mahogany, burnished brown, candlelit cream, aged claret, brass, muted sage |
+| `the-craft-1996` | The Craft 1996 | Blue-black, deep iris, cool bone, electric violet, acid candle, true scarlet |
 
-**Admin theme lock:** A `forced_theme` column on the `boards` table allows admin to override user preference for specific boards/sections. Communicated to user: "This area has its own atmosphere." User theme restores on exit.
+**Hero color sources:** All theme palettes are drawn
+from `charmed-reborn-palette-sampler-v3.html` (stored
+in repo root). Do not invent theme colors — always
+reference the sampler.
+
+**Admin theme lock:** A `forced_theme` column on the
+`boards` table allows admin to override user preference
+for specific boards/sections. Communicated to user:
+"This area has its own atmosphere." User theme restores
+on exit.
+
+**Important:** The `data-theme` attribute is applied to
+the layout wrapper div, NOT to `<body>`. All components
+use `var(--token)` inline styles — Tailwind color
+utilities are static (Blood Moon only) and do not
+theme-switch.
 
 ---
 
@@ -752,6 +827,19 @@ character_achievements — id (uuid),
                    achievement_id (uuid FK achievement_definitions),
                    earned_at (timestamptz)
                    UNIQUE (character_id, achievement_id)
+
+-- WAITLIST (pre-launch)
+waitlist_signups — id (uuid PK DEFAULT gen_random_uuid()),
+                   email (text NOT NULL UNIQUE),
+                   name (text NOT NULL),
+                   canon (text NOT NULL CHECK — 11 primary
+                     show values, see §3),
+                   resend_id (text nullable — Resend
+                     contact ID),
+                   created_at (timestamptz DEFAULT now())
+                   -- Index: (email), (canon), (created_at)
+                   -- RLS: enabled, no user-facing policies
+                   -- All access via admin client only
 ```
 
 ---
@@ -781,6 +869,44 @@ void createNotification(userId, { type, title, body, link })
 // wrong
 await createNotification(userId, { type, title, body, link })
 ```
+
+### Resend Integration Pattern
+Resend is used for: transactional email (registration
+confirmation, welcome email) and waitlist contact
+management.
+
+**Audience ID:** `63f32f0b-5198-4308-a60e-4c07cf5a9989`
+(TWH Waitlist audience in Resend — named "TWH Waitlist",
+may display as "General" in some UI views)
+
+**Rate limit:** Free tier is 5 req/s. Bulk sends MUST
+use `resend.batch.send([...])`, never individual
+`resend.emails.send()` in a loop.
+
+**Resend is best-effort for waitlist:** The Supabase
+`waitlist_signups` table is the source of truth. Resend
+contact creation is fire-and-forget — failures are
+logged server-side but do not block the DB insert or
+show an error to the user.
+
+### Canon Constant Pattern
+All UI canon lists (ribbons, dropdowns, selects) import
+from `lib/canons.ts`. This is the single source of truth.
+Never hardcode a canon list in a component.
+
+```ts
+import { CANONS } from '@/lib/canons'
+// CANONS is an as const array with shape:
+// { label, color, db, primary }[]
+// color is the ribbon hex (fixed brand color, not a
+// CSS variable — canon colors do not theme-switch)
+```
+
+When adding a new feature that uses canon tagging:
+1. Add the canon string to the CHECK constraint in the
+   migration
+2. Add the entry to lib/canons.ts
+3. Import CANONS in the component
 
 ### Atomic XP Operations
 Always use conditional UPDATE, never read-then-write:
@@ -860,108 +986,179 @@ way but the wrong name causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
 ### Phase 0 — Project Setup (June 2026)
 
 **TWH-0.1 — Complete**
-- Repo scaffolded at `/Users/soundadvice/witchinghour/`
+- Repo scaffolded at `/Users/soundadvice/witching-hour/`
 - Next.js 16.2.9 installed via `create-next-app@latest`
 - Tailwind v4 + Turbopack + ESLint active
-- Dependencies: `@supabase/supabase-js @supabase/ssr sharp @tiptap/react
-  @tiptap/starter-kit @tiptap/extension-image dompurify @types/dompurify resend`
-- Supabase client files created (empty shells): `lib/supabase/browserClient.ts`,
-  `serverClient.ts`, `adminClient.ts`, `lib/cached-settings.ts`
+- Dependencies installed: `@supabase/supabase-js
+  @supabase/ssr sharp @tiptap/react @tiptap/starter-kit
+  @tiptap/extension-image dompurify @types/dompurify resend`
+- Supabase client shells created (empty):
+  `lib/supabase/browserClient.ts`, `serverClient.ts`,
+  `adminClient.ts`, `lib/cached-settings.ts`
 - `app/globals.css` — Blood Moon `:root` tokens + body defaults
-- `app/layout.tsx` — Google Fonts via `<link>` tags (not CSS `@import`)
+- `app/layout.tsx` — Google Fonts via `<link>` tags
 - Master documents copied to repo root
 
 **TWH-0.2 — Complete**
 - `TWH_BRIEF_v1.md` and `TWH_PROCESS_v1.md` written
 
-**TWH-0.3 — Partially complete**
-- GitHub: `aquariusrps/witchinghour`
-- Supabase project: `the-witching-hour` (ID: vkhuttcusqubteseifui)
+**TWH-0.3 — Complete**
+- GitHub: `aquariusrps/witching-hour`
+- Supabase project: `the-witching-hour`
+  (ID: vkhuttcusqubteseifui)
   URL: `https://vkhuttcusqubteseifui.supabase.co`
-- Storage buckets created: `avatars`, `character-portraits`, `rich-text-images`
-- `.env.local` created with all 5 required env vars (confirmed working)
-- Vercel project: `the-witching-hour` → `https://the-witching-hour.vercel.app`
-- Supabase Auth: email confirmation ON, SMTP via Resend, redirect URLs set
-- **Pending:** Migration 001 has NOT been applied on the clean slate. All
-  database migrations need to be re-run from TWH-1.1 onward.
+- Storage buckets created (all public):
+  `avatars`, `character-portraits`, `rich-text-images`
+- `.env.local` created with all 6 required env vars
+- Vercel project: `the-witching-hour`
+  → `https://the-witching-hour.vercel.app`
+- Domain `atwitchinghour.com` purchased via Vercel
+  and connected. Live and verified.
+- Supabase Auth: email confirmation ON, SMTP via Resend
+- Auth redirect URLs configured:
+  `https://atwitchinghour.com/auth/callback`
+  `http://localhost:3000/auth/callback`
+  `https://the-witching-hour.vercel.app/auth/callback`
 
-### Phase 1 — Landing Page (June 2026)
+### Phase 1 — Foundation (June 2026) — COMPLETE
 
-**TWH-1.2a/b — Complete** (commit: 0927c4c area)
-Landing page live at `https://the-witching-hour.vercel.app`
-- `app/page.tsx` — fully static, no Supabase, no auth check, no async
-- `app/layout.tsx` — minimal, Google Fonts only
-- `app/globals.css` — Blood Moon tokens, no `@theme` block, no `[data-theme]`
-  overrides yet (those come when theme switcher is built)
-- Blood moon logo mark SVG inline (crescent + pentacle + gold cardinal dots)
-- Hero: "The Witching Hour" (gold, weight 600) + "is upon us." (roseash,
-  weight 300) on one continuous line using `clamp()` for responsive sizing
-- Tagline: "For those who never stopped believing in magic." (EB Garamond italic)
-- CTAs: "Enter the Circle" → /register, "I already belong" → /login
-- Show ribbon (7 canons with colour-coded dots, bottom of viewport)
-- Pentacle watermark SVG at 4% opacity
-- CSS animations: `moonRise` on logo, `fadeUp` stagger on content
-- `prefers-reduced-motion` respected
-- SEO: title, description, Open Graph tags
+**TWH-1.1 — Complete** (commit: 4c418fc)
+- Migration 001: `users`, `site_settings`,
+  `session_logs`, `ip_bans` with full RLS
+- site_settings seeded: site_name, site_tagline,
+  registration_open, max_characters_per_user,
+  xp_per_rp_post, maintenance_mode, launch_date
+- Supabase client shells implemented:
+  `browserClient.ts`, `serverClient.ts`, `adminClient.ts`
+- `types/database.ts` generated
 
-### What was attempted and deleted (lessons only — not current state)
+**TWH-1.2 — Complete** (commit: 486d01d)
+- Migration 002: `handle_new_user()` trigger — creates
+  `public.users` row on auth confirmation
+- Migration 003: trigger fix — honours user-chosen
+  display_name from `raw_user_meta_data` over
+  email-prefix fallback
+- Migration 004: display name validation updated to
+  allow spaces (`[a-zA-Z0-9_ -]`)
+- Registration flow: `app/(auth)/register/page.tsx`,
+  `RegisterForm.tsx`, `lib/actions/auth.ts`
+  (`registerUser`)
+- Confirmation page: `app/(auth)/register/confirm/`
+- Auth callback: `app/auth/callback/route.ts` with
+  PKCE exchange and welcome Council Notice
+  (fire-and-forget, fails gracefully — mail_messages
+  not yet created)
+- Email confirmation template customised in Supabase
+  dashboard (Blood Moon branded HTML)
 
-The following were built, encountered issues, and were deleted in the clean slate.
-The code does not exist in the repo. These lessons are recorded here to prevent
-repeating mistakes.
+**TWH-1.3 — Complete** (commit: 3319a4f)
+- `proxy.ts` at project root — IP ban check,
+  maintenance mode, auth guard
+- `lib/cached-settings.ts` — `getCachedSiteSettings()`
+  implemented with unstable_cache, 5min TTL
+- `lib/db/users.ts` — `getUserRow()` helper
+- `lib/db/session.ts` — `logSession()` with hourly
+  rate limit
+- Login flow: `app/(auth)/login/page.tsx`,
+  `LoginForm.tsx`, `loginUser()` server action
+- `signOut()` server action added to auth.ts
+- `app/(authenticated)/layout.tsx` — Promise.all
+  pattern, theme attribute, fire-and-forget session log
+- `app/components/Masthead.tsx` — two-row sticky header
+  (Server Component) with `MastheadNav.tsx` client
+  sub-component and `MastheadUser.tsx` dropdown
+- `app/components/Footer.tsx` — filigree footer
+- `app/(authenticated)/dashboard/page.tsx` — full
+  three-column dashboard with real data, graceful
+  empty states for missing tables
+- `lib/actions/settings.ts` — `updateTheme()` action
+- Old `Sidebar.tsx` retired (`_Sidebar.old.tsx`)
 
-**Attempted: TWH-1.1 through TWH-1.4**
-All deleted. Key lessons extracted:
+**TWH-1.4 — Complete** (commits: 079d8b7, ab873a3,
+  176afef, 716279e, 556f281)
+- `app/globals.css` — 25 new CSS tokens, body gradient,
+  custom scrollbar, 5 `[data-theme]` override blocks
+  (all six themes functional)
+- Masthead logo: replaced inline SVG with PNG logo mark
+  (`public/witchinghourlogo.png`, 52×52px display)
+- Favicon: `app/icon.png` (App Router auto-serve)
+- Default Next.js scaffold files cleaned up
+- Theme switcher: fully functional — writes to DB,
+  revalidates path, optimistic DOM update
 
-1. **`@theme var()` causes runtime 404s** — The `@theme` block had
-   `--color-ember: var(--ember)` style references. Tailwind v4 cannot resolve
-   `var()` at build time inside `@theme`. Build succeeds, runtime 404s. Fixed
-   by removing `@theme` entirely from the clean slate. If `@theme` is used in
-   future, all values must be static hex codes.
+**TWH-1.5 — Complete** (commit: bcf09be)
+- Migration 005: `waitlist_signups` table with 3
+  indexes and RLS
+- `lib/actions/waitlist.ts` — `joinWaitlist()` server
+  action: validates, checks duplicate, adds to Resend
+  audience (best-effort), inserts to Supabase
+- `app/waitlist/WaitlistForm.tsx` — client form with
+  name, email, canon select, success state
+- `app/waitlist/page.tsx` — exact duplicate of
+  `page.tsx` with waitlist form replacing CTAs
+- Resend audience: TWH Waitlist
+  (ID: 63f32f0b-5198-4308-a60e-4c07cf5a9989)
+- Waitlist verified working end-to-end
 
-2. **Vercel framework preset must be set manually** — Vercel did not auto-detect
-   Next.js 16 as the framework. All routes returned 404 until "Next.js" was
-   manually selected in Settings → General → Framework Preset. This is now the
-   first thing to verify on any new Vercel project.
+**TWH-1.6 — Complete** (commit: fe77bc0)
+- `lib/canons.ts` — 11-entry as const array, single
+  source of truth for all UI canon data
+- Migration 006: `waitlist_signups` canon CHECK
+  constraint updated to 11 values
+- All UI files updated to import from lib/canons:
+  `page.tsx`, `waitlist/page.tsx`, `WaitlistForm.tsx`,
+  `Masthead.tsx`
+- `lib/actions/waitlist.ts` VALID_CANONS updated to
+  match
+- Brief §3 updated
 
-3. **`proxy.ts` not `middleware.ts` in Next.js 16** — Next.js 16 deprecated
-   `middleware.ts` and uses `proxy.ts` with `export function proxy()`. The build
-   log warns: "The middleware file convention is deprecated. Please use proxy
-   instead." Using `middleware.ts` causes `MIDDLEWARE_INVOCATION_FAILED`.
+### Current repo state (end of Phase 1)
 
-4. **`.env.local` must be verified before any build begins** — Missing env vars
-   do not cause build failures but cause silent runtime errors.
+**Migrations applied:** 001–006
+**TypeScript types:** current (`types/database.ts`)
+**Live URL:** `https://atwitchinghour.com`
 
-5. **Vercel SSO / Deployment Protection** — The old `the-witching-hour` Vercel
-   project had SSO protection enabled at the team level which redirected all
-   requests to `vercel.com/sso-api`. Setting the framework preset correctly
-   resolved this in the new clean setup.
+**Files of note:**
+- `proxy.ts` — auth middleware (project root)
+- `lib/canons.ts` — canon data source of truth
+- `lib/cached-settings.ts` — site settings cache
+- `lib/db/users.ts` — getUserRow()
+- `lib/db/session.ts` — logSession()
+- `lib/actions/auth.ts` — registerUser, loginUser,
+  signOut
+- `lib/actions/waitlist.ts` — joinWaitlist
+- `lib/actions/settings.ts` — updateTheme
+- `lib/supabase/browserClient.ts` — singleton browser
+  client
+- `lib/supabase/serverClient.ts` — cookie-aware server
+  client
+- `lib/supabase/adminClient.ts` — service role client
+- `app/(auth)/` — register, login, confirm pages
+- `app/(authenticated)/` — layout, dashboard
+- `app/auth/callback/` — PKCE callback route
+- `app/waitlist/` — waitlist landing page
+- `app/components/` — Masthead, MastheadNav,
+  MastheadUser, Footer, Candles
+- `public/witchinghourlogo.png` — site logo PNG
+- `app/icon.png` — favicon
+- `witching_hour_build_roadmap.html` — build planning
+  artifact
+- `charmed-reborn-palette-sampler-v3.html` — theme
+  palette reference
 
-### Current repo state (post clean slate)
-Files that exist:
-- `app/page.tsx` — landing page (static)
-- `app/layout.tsx` — minimal root layout
-- `app/globals.css` — Blood Moon tokens, body defaults
-- `lib/supabase/browserClient.ts` — empty shell
-- `lib/supabase/serverClient.ts` — empty shell
-- `lib/supabase/adminClient.ts` — empty shell
-- `lib/cached-settings.ts` — empty shell
-- `TWH_BRIEF_v1.md`, `TWH_PROCESS_v1.md` — master documents
-- `package.json` — all dependencies installed
+### Phase 2 — Core Data Model (upcoming)
 
-Files that do NOT exist (to be built):
-- No middleware/proxy
-- No auth pages (register, login, confirm, callback)
-- No dashboard
-- No Masthead, Sidebar, PageLayout components
-- No database migrations applied
+**TWH-2.1** — Migrations 007–010: roles, permissions,
+  user_roles, factions (with seed data)
+**TWH-2.2** — Migrations 011–013: characters,
+  character_level_thresholds (seeded), character_xp_log,
+  character_powers. Character creation flow.
+**TWH-2.3** — Mail system: mail_messages migration,
+  Whispers UI
+**TWH-2.4** — Forums: boards, threads, posts migrations
+  and UI
+**TWH-2.5** — Admin panel foundation
 
-### Next steps (resuming from roadmap)
-- TWH-0.3 completion: verify Supabase env vars in Vercel dashboard
-- TWH-1.1: Migration 001 — users, site_settings, session_logs, ip_bans
-- TWH-1.2: Registration flow with email confirmation
-- TWH-1.3: Login, proxy.ts middleware, layout shell, dashboard, Masthead, Sidebar
-- TWH-1.4: globals.css multi-theme scaffold (NO @theme var() references)
-
-*This document is updated at the completion of each build phase.*
+*This document is updated at the completion of each
+build phase.*
 *Cross-reference: TWH_PROCESS_v1.md (build governance)*
