@@ -365,21 +365,49 @@ Every UI element must use the Blood Moon design tokens from §4 of the Brief. Wh
 
 ## 15. Canon Source System
 
-The `canon_source` field appears on: `board_threads`, `board_posts`, `characters`, `grimoire_entries`, `rewatch_events`, and potentially more tables.
+The `canon_source` field appears on: `board_threads`,
+`board_posts`, `characters`, `grimoire_entries`,
+`rewatch_events`, `waitlist_signups`, and potentially
+more tables.
 
-**Canonical values:**
-```
-'charmed' | 'buffy' | 'angel' | 'secret_circle' | 'the_craft' |
-'witches_of_east_end' | 'practical_magic' | 'original' | 'all'
-```
+**All valid canonical values (exact strings):**
+Primary shows:
 
-These values are exact strings — no variations, no capitalisation, no spaces. When adding a new feature that needs canon tagging, use these exact strings as a CHECK constraint or enum.
+'charmed' | 'buffy' | 'angel' | 'the_craft' |
 
-**Color mapping for canon badges (use CSS variables):**
-- `charmed` → `var(--gold)` / `var(--gold-dim)` border
-- `buffy` → `var(--moonstone)` / `var(--moon-dim)` border
-- `angel` → `var(--ember)` / `var(--ember-dim)` border
-- Supporting shows → `var(--mist)` / muted treatment
+'practical_magic' | 'ahs_coven' |
+
+'chilling_adventures' | 'secret_circle'
+Secondary shows:
+
+'witches_of_east_end' | 'motherland_fort_salem' |
+
+'discovery_of_witches' | 'sabrina_90s'
+System:
+
+'original' | 'all'
+
+These values are exact strings — no variations, no
+capitalisation, no spaces. When adding a new feature
+that needs canon tagging, use these exact strings as a
+CHECK constraint or enum.
+
+**Single source of truth for UI:** `lib/canons.ts`
+exports the CANONS array. Always import from there —
+never hardcode a canon list in a component.
+
+**Color mapping for canon badges (use hex from
+lib/canons.ts — canon colors are fixed, not
+theme-sensitive):**
+- `charmed` → `#e0b028`
+- `buffy` / `angel` / Buffy & Angel → `#3878a8`
+- `the_craft` → `#4a7c59`
+- `practical_magic` → `#9a7090`
+- `ahs_coven` → `#a8a0b8`
+- `chilling_adventures` → `#6030a0`
+- `secret_circle` → `#7a6080`
+- Secondary shows → muted treatment (see lib/canons.ts
+  for exact hex values)
 
 ---
 
@@ -413,7 +441,7 @@ If no row returned: reject with "Insufficient XP" error. Never read XP then subt
 
 ## 17. Faction System Rules
 
-Factions are fixed at three: Covenant (gold), Cabal (ember), Unbound (moonstone). They are seeded in Migration 005 and not admin-editable (the names and colors are part of the site's identity).
+Factions are fixed at three: Covenant (gold), Cabal (ember), Unbound (moonstone). They will be seeded in Migration 007 (Phase 2) and are not admin-editable (the names and colors are part of the site's identity).
 
 Faction boards use `scope = 'faction'` and `scope_id = faction.id`. RLS enforces that only users with an active character in that faction can read/write.
 
@@ -423,9 +451,51 @@ The faction color must appear consistently: as a diamond pip in post headers, as
 
 ## 18. Outstanding Rules Queue
 
-*This section accumulates rules discovered during builds that don't yet fit a category. Promoted to a numbered section on next document update.*
+*This section accumulates rules discovered during builds
+that don't yet fit a category. Promoted to a numbered
+section on next document update.*
 
-*(Empty — all TWH-0.1 discoveries promoted to §19)*
+**From Phase 1 builds — promote on next pass:**
+
+R1. **Discriminated union narrowing in Server Actions.**
+When a server action returns a discriminated union
+(e.g. `{ error: string } | { success: true }`), client
+code must narrow with `'error' in result` not
+`result?.error`. TypeScript correctly rejects the latter
+on the success branch. Pattern confirmed in TWH-1.5.
+
+R2. **next/image requires remotePatterns config.**
+`<Image>` from `next/image` cannot load Supabase Storage
+URLs without adding `vkhuttcusqubteseifui.supabase.co`
+to `images.remotePatterns` in `next.config`. Until that
+config exists, use `<img>` with
+`{/* eslint-disable-next-line @next/next/no-img-element */}`.
+This applies everywhere avatars and character portraits
+are displayed. Address when avatar upload is built.
+
+R3. **body gradient is Blood Moon–hardcoded.**
+The ambient radial gradients in the `body` rule in
+`globals.css` use hardcoded `rgba(200,56,24,...)` etc.
+rather than `var(--ember-glow)` etc. They do not shift
+with theme. Low visual impact. Fix in a future polish
+pass.
+
+R4. **--dot-* CSS variables in globals.css are orphaned.**
+The `--dot-charmed`, `--dot-buffy` etc. variables are
+defined in `:root` but nothing references them — the
+Masthead ribbon uses hex from `lib/canons.ts`. They may
+be useful when forum pages display canon badges. No
+action needed now.
+
+R5. **An orphaned `--swatch-*` variable remains in globals.css.**
+One `--swatch-` prefixed CSS variable is still defined in
+`:root` from a theme that was removed before the final
+theme list was set. Harmless. Remove in next globals.css
+pass (grep `--swatch-` to find it).
+
+R6. **Logo PNG is 834KB for a 38–52px display element.**
+`public/witchinghourlogo.png` should be resized to ~76×76px
+@2x and compressed in a future assets pass. Not blocking.
 
 ---
 
@@ -477,7 +547,7 @@ Do NOT use `middleware.ts` or `export function middleware()` — this causes `MI
 
 ### Environment variables
 
-All five env vars must be set in Vercel → Settings → Environment Variables AND in local `.env.local`. Adding vars to Vercel requires a redeploy to take effect. Use `npx vercel --prod --force` for a guaranteed fresh build with no cache.
+All six env vars must be set in Vercel → Settings → Environment Variables AND in local `.env.local`. Adding vars to Vercel requires a redeploy to take effect. Use `npx vercel --prod --force` for a guaranteed fresh build with no cache.
 
 ### Build cache issues
 
@@ -489,7 +559,7 @@ All visual verification is done manually by the operator. Claude Code must not o
 
 ---
 
-*Last updated: June 2026 — v1.3 (post clean slate — all lessons from failed Phase 1 builds incorporated)*
-*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands)*
+*Last updated: June 2026 — v1.4 (Phase 1 complete — canon expansion, waitlist, theme system, all Phase 1 lessons incorporated)*
+*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds)*
 *This document must be updated whenever a new standing rule is agreed upon.*
 *Cross-reference: TWH_BRIEF_v1.md*
