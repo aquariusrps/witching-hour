@@ -202,7 +202,7 @@ export default async function WhispersPage({
                       </span>
                     </div>
                     <div style={{
-                      fontFamily: 'var(--f-heading)',
+                      fontFamily: 'var(--f-head)',
                       fontSize: '0.92rem',
                       color: isUnread ? 'var(--roseash)' : 'var(--mist)',
                       marginTop: 3,

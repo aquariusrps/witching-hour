@@ -112,7 +112,7 @@ export default async function MessageThreadPage({
 
       {/* Subject */}
       <h1 style={{
-        fontFamily: 'var(--f-heading)',
+        fontFamily: 'var(--f-head)',
         fontWeight: 700,
         fontSize: '1.65rem',
         color: 'var(--roseash)',

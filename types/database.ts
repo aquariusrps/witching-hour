@@ -270,6 +270,44 @@ export type Database = {
           },
         ]
       }
+      character_revisions: {
+        Row: {
+          character_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          reviewer_id: string | null
+          status_after: string
+          status_before: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          reviewer_id?: string | null
+          status_after: string
+          status_before: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          reviewer_id?: string | null
+          status_after?: string
+          status_before?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_revisions_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       character_xp_log: {
         Row: {
           amount: number
