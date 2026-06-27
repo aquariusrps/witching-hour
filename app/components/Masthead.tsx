@@ -13,9 +13,10 @@ interface MastheadProps {
   } | null
   settings: Record<string, string>
   permissions: string[]
+  unreadWhisperCount: number
 }
 
-export default function Masthead({ user }: MastheadProps) {
+export default function Masthead({ user, unreadWhisperCount }: MastheadProps) {
   return (
     <header style={{
       position: 'sticky',
@@ -86,9 +87,8 @@ export default function Masthead({ user }: MastheadProps) {
         {/* Right actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
 
-          {/* Messages button with pip */}
+          {/* Messages button with unread badge */}
           <Link href="/whispers" aria-label="Messages" style={{
-            position: 'relative',
             display: 'flex',
             alignItems: 'center',
             gap: 6,
@@ -107,18 +107,19 @@ export default function Masthead({ user }: MastheadProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 4.5h15a1 1 0 011 1v8a1 1 0 01-1 1h-9l-4 3v-3H3.5a1 1 0 01-1-1v-8a1 1 0 011-1z" />
             </svg>
             <span>Messages</span>
-            {/* Red pip */}
-            <span style={{
-              position: 'absolute',
-              top: -3,
-              right: -3,
-              width: 7,
-              height: 7,
-              borderRadius: '50%',
-              background: 'var(--ember)',
-              boxShadow: '0 0 5px var(--ember-glow)',
-              border: '1.5px solid var(--masthead-bg)',
-            }} aria-hidden="true" />
+            {unreadWhisperCount > 0 && (
+              <span style={{
+                background: 'var(--ember)',
+                color: 'var(--roseash)',
+                borderRadius: '999px',
+                fontSize: '10px',
+                fontFamily: 'var(--f-ui)',
+                padding: '1px 6px',
+                marginLeft: '6px',
+              }}>
+                {unreadWhisperCount > 99 ? '99+' : unreadWhisperCount}
+              </span>
+            )}
           </Link>
 
           {/* Notifications button */}

@@ -223,6 +223,7 @@ export type Database = {
           description: string
           display_order: number
           id: string
+          leader_title: string
           leader_user_id: string | null
           lore: string
           name: string
@@ -234,6 +235,7 @@ export type Database = {
           description?: string
           display_order?: number
           id?: string
+          leader_title?: string
           leader_user_id?: string | null
           lore?: string
           name: string
@@ -245,6 +247,7 @@ export type Database = {
           description?: string
           display_order?: number
           id?: string
+          leader_title?: string
           leader_user_id?: string | null
           lore?: string
           name?: string
@@ -276,6 +279,54 @@ export type Database = {
           id?: string
           ip_address?: string
           reason?: string | null
+        }
+        Relationships: []
+      }
+      mail_messages: {
+        Row: {
+          audience_id: string | null
+          body: string
+          created_at: string
+          deleted_by_recipient: boolean
+          deleted_by_sender: boolean
+          id: string
+          is_system_message: boolean
+          is_welcome: boolean
+          read_at: string | null
+          recipient_id: string
+          sender_id: string | null
+          subject: string
+          system_message_audience: string | null
+        }
+        Insert: {
+          audience_id?: string | null
+          body: string
+          created_at?: string
+          deleted_by_recipient?: boolean
+          deleted_by_sender?: boolean
+          id?: string
+          is_system_message?: boolean
+          is_welcome?: boolean
+          read_at?: string | null
+          recipient_id: string
+          sender_id?: string | null
+          subject: string
+          system_message_audience?: string | null
+        }
+        Update: {
+          audience_id?: string | null
+          body?: string
+          created_at?: string
+          deleted_by_recipient?: boolean
+          deleted_by_sender?: boolean
+          id?: string
+          is_system_message?: boolean
+          is_welcome?: boolean
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string | null
+          subject?: string
+          system_message_audience?: string | null
         }
         Relationships: []
       }
