@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
+import { getAdminClient } from '@/lib/supabase/adminClient'
+import SettingsForm from './SettingsForm'
 
 export default async function AdminSettingsPage() {
   const supabase = await getServerClient()
@@ -21,6 +23,16 @@ export default async function AdminSettingsPage() {
     redirect('/admin')
   }
 
+  const admin = getAdminClient()
+  const { data: rows } = await admin
+    .from('site_settings')
+    .select('key, value')
+    .order('key')
+
+  const settings = Object.fromEntries(
+    (rows ?? []).map((r) => [r.key, r.value])
+  )
+
   return (
     <div>
       <h1 style={{
@@ -28,13 +40,20 @@ export default async function AdminSettingsPage() {
         fontSize: '1.9rem',
         fontWeight: 700,
         color: 'var(--roseash)',
-        marginBottom: 16,
+        marginBottom: 8,
       }}>
         Site Settings
       </h1>
-      <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--mist)' }}>
-        Site Settings — coming in TWH-2.6
+      <p style={{
+        fontFamily: 'var(--f-body)',
+        fontStyle: 'italic',
+        color: 'var(--mist)',
+        marginBottom: 32,
+        fontSize: '0.9rem',
+      }}>
+        Configure global site behaviour, economy values, and integrations.
       </p>
+      <SettingsForm settings={settings} />
     </div>
   )
 }

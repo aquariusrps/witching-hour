@@ -1,15 +1,18 @@
+import { cache } from 'react'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 
-export async function isSuperAdmin(userId: string): Promise<boolean> {
-  const admin = getAdminClient()
-  const { data, error } = await admin
-    .from('user_roles')
-    .select('id, roles!inner(name)')
-    .eq('user_id', userId)
-  if (error || !data) return false
-  return (data as Array<{ roles: { name: string } | null }>)
-    .some((ur) => ur.roles?.name === 'super_admin')
-}
+export const isSuperAdmin = cache(
+  async (userId: string): Promise<boolean> => {
+    const admin = getAdminClient()
+    const { data, error } = await admin
+      .from('user_roles')
+      .select('id, roles!inner(name)')
+      .eq('user_id', userId)
+    if (error || !data) return false
+    return (data as Array<{ roles: { name: string } | null }>)
+      .some((ur) => ur.roles?.name === 'super_admin')
+  }
+)
 
 export async function isAdminOrSuperAdmin(userId: string): Promise<boolean> {
   const admin = getAdminClient()
@@ -84,27 +87,27 @@ export async function hasPermission(
  * Called once per request in layout.tsx to build the full
  * permission set without additional round trips.
  */
-export async function getUserPermissions(
-  userId: string
-): Promise<string[]> {
-  const admin = getAdminClient()
+export const getUserPermissions = cache(
+  async (userId: string): Promise<string[]> => {
+    const admin = getAdminClient()
 
-  const { data, error } = await admin
-    .from('user_roles')
-    .select(ROLE_SELECT)
-    .eq('user_id', userId)
+    const { data, error } = await admin
+      .from('user_roles')
+      .select(ROLE_SELECT)
+      .eq('user_id', userId)
 
-  if (error || !data) return []
+    if (error || !data) return []
 
-  const perms = new Set<string>()
+    const perms = new Set<string>()
 
-  for (const userRole of data as UserRoleRow[]) {
-    for (const rp of userRole.roles?.role_permissions ?? []) {
-      if (rp.is_enabled === true && rp.permissions?.name) {
-        perms.add(rp.permissions.name)
+    for (const userRole of data as UserRoleRow[]) {
+      for (const rp of userRole.roles?.role_permissions ?? []) {
+        if (rp.is_enabled === true && rp.permissions?.name) {
+          perms.add(rp.permissions.name)
+        }
       }
     }
-  }
 
-  return Array.from(perms)
-}
+    return Array.from(perms)
+  }
+)

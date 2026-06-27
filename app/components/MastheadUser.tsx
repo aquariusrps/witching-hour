@@ -4,9 +4,18 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { signOut } from '@/lib/actions/auth'
 
+const ADMIN_PERMS = [
+  'manage_site', 'manage_users', 'manage_factions', 'manage_boards',
+  'manage_events', 'manage_apothecary', 'manage_waitlist',
+  'approve_characters', 'award_xp', 'ban_users', 'manage_admins',
+  'moderate_boards',
+]
+
 interface MastheadUserProps {
   displayName: string
   avatarUrl: string | null
+  permissions: string[]
+  superAdmin: boolean
 }
 
 function getInitial(name: string): string {
@@ -40,7 +49,12 @@ const DROPDOWN_CSS = `
   }
 `
 
-export default function MastheadUser({ displayName, avatarUrl }: MastheadUserProps) {
+export default function MastheadUser({ displayName, avatarUrl, permissions, superAdmin }: MastheadUserProps) {
+  const showAdmin = superAdmin || permissions.some((p) => ADMIN_PERMS.includes(p))
+  const showMod =
+    permissions.includes('moderate_boards') ||
+    permissions.includes('manage_faction') ||
+    permissions.includes('post_announcement')
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -183,7 +197,40 @@ export default function MastheadUser({ displayName, avatarUrl }: MastheadUserPro
             >
               Settings
             </Link>
-            <form action={signOut} style={{ display: 'block' }}>
+            {(showAdmin || showMod) && (
+              <div style={{ borderTop: '1px solid var(--border)' }}>
+                {showAdmin && (
+                  <Link
+                    href="/admin"
+                    role="menuitem"
+                    className="mast-drop-item"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      color: 'var(--gold)',
+                      borderLeft: '2px solid var(--gold)',
+                    }}
+                  >
+                    Admin Panel
+                  </Link>
+                )}
+                {showMod && (
+                  <Link
+                    href="/mod"
+                    role="menuitem"
+                    className="mast-drop-item"
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                      color: 'var(--moonstone)',
+                      borderLeft: '2px solid var(--moonstone)',
+                      borderTop: showAdmin ? '1px solid var(--border)' : undefined,
+                    }}
+                  >
+                    Mod Panel
+                  </Link>
+                )}
+              </div>
+            )}
+            <form action={signOut} style={{ display: 'block', borderTop: '1px solid var(--border)' }}>
               <button
                 type="submit"
                 role="menuitem"

@@ -18,7 +18,7 @@ export const getCachedFactions = unstable_cache(
     const admin = getAdminClient()
     const { data, error } = await admin
       .from('factions')
-      .select('id, name, slug, color_hex, description, lore, leader_user_id, display_order')
+      .select('id, name, slug, color_hex, description, lore, leader_user_id, leader_title, display_order')
       .order('display_order', { ascending: true })
     if (error) throw error
     return data ?? []

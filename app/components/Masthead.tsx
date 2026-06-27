@@ -17,7 +17,7 @@ interface MastheadProps {
   superAdmin: boolean
 }
 
-export default function Masthead({ user, unreadWhisperCount }: MastheadProps) {
+export default function Masthead({ user, permissions, superAdmin, unreadWhisperCount }: MastheadProps) {
   return (
     <header style={{
       position: 'sticky',
@@ -151,6 +151,8 @@ export default function Masthead({ user, unreadWhisperCount }: MastheadProps) {
             <MastheadUser
               displayName={user.display_name}
               avatarUrl={user.avatar_url}
+              permissions={permissions}
+              superAdmin={superAdmin}
             />
           )}
         </div>
