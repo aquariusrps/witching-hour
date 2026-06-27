@@ -268,11 +268,38 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
           </div>
 
           <ToggleField
-            label="Registration Open"
-            description="Allow new users to register accounts."
+            label="Registration"
+            description="When enabled, new users can register accounts. When disabled, the landing page shows the waitlist form instead."
             checked={regOpen}
             onChange={setRegOpen}
           />
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
+            marginTop: -10,
+            marginBottom: 20,
+            paddingLeft: 48,
+          }}>
+            <span style={{
+              display: 'inline-block',
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              backgroundColor: regOpen ? 'var(--gold)' : 'var(--ember)',
+              boxShadow: regOpen ? '0 0 5px rgba(224,176,40,0.55)' : '0 0 5px rgba(200,56,24,0.55)',
+              flexShrink: 0,
+            }} />
+            <span style={{
+              fontFamily: 'var(--f-ui)',
+              fontSize: '0.62rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: regOpen ? 'var(--gold)' : 'var(--ember)',
+            }}>
+              {regOpen ? 'Registration open' : 'Waitlist mode active'}
+            </span>
+          </div>
 
           <ToggleField
             label="Maintenance Mode"

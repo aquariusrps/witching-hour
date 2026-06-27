@@ -24,6 +24,7 @@ export async function updateSiteSetting(key: string, value: string) {
 
   revalidateTag('site-settings', {})
   revalidatePath('/admin/settings')
+  revalidatePath('/')
   return { success: true }
 }
 
@@ -50,5 +51,6 @@ export async function updateMultipleSiteSettings(
 
   revalidateTag('site-settings', {})
   revalidatePath('/admin/settings')
+  revalidatePath('/')
   return { success: true }
 }

@@ -1,5 +1,5 @@
 # The Witching Hour — Master Project Brief
-### Comprehensive Build Document v1.5 — Complete & Authoritative
+### Comprehensive Build Document v1.6 — Complete & Authoritative
 ### Created: June 2026 | Last Updated: 2026-06-27
 
 ---
@@ -385,19 +385,21 @@ Characters are sub-profiles of user accounts. The maximum number of characters p
 - `is_npc` — boolean, admin-only set. NPC characters controlled by staff.
 
 ### Approval Flow
-The character approval flow supports multiple rounds of feedback between the reviewer and the submitting user. This applies to both site-wide characters and Chronicle characters.
+The character approval flow supports multiple rounds of feedback. This lifecycle applies to both site-wide characters and Chronicle characters.
 
-1. User submits character (multi-step form: name → faction → bio → review). Status set to 'pending'.
+1. User submits character (multi-step form: name → faction → bio → review). Status = 'pending'.
 2. Notification fires to admin/Keeper approval queue.
 3. Reviewer can: Approve, Reject, or Request Revision.
-   - Approve: status → 'active'. Notification to user.
-   - Reject: reason required. Status → 'suspended'. Notification to user with reason. Character is not deleted — user can appeal via Whisper.
-   - Request Revision: reviewer writes feedback. Status → 'needs_revision'. Notification to user with feedback.
+   - Approve: status → 'active'. Notification to user. Link: /characters/[id]
+   - Reject: reason required. Status → 'suspended'. Notification to user with reason. Link: /my-characters. Character is not deleted — user can appeal via Whisper.
+   - Request Revision: reviewer writes feedback. Status → 'needs_revision'. Notification to user with feedback text. Link: /my-characters
 4. User receives feedback, edits the character, and resubmits. Status returns to 'pending'.
 5. Steps 3–4 repeat as many times as needed.
-6. On approval, character status → 'active'. Approved characters appear in the user's character selector for IC posting.
+6. On approval, status → 'active'. Character appears in user's IC character selector.
 
-Each round of feedback and resubmission is recorded in the character_revisions table (reviewer_id, feedback text, submitted_at, reviewed_at).
+Each round of feedback and resubmission is recorded in character_revisions (reviewer_id, feedback, status_before, status_after, created_at).
+
+Admin actions: approveCharacter(), rejectCharacter(), requestRevision() in lib/actions/admin-characters.ts. All use getAdminClient() and write a character_revisions row on every outcome.
 
 ### XP & Levelling
 - XP accumulates per character (not per user)
@@ -464,31 +466,48 @@ theme-switch.
 ## 9. Roles & Permissions
 
 ### Role Hierarchy (highest to lowest)
-```
-Admin
+Super Admin (your account — full control, cannot be removed by regular Admins)
+Admin (cosmetic badge — shows "Administrator" on profile, grants no permissions on its own)
+── Functional Admin Roles (invisible — grant specific admin panel sections when combined with Admin badge):
+   character_manager, faction_manager, board_manager, events_manager, apothecary_manager, settings_manager, player_manager, ban_manager
 Moderator
-Lore Keeper      (manages Grimoire wiki)
-Faction Leader   (scoped to faction_id)
-Keeper           (leads a Chronicle, scoped to chronicle_id)
-Founding Member  (display/prestige — no mod permissions)
+Lore Keeper    (manages Grimoire wiki)
+Faction Leader (scoped to faction_id)
+Keeper         (leads a Chronicle, scoped to chronicle_id)
+Founding Member (display/prestige — no mod permissions)
 [Regular User]
-```
+
+### How Admin Appointments Work
+Super Admin grants two things to an appointed admin:
+1. The 'admin' badge role — cosmetic, shows "Administrator" on their profile
+2. One or more invisible functional roles — each unlocks a specific admin panel section
+
+Only Super Admin can grant or revoke admin-tier roles (admin, super_admin, or any functional admin role). This is enforced server-side in grantRole() via the ADMIN_TIER_ROLES constant in lib/actions/admin-roles.ts.
 
 ### Additive Permission Model
-All permissions are additive across roles — no role can negate another. System checks: does this user have ANY role granting permission X?
+All permissions are additive across roles. System checks: does this user have ANY role granting permission X? The is_admin() Postgres function checks for EITHER 'admin' OR 'super_admin' role name.
 
-### Key Permissions
-- `manage_site` — Admin only, full site control
-- `moderate_boards` — delete/pin/lock posts across all boards
-- `moderate_own_board` — Moderator scoped to specific board
-- `manage_lore` — create/edit/publish Grimoire entries
-- `approve_characters` — review and approve character submissions
-- `award_xp` — manually award XP to characters
-- `post_announcement` — post faction/site-wide system announcements
-- `manage_faction` — Faction Leader, scoped to their faction
-- `manage_chronicle` — Keeper, scoped to their chronicle_id. Create/edit chronicle details, manage membership, approve characters, moderate chronicle boards.
+### Full Permission List (18 permissions)
+- `manage_site` — full site control (settings_manager)
+- `manage_users` — view and modify user accounts (player_manager)
+- `manage_roles` — view role matrix (super_admin only in practice via manage_admins gate)
+- `manage_admins` — appoint/revoke admin badge and functional admin roles. Super Admin only.
+- `manage_factions` — create/edit/delete factions (faction_manager)
+- `moderate_boards` — delete/pin/lock posts across all boards (moderator)
+- `moderate_own_board` — moderate a specific board (faction_leader scoped)
+- `manage_lore` — create/edit/publish Grimoire entries (lore_keeper)
+- `approve_characters` — review and approve character submissions (character_manager)
+- `award_xp` — manually award XP to characters (character_manager, player_manager)
+- `post_announcement` — post faction/site-wide announcements (moderator, faction_leader)
+- `manage_faction` — manage a specific faction as faction leader (faction_leader scoped)
+- `manage_boards` — create/configure forum boards (board_manager)
+- `manage_events` — create/manage site events and rewatch events (events_manager)
+- `manage_apothecary` — manage Apothecary listings and power catalog (apothecary_manager)
+- `manage_waitlist` — view/export waitlist signups (settings_manager)
+- `ban_users` — issue and remove IP bans (ban_manager)
+- `manage_chronicle` — manage a Chronicle as Keeper, scoped to chronicle_id (Phase 14)
 
-**Critical:** Permission column is `is_enabled` (boolean). NEVER `is_granted`. This is a hard rule inherited from WM's build experience.
+**Critical:** Permission column is `is_enabled` (boolean). NEVER `is_granted`. Hard rule.
 
 ---
 
@@ -496,10 +515,11 @@ All permissions are additive across roles — no role can negate another. System
 
 ### Board Scopes
 - `public` — all logged-in users
-- `faction` — characters in that faction only (scope_id = faction_id)
-- `rp` — RP boards (IC posting enabled, XP awarded on post)
+- `faction` — characters with an active character in that faction (scope_id = faction_id)
+- `rp` — RP boards (IC posting enabled, XP + Essence awarded on post)
 - `staff` — admin/mod only
 - `admin` — admin only
+- `chronicle` — Chronicle members only (scope_id = chronicle_id). Forward-declared in CHECK constraint in Migration 017 — Chronicle boards built in Phase 14.
 
 ### Canon Source Tagging
 Every thread has an optional `canon_source` field. Displayed as a colored badge matching the show ribbon. Used for filtering.
@@ -514,6 +534,12 @@ Every thread has an optional `canon_source` field. Displayed as a colored badge 
 - XP auto-award fires on post submission in RP boards
 - OOC sidebar available on all RP threads
 - Admin can force a theme override per board via `forced_theme`
+
+### Location Gating
+The boards table includes min_level_required (integer nullable). Boards with a minimum level set are accessible only to characters meeting or exceeding that level. Enforced at the application layer (not RLS) — the board shows in the list with a "your character hasn't unlocked this location yet" message rather than being invisible.
+
+### Board Display Order
+The boards table includes display_order (integer default 0) for admin-controlled ordering within categories. Used by getCachedPublicBoards().
 
 ---
 
@@ -632,6 +658,7 @@ Cached functions and tags (to be extended as features are built):
 | `getCachedSiteSettings()` | `site-settings` | 5 min |
 | `getCachedFactions()` | `factions` | 1 hr |
 | `getCachedCharacterLevelThresholds()` | `level-thresholds` | 1 hr |
+| `getCachedPublicBoards()` | `boards` | 5 min |
 | `getActiveEvent()` | `active-event` | 5 min |
 
 **Critical integration rules:**
@@ -640,9 +667,15 @@ Cached functions and tags (to be extended as features are built):
 3. Cached functions return plain arrays/objects. Switching from direct Supabase query to cached function requires removing `.data` access.
 4. New globally-static admin data should be cached with tag-based invalidation.
 
+### revalidateTag Call Signature (Next.js 16)
+Next.js 16.2.9 requires two arguments:
+  revalidateTag(tag, {})
+The second argument (empty CacheLifeConfig object) is non-optional. Single-argument calls cause a TypeScript error. All revalidateTag calls in this codebase use the two-argument form. This is a confirmed Next.js 16 API change.
+
 **Layout.tsx query structure:**
-- 3-tier parallel `Promise.all` — never add sequential awaits outside these blocks
+- 6-item parallel `Promise.all` — getCachedSiteSettings(), getUser(), getUserRow(), getUserPermissions(), getUnreadWhisperCount(), isSuperAdmin(). Never add sequential awaits outside this block.
 - `browserSupabase` singleton — `lib/supabase/browserClient.ts` — all client Realtime subscriptions use this, never `createClient()` in a component
+- getUserPermissions() and isSuperAdmin() are wrapped with React.cache() — duplicate calls within the same request tree are deduplicated automatically
 
 ---
 
@@ -732,6 +765,8 @@ essence_log      — id (uuid), user_id (uuid FK users.id ON DELETE CASCADE),
                    awarded_by (uuid nullable FK auth.users ON DELETE SET NULL),
                    created_at (timestamptz)
                    -- Index: (user_id)
+                   -- Tracks all Essence credits and debits at account level.
+                   -- Positive amount = credit, negative = debit.
 
 character_relationships — id (uuid),
                    character_id (uuid FK characters ON DELETE CASCADE),
@@ -745,11 +780,13 @@ character_relationships — id (uuid),
 character_revisions — id (uuid),
                    character_id (uuid FK characters ON DELETE CASCADE),
                    reviewer_id (uuid FK auth.users ON DELETE SET NULL),
-                   feedback (text),
-                   status_before (text),
-                   status_after (text),
+                   feedback (text nullable),
+                   status_before (text NOT NULL),
+                   status_after (text NOT NULL),
                    created_at (timestamptz)
                    -- Index: (character_id)
+                   -- Written on every approval action: approve, reject, requestRevision
+                   -- Users can read their own character's revision history
 
 -- NOTIFICATIONS
 notifications    — id (uuid), user_id (uuid FK auth.users),
@@ -760,11 +797,13 @@ notifications    — id (uuid), user_id (uuid FK auth.users),
 
 -- MESSAGE BOARDS
 boards           — id (uuid), name (text), description (text nullable),
-                   category (text), scope (text CHECK public/faction/rp/staff/admin),
-                   scope_id (uuid nullable — faction_id),
+                   category (text), scope (text CHECK public/faction/rp/staff/admin/chronicle),
+                   scope_id (uuid nullable — faction_id or chronicle_id),
                    is_rp_board (boolean default false),
                    forced_theme (text nullable),
+                   min_level_required (integer nullable),
                    discord_announce (boolean default false),
+                   display_order (integer default 0),
                    created_at
 
 board_threads    — id (uuid), board_id (uuid FK boards), author_id (uuid FK auth.users),
@@ -794,6 +833,16 @@ post_reports     — id (uuid), post_id (uuid FK board_posts),
                    reason (text), details (text nullable),
                    status (text CHECK new/reviewed/actioned default 'new'),
                    created_at
+
+thread_reads     — id (uuid), user_id (uuid FK auth.users ON DELETE CASCADE),
+                   thread_id (uuid FK board_threads ON DELETE CASCADE),
+                   last_read_at (timestamptz default now()),
+                   UNIQUE (user_id, thread_id)
+                   -- Index: (user_id), (thread_id)
+                   -- Powers the My Threads tracker.
+                   -- Updated via markThreadRead() on every thread open. Enables
+                   -- turn-state detection: if board_threads.updated_at >
+                   -- thread_reads.last_read_at, there are new posts since last visit.
 
 -- WHISPERS (Private Messaging)
 mail_messages    — id (uuid), sender_id (uuid nullable FK auth.users),
@@ -912,6 +961,20 @@ waitlist_signups — id (uuid PK DEFAULT gen_random_uuid()),
                    -- All access via admin client only
 ```
 
+### Postgres Economy Functions
+Two SECURITY DEFINER functions handle atomic economy writes. Both created in Migration 021a. Called via supabase.rpc() from admin Server Actions.
+
+increment_user_essence(p_user_id uuid, p_amount integer)
+  → Returns new essence balance (integer)
+  → UPDATE users SET essence = essence + p_amount WHERE id = p_user_id RETURNING essence
+  → Used by grantEssence() in admin-players.ts
+
+award_character_xp(p_character_id uuid, p_amount integer)
+  → Returns new xp total (integer)
+  → UPDATE characters SET xp = xp + p_amount WHERE id = p_character_id RETURNING xp
+  → Used by awardXp() in admin-players.ts
+  → Level-up detection deferred to Phase 4
+
 ---
 
 ## 19. Key Conventions & Patterns
@@ -984,6 +1047,25 @@ Always use conditional UPDATE, never read-then-write:
 UPDATE characters SET xp = xp - $cost WHERE id = $id AND xp >= $cost RETURNING id
 -- If no row returned: insufficient XP
 ```
+
+### Server-Side HTML Sanitization
+DOMPurify is a browser library and cannot run in Server Actions or Server Components. For server-side HTML sanitization (e.g. faction lore, character bios in admin views), use the sanitize-html package:
+
+```ts
+import sanitizeHtml from 'sanitize-html'
+const clean = sanitizeHtml(html, {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['u']),
+  allowedAttributes: sanitizeHtml.defaults.allowedAttributes
+})
+```
+
+sanitize-html is installed. DOMPurify remains the correct choice for client-side rendering (via dangerouslySetInnerHTML in Client Components).
+
+### React.cache() for Permission Helpers
+getUserPermissions() and isSuperAdmin() in lib/permissions.ts are wrapped with React.cache(). This deduplicates identical calls within the same request render tree — the authenticated layout and admin layout both call these functions, and React.cache() ensures only one DB round-trip occurs per request. Never remove the cache() wrapper from these functions.
+
+### reviewer FK Joins Across Schema Boundaries
+character_revisions.reviewer_id has a FK to auth.users, not public.users. PostgREST's embedded select only traverses FKs within the public schema. The alias syntax `reviewer:reviewer_id ( display_name )` silently returns null because display_name lives on public.users. Correct pattern: fetch reviewer_ids from the revisions query, then batch-fetch display_names from public.users in a second query using `.in('id', reviewerIds)`. This pattern applies to any table where a FK points to auth.users but the display data lives on public.users.
 
 ### useTransition Anti-Pattern
 Do NOT use `useTransition` / `startTransition` for async handlers. Use `useState(false)` + direct `await`:
@@ -1216,53 +1298,70 @@ way but the wrong name causes `MIDDLEWARE_INVOCATION_FAILED` at runtime.
 - `charmed-reborn-palette-sampler-v3.html` — theme
   palette reference
 
-### Phase 2 — Core Data Model (in progress)
+### Phase 2 — Core Data Model (COMPLETE)
 
 **TWH-2.1 — Complete** (commit: 49cb3ca)
-- Migration 007: permissions table, 16 seed permissions
-- Migration 008: roles + role_permissions tables, 5 seed roles, CROSS JOIN permission matrix seeded
-- Migration 009: user_roles table, 2 indexes, RLS
-- Migration 010: is_admin() + is_moderator() SECURITY DEFINER functions, factions table, 3 seed factions
-- lib/permissions.ts: hasPermission() and getUserPermissions() using getAdminClient()
-- app/(authenticated)/layout.tsx: getUserPermissions added to Promise.all as 4th item
-- app/components/Masthead.tsx: permissions prop added
-- types/database.ts: regenerated
-- Deviation: is_admin() stub added to Migration 007 (Postgres validates function existence at CREATE POLICY time — spec note was incorrect). Migration 010 replaces stub with real implementation via CREATE OR REPLACE FUNCTION.
+Migrations 007–010. permissions (16 seed rows), roles (5 original: admin/moderator/lore_keeper/faction_leader/founding_member), role_permissions matrix, user_roles. is_admin() + is_moderator() SECURITY DEFINER functions. factions table with 3 seed factions. lib/permissions.ts: hasPermission() + getUserPermissions(). Deviation: is_admin() stub added to Migration 007 — Postgres validates function existence at CREATE POLICY time.
 
 **TWH-2.2 — Complete** (commit: 31afe0a)
-- Migration 011: characters table, 3 indexes, 4 RLS policies, FK added to users.active_character_id
-- Migration 012: character_level_thresholds (5 levels seeded), character_xp_log, character_powers, 6 RLS policies
-- Migration 013: character_relationships, 2 indexes, 2 RLS policies
-- Migration 014: notifications, 2 indexes (1 partial), 3 RLS policies, added to Realtime publication
-- lib/cached-settings.ts: getCachedFactions() (1hr TTL) and getCachedCharacterLevelThresholds() (1hr TTL) added
-- lib/actions/characters.ts: shell file created
-- types/database.ts: regenerated
-- Deviation: active_character_id already existed on users (bare uuid, no FK). Used ADD CONSTRAINT instead of ADD COLUMN. End state identical to spec intent.
-- Standing answers: createNotification() and XP award actions use getAdminClient() (confirmed). character_relationships SELECT policy checks initiating character only until is_mutual = true (confirmed intentional).
+Migrations 011–014. characters table (status: pending/needs_revision/active/suspended), 4 RLS policies, FK added to users.active_character_id. character_level_thresholds seeded (5 levels). character_xp_log, character_powers, character_relationships. notifications with partial index + Realtime. getCachedFactions() + getCachedCharacterLevelThresholds() added to lib/cached-settings.ts. lib/actions/characters.ts shell created.
 
-**TWH-2.3 — Complete** (commit: eb37698)
-- Migration 015: mail_messages, 3 indexes (1 partial), 4 RLS policies, REPLICA IDENTITY FULL, added to Realtime publication
-- Migration 016: factions.leader_title column (default 'Keeper')
-- lib/notifications.ts: createNotification() and createCouncilNotice() helpers using getAdminClient()
-- lib/actions/whispers.ts: sendWhisper(), markWhisperRead(), deleteWhisper() Server Actions
-- app/(authenticated)/whispers/: inbox, compose, thread view pages
-- app/auth/callback/route.ts: welcome Council Notice activated (was previously swallowed silently)
-- app/(authenticated)/layout.tsx: getUnreadWhisperCount added to Promise.all as 5th item
-- app/components/Masthead.tsx: unreadWhisperCount prop + badge render added
-- types/database.ts: regenerated
+**TWH-2.3 — Complete**
+Migrations 015–016. mail_messages with REPLICA IDENTITY FULL and Realtime publication. 4 RLS policies. factions.leader_title column (default 'Keeper'). lib/notifications.ts: createNotification() + createCouncilNotice() using admin client. Whispers inbox/compose/thread UI. Unread badge in Masthead. Welcome Council Notice activated in auth callback. Layout Promise.all extended to 5 items.
 
-### Current repo state (end of TWH-2.3)
+**TWH-2.4a — Complete** (commit: 298372b)
+Migrations 017–018. boards (scope: public/faction/rp/staff/admin/chronicle, is_rp_board, forced_theme, min_level_required, discord_announce, display_order), board_threads (canon_source, is_spoiler, updated_at), board_posts (character_id FK, is_ic, is_flagged), ooc_posts, post_enchantments, post_reports, thread_reads. 22 RLS policies across 7 tables. update_thread_updated_at() trigger on board_posts INSERT — keeps board_threads.updated_at current for My Threads tracker and last-activity sorting. Deviation: motherland_fort_Salem → motherland_fort_salem (all lowercase — canonical value confirmed).
 
-Migrations applied: 001–016
+**TWH-2.4b — Complete** (commit: 757694c)
+getCachedPublicBoards() added to lib/cached-settings.ts (5-min TTL, 'boards' tag, public + rp scope only). lib/actions/forums.ts shell created with 10 action signatures. types/database.ts regenerated.
+
+**TWH-2.5 — Complete** (commit: 9a5cba2)
+Migration 019. manage_admins permission added. is_admin() updated to include 'super_admin'. super_admin role (is_permanent = true) + 8 functional admin roles (is_invisible = true): character_manager, faction_manager, board_manager, events_manager, apothecary_manager, settings_manager, player_manager, ban_manager. admin role permission matrix wiped (cosmetic badge only). isSuperAdmin() + isAdminOrSuperAdmin() added to lib/permissions.ts. Layout Promise.all extended to 6 items + superAdmin prop added to Masthead. Admin panel shell at /admin with 8 section pages. Mod panel shell at /mod. ESLint no-page-custom-font rule disabled globally (Google Fonts loaded via link tags by design).
+
+**TWH-2.6 — Complete**
+Migration 020 (site_settings keys seeded: 14 total). React.cache() added to getUserPermissions() and isSuperAdmin(). Admin Panel + Mod Panel links added to Masthead (conditional on permissions/superAdmin). sanitize-html installed for server-side HTML sanitization. Admin sections built: site settings manager (3 sections: General, Economy, Integrations), waitlist manager (read-only, canon breakdown), faction manager (full CRUD with Tiptap lore editor, color picker, revalidateTag('factions')). Stub shells: boards, events, apothecary.
+
+**TWH-2.7a — Complete** (commit: f88370f)
+lib/actions/admin-players.ts: searchUsers, banUser, unbanUser, checkIsBanned. lib/actions/admin-roles.ts: getUserRoles, grantRole, revokeRole with ADMIN_TIER_ROLES server-side gate. Player manager page: URL-driven search, user detail panel with roles and ban/unban. Role/admin manager page: admin-tier checkbox grid, other-roles grant/revoke, faction selector for scoped grants.
+
+**TWH-2.7-pre — Complete** (commit: 9b2a02b)
+Migration 021a: users.essence (integer default 0), users.last_offering_at (timestamptz nullable), essence_log table with RLS, increment_user_essence() SECURITY DEFINER function, award_character_xp() SECURITY DEFINER function. grantEssence() + awardXp() implemented in admin-players.ts. PlayerActions.tsx updated with Economy section (Grant Essence + Award XP forms with 3-second success toasts). CSS variable fix: var(--f-heading) → var(--f-head) across all admin and mod pages (17 files). types/database.ts regenerated.
+
+**TWH-2.7b — Complete** (commit: d5784d3)
+Migration 022: characters_status_check updated to include needs_revision. character_revisions table with 2 RLS policies and btree index on character_id. lib/actions/admin-characters.ts: approveCharacter(), rejectCharacter(), requestRevision() with writeRevision() helper — every action writes a character_revisions row. Character approval queue page: two tabs (Pending / Needs Revision), character cards with canon badges and faction pips, full bio (sanitize-html server-side), revision history timeline. CharacterReviewPanel.tsx: 5 modals (approve, revision, reject, suspend, reactivate). Discriminated union narrowing via 'error' in result pattern throughout. Additional CSS fix: var(--f-heading) found and fixed in whispers/page.tsx and whispers/[id]/page.tsx. Deviation: reviewer_id FK joins resolved via two-query pattern (auth.users boundary — PostgREST cannot traverse FK to auth schema). Deviation: needs_revision queue ordered by created_at (characters table has no updated_at column).
+
+### Current repo state (end of Phase 2)
+
+Migrations applied: 001–022
 TypeScript types: current (types/database.ts)
 Live URL: https://atwitchinghour.com
 
-### Phase 2 remaining (TWH-2.4 onward)
+### Files of note (Phase 2 additions)
+- lib/permissions.ts — hasPermission(), getUserPermissions(), isSuperAdmin(), isAdminOrSuperAdmin()
+- lib/notifications.ts — createNotification(), createCouncilNotice()
+- lib/cached-settings.ts — getCachedSiteSettings(), getCachedFactions(), getCachedCharacterLevelThresholds(), getCachedPublicBoards()
+- lib/actions/auth.ts — registerUser, loginUser, signOut
+- lib/actions/characters.ts — shell (Phase 4)
+- lib/actions/forums.ts — shell (Phase 3)
+- lib/actions/whispers.ts — sendWhisper, markWhisperRead, deleteWhisper
+- lib/actions/admin-settings.ts — updateSiteSetting, updateMultipleSiteSettings
+- lib/actions/admin-factions.ts — createFaction, updateFaction, deleteFaction, reorderFactions
+- lib/actions/admin-players.ts — searchUsers, grantEssence, awardXp, banUser, unbanUser, checkIsBanned
+- lib/actions/admin-roles.ts — getUserRoles, grantRole, revokeRole
+- lib/actions/admin-characters.ts — approveCharacter, rejectCharacter, requestRevision
+- app/(authenticated)/layout.tsx — 6-item Promise.all
+- app/(authenticated)/admin/ — full admin panel
+- app/(authenticated)/mod/ — mod panel shell
+- app/(authenticated)/whispers/ — inbox, compose, thread view
 
-**TWH-2.4** — Forums schema (boards, threads, posts)
-**TWH-2.5** — Admin panel foundation
-**TWH-2.6** — Admin panel: site settings, waitlist manager, faction manager
-**TWH-2.7** — Admin panel: users, roles, character approval
+### Phase 3 — Forums UI (next)
+
+TWH-3.1 — Forum index page (board categories, show filter, canon badges)
+TWH-3.2 — Thread list + create thread modal
+TWH-3.3 — Thread view, Tiptap post editor, spoiler extension, enchantments
+TWH-3.4 — Mod tools (pin, lock, delete, report queue)
+TWH-3.5 — Thread bookmarks, Discord webhook
+TWH-3.6 — My Threads tracker (/my-threads — turn-state detection, reply owed, Chronicles-ready)
 
 ---
 
@@ -1317,7 +1416,7 @@ chronicle_members — id (uuid),
                    UNIQUE (chronicle_id, character_id)
 ```
 
-Board scope: when Chronicles are built, 'chronicle' is added to the boards.scope CHECK constraint and scope_id = chronicle_id. Chronicle boards are private to active members by RLS.
+Board scope: 'chronicle' is already forward-declared in the boards.scope CHECK constraint (Migration 017) with scope_id = chronicle_id. Chronicle boards (RLS policies + full UI) are built in Phase 14.
 
 ### Boards and Location Gating (site-wide RP)
 The boards table includes a min_level_required integer column (nullable, null = no gate). Boards with a minimum level set are accessible only to characters meeting or exceeding that level. This is enforced at the application layer (not RLS) — the board appears in the list with a "your character hasn't unlocked this location yet" message rather than being invisible. Applies to both site-wide RP boards and Chronicle boards.

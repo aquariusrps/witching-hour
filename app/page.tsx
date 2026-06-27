@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CANONS } from '@/lib/canons'
+import { getCachedSiteSettings } from '@/lib/cached-settings'
+import WaitlistForm from './waitlist/WaitlistForm'
 
 export const metadata: Metadata = {
   title: 'The Witching Hour — A Fan Community for Charmed, Buffy & Angel',
@@ -46,7 +48,10 @@ const ANIMATIONS = `
   }
 `
 
-export default function LandingPage() {
+export default async function HomePage() {
+  const settings = await getCachedSiteSettings()
+  const registrationOpen = settings.registration_open === 'true'
+
   return (
     <>
       <style>{ANIMATIONS}</style>
@@ -109,34 +114,56 @@ export default function LandingPage() {
             For those who never stopped believing in magic.
           </p>
 
-          {/* CTA buttons */}
-          <div className="anim-btn flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none sm:w-auto">
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center px-8 py-3 rounded-sm transition-colors"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase',
-                backgroundColor: 'var(--ember)',
-                color: 'var(--roseash)',
-              }}
-            >
-              Enter the Circle
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center px-8 py-3 rounded-sm border transition-colors"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase',
-                borderColor: 'var(--ember-dim)',
+          {/* CTA section — registration open: hero buttons; closed: waitlist form + login link */}
+          {registrationOpen ? (
+            <div className="anim-btn flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none sm:w-auto">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-sm transition-colors"
+                style={{
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase',
+                  backgroundColor: 'var(--ember)',
+                  color: 'var(--roseash)',
+                }}
+              >
+                Enter the Circle
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-sm border transition-colors"
+                style={{
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase',
+                  borderColor: 'var(--ember-dim)',
+                  color: 'var(--mist)',
+                  backgroundColor: 'transparent',
+                }}
+              >
+                I already belong
+              </Link>
+            </div>
+          ) : (
+            <div className="anim-btn">
+              <WaitlistForm />
+              <p style={{
+                fontFamily: 'EB Garamond, Georgia, serif',
+                fontStyle: 'italic',
+                fontSize: '0.85rem',
                 color: 'var(--mist)',
-                backgroundColor: 'transparent',
-              }}
-            >
-              I already belong
-            </Link>
-          </div>
+                marginTop: '1.25rem',
+                textAlign: 'center',
+              }}>
+                Already a member?{' '}
+                <Link
+                  href="/login"
+                  style={{ color: 'var(--mist)', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Show ribbon */}

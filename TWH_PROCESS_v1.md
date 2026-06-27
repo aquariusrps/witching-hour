@@ -425,19 +425,22 @@ When a feature refers to "the user's profile", it queries `users`. When it refer
 The currently-selected RP character for IC posting is stored as `active_character_id` on the `users` table. This is a nullable FK to `characters.id`. It is set when the user selects a character from their My Characters page or the character selector.
 
 ### Approval Gate
-Only characters with `status = 'active'` can be selected for IC posting. Characters in `status = 'pending'`, `status = 'needs_revision'`, or `status = 'suspended'` must not appear in the IC character selector. The full status lifecycle is: pending → needs_revision → pending (loop) → active / suspended. See §7 of the Brief for the complete approval flow.
+Only characters with `status = 'active'` can be selected for IC posting. Characters in `status = 'pending'`, `status = 'needs_revision'`, or `status = 'suspended'` must not appear in the IC character selector. The full status lifecycle is:
+  pending → needs_revision → pending (loop) → active
+  pending → suspended (rejected)
+See Brief §7 for the complete approval flow.
 
 ---
 
 ## 17. Faction System Rules
 
-Factions are fully admin-editable via the faction manager in the admin panel. Name, slug, color_hex, description, lore, leader_title, and display_order are all configurable. The three factions were seeded in Migration 010 as starting placeholders — they are not hardcoded.
+Factions are fully admin-editable via the faction manager in the admin panel (TWH-2.6). Name, slug, color_hex, description, lore, leader_title, and display_order are all configurable. The three factions were seeded in Migration 010 as starting placeholders — they are not hardcoded.
 
 ### Multiple Leaders
-Each faction supports multiple leaders simultaneously. Leaders are assigned via user_roles with scope_id = faction_id and the faction_leader role. There is no single-leader constraint — grant the role to as many users as needed.
+Each faction supports multiple leaders simultaneously. Leaders are assigned via user_roles with scope_id = faction_id and the faction_leader role. No single-leader constraint — grant to as many users as needed.
 
 ### Leader Titles
-The display name for a faction's leadership tier is stored in factions.leader_title (text, default 'Keeper'). This is faction-configurable — examples: 'Elders' for a light-aligned faction, 'The Triad' for a dark-aligned faction. Always read leader_title from the factions row when displaying leadership in the UI. Never hardcode a leadership title in component code.
+The display name for a faction's leadership tier is stored in factions.leader_title (text, default 'Keeper'). This is faction-configurable. Always read leader_title from the factions row when displaying leadership in the UI. Never hardcode a leadership title in component code.
 
 ### Faction Colors
 The faction color must appear consistently everywhere:
@@ -459,9 +462,9 @@ Faction boards use scope = 'faction' and scope_id = faction_id. RLS enforces tha
 
 ## 18. Outstanding Rules Queue
 
-*This section accumulates rules discovered during builds that don't yet fit a category. Promoted to a numbered section on next document update.*
+*This section accumulates rules discovered during builds that don't yet fit a category. Promoted to a numbered section on each document update.*
 
-No items currently queued. All prior items have been promoted to numbered sections (see version history).
+No items currently queued. All prior items have been promoted to numbered sections (see §21 and version history).
 
 ---
 
@@ -525,15 +528,15 @@ All visual verification is done manually by the operator. Claude Code must not o
 
 ---
 
-## 21. Promoted Rules from Phase 1 Builds
+## 21. Promoted Rules from Phase 1 and Phase 2 Builds
 
-These rules were discovered during Phase 1 and held in §18 pending promotion. They are now standing rules.
+These rules were discovered during builds and are now standing rules.
 
 ### R1 — Discriminated Union Narrowing in Server Actions
-When a Server Action returns a discriminated union (e.g. `{ error: string } | { success: true }`), client code must narrow with `'error' in result`, not `result?.error`. TypeScript correctly rejects the latter on the success branch. Pattern confirmed in TWH-1.5.
+When a Server Action returns a discriminated union (e.g. `{ error: string } | { success: true }`), client code must narrow with `'error' in result`, not `result?.error`. TypeScript correctly rejects the latter on the success branch. Confirmed in TWH-1.5 and used throughout all Phase 2 admin actions.
 
 ### R2 — next/image Requires remotePatterns Config
-`<Image>` from next/image cannot load Supabase Storage URLs without adding `vkhuttcusqubteseifui.supabase.co` to `images.remotePatterns` in next.config. Until that config exists, use `<img>` with the `no-img-element` ESLint disable comment. Applies everywhere avatars and character portraits are displayed. Address when avatar upload is built.
+`<Image>` from next/image cannot load Supabase Storage URLs without adding `vkhuttcusqubteseifui.supabase.co` to `images.remotePatterns` in next.config. Until that config exists, use `<img>` with the `no-img-element` ESLint disable comment. Applies everywhere avatars and character portraits are displayed. Address when avatar upload is built in Phase 4.
 
 ### R3 — Body Gradient Is Blood Moon-Hardcoded
 The ambient radial gradients in the body rule in globals.css use hardcoded rgba values rather than CSS variables. They do not shift with theme. Low visual impact. Fix in a future polish pass.
@@ -552,11 +555,59 @@ When a migration creates RLS policies that call a Postgres function not yet defi
 
 Confirmed failure mode: Migration 007 RLS policies referenced `is_admin()` before Migration 010 defined it. Postgres validates function existence at `CREATE POLICY` time — the spec assumption that resolution is deferred was incorrect. The stub pattern prevents `ERROR: 42883: function does not exist` at policy creation time.
 
-### R8 — Notifications and Game-Mechanic Writes Use Admin Client
+### R8 — Notifications and Economy Writes Use Admin Client
 `createNotification()` always uses `getAdminClient()`. XP award actions always use `getAdminClient()`. Essence award and deduction actions always use `getAdminClient()`. These are system writes — they bypass user RLS by design. Never route them through the cookie-aware server client. Confirmed in TWH-2.2 Q1 and Q2.
 
 ### R9 — Character Relationships Are One-Sided Until Mutual
 The `character_relationships` SELECT policy checks only the initiating `character_id`. A relationship is only visible to both sides once `is_mutual = true`. The target character owner receives a notification to acknowledge the relationship, which flips `is_mutual`. This is confirmed intentional design — do not change the policy to expose unacknowledged relationships to the target.
+
+### R10 — revalidateTag Requires Two Arguments in Next.js 16
+Next.js 16.2.9 requires:
+```ts
+revalidateTag(tag, {})
+```
+The second argument (empty CacheLifeConfig object) is non-optional in this version. Single-argument calls cause a TypeScript error. All revalidateTag calls in this codebase use the two-argument form. Confirmed in TWH-2.6 build.
+
+### R11 — getServerClient() Must Be Awaited
+`getServerClient()` calls `await cookies()` internally and is declared async. Calling it without await returns a Promise, not the client. Always:
+```ts
+const supabase = await getServerClient()
+```
+Confirmed failure mode: TWH-2.7b spec pseudocode omitted await — Claude Code correctly added it.
+
+### R12 — PostgREST FK Join Boundary at auth.users
+PostgREST's embedded select only traverses FKs within the public schema. Any table with a FK to `auth.users` (not `public.users`) cannot use the alias join syntax to retrieve `display_name` or other `public.users` fields. The alias syntax silently returns null.
+
+Correct pattern: two-query approach.
+```ts
+// Step 1: fetch rows with reviewer_id
+const { data: revisions } = await admin
+  .from('character_revisions')
+  .select('id, reviewer_id, ...')
+  .eq('character_id', characterId)
+
+// Step 2: batch-fetch display names from public.users
+const reviewerIds = revisions.map(r => r.reviewer_id)
+  .filter(Boolean)
+const { data: reviewers } = await admin
+  .from('users')
+  .select('id, display_name')
+  .in('id', reviewerIds)
+```
+
+Applies to: `character_revisions.reviewer_id`, any other table with FK to `auth.users` where display data is needed. Confirmed in TWH-2.7b D1 deviation.
+
+### R13 — ESLint no-page-custom-font Disabled Globally
+The `@next/next/no-page-custom-font` ESLint rule is disabled in `eslint.config.mjs`. Google Fonts are loaded via `<link>` tags in `app/layout.tsx` by design (Tailwind v4 + Turbopack constraint — see §19). This is a permanent project-wide decision. Do not re-enable this rule.
+
+### R14 — CSS Variable --f-head, Not --f-heading
+The font variable for headings in this codebase is `var(--f-head)`. The name `var(--f-heading)` does not exist and silently falls back to the body font. If `--f-heading` appears anywhere in a code review or build, it is a bug. Use grep to find and replace before any push.
+
+### R15 — window.location.href for Post-Action Navigation in Client Components
+In Client Components where a Server Action modifies data that affects the Server Component above it (e.g. the approval queue list), use `window.location.href = '/path'` for post-success navigation rather than `router.push()`. `router.push()` may not trigger a full Server Component re-render in all cases. The hard navigate ensures the page refetches live data. Confirmed pattern: `CharacterReviewPanel.tsx` (TWH-2.7b).
+
+### R16 — characters Table Has No updated_at Column
+The `characters` table (Migration 011) does not have an `updated_at` column. Any query or sort that references `characters.updated_at` will produce a PostgREST runtime error. Use `created_at` as the fallback sort column. Add `updated_at` to `characters` in Phase 4 when character creation is built — it is needed for "last updated" display and for the needs_revision queue sort.
 
 ---
 
@@ -579,7 +630,7 @@ RETURNING id
 If no row is returned: insufficient Essence. Reject with a clear error. Never proceed with the purchase.
 
 ### Essence Log
-Every Essence credit and debit is recorded in `essence_log` (`user_id`, `amount`, `reason`, `awarded_by` nullable, `created_at`). Amount is positive for credits, negative for debits. This is the audit trail — always write a log row alongside any essence UPDATE.
+Every Essence credit and debit must be recorded in `essence_log` (`user_id`, `amount`, `reason`, `awarded_by` nullable, `created_at`). Amount is positive for credits, negative for debits. Always write the log row alongside any essence UPDATE. Log failures are console.error'd server-side but do not block the action — the Essence change already landed.
 
 ### The Offering Cooldown
 Per-user Offering cooldown is enforced via `users.last_offering_at` (timestamptz nullable). Before processing an Offering, check:
@@ -589,13 +640,23 @@ last_offering_at IS NULL
 OR last_offering_at < now() - (cooldown_hours || ' hours')::interval
 ```
 
-where `cooldown_hours` comes from the `offering_cooldown_hours` site_setting. Never rely on client-side time for cooldown enforcement — always check server-side at action time.
+where `cooldown_hours` comes from the `offering_cooldown_hours` site_setting. Never rely on client-side time for cooldown enforcement.
 
 ### Apothecary Purchases Are Character-Assigned
 Although Essence is account-level, Apothecary purchases are assigned to a specific character (`character_id` FK on `apothecary_purchases`). When a user makes a purchase, they must select which of their active characters receives the item. The Essence deduction happens at the user level; the item grant happens at the character level.
 
 ### Admin Client for All Economy Writes
 Essence award, Essence deduction, XP award, Offering resolution, and Apothecary purchase writes all use `getAdminClient()`. These are system-level or game-mechanic writes — they must not be blocked by user RLS.
+
+### Postgres Economy Functions
+Two SECURITY DEFINER functions handle atomic economy writes (created in Migration 021a):
+
+`increment_user_essence(p_user_id uuid, p_amount integer)`
+→ Returns new essence balance. Used by `grantEssence()` in `lib/actions/admin-players.ts`.
+
+`award_character_xp(p_character_id uuid, p_amount integer)`
+→ Returns new xp total. Used by `awardXp()` in `lib/actions/admin-players.ts`.
+→ Level-up detection deferred to Phase 4.
 
 ---
 
@@ -604,23 +665,113 @@ Essence award, Essence deduction, XP award, Offering resolution, and Apothecary 
 Chronicles are Phase 14+ features. These rules are established now so they are available when building begins. Do not build Chronicles features in earlier phases — flag as out of scope and add as Q-item.
 
 ### Keeper Role
-The keeper role is scoped to `chronicle_id` via `scope_id` in `user_roles`. Multiple Keepers per Chronicle are supported — no single-keeper constraint. Keepers hold the `manage_chronicle` permission for their Chronicle only. Admins hold `manage_chronicle` on all Chronicles.
+The keeper role is scoped to `chronicle_id` via `scope_id` in `user_roles`. Multiple Keepers per Chronicle are supported. Keepers hold the `manage_chronicle` permission scoped to their Chronicle only. Admins hold `manage_chronicle` on all Chronicles.
 
 ### Character-Based Membership
 Users join Chronicles as specific characters, not as themselves. A user may have characters in multiple Chronicles simultaneously. Chronicle character limits are set per Chronicle (`max_characters_per_user` on the `chronicles` table, nullable — null inherits the site-wide `site_settings` value).
 
 ### Approval Gate for Chronicles
-The same status lifecycle applies to Chronicle characters as to site-wide characters: pending → needs_revision → pending (loop) → active / suspended. Only characters with `status = 'active'` in a Chronicle appear in that Chronicle's member roster and can post to Chronicle boards.
+The same status lifecycle applies to Chronicle characters as to site-wide characters: pending → needs_revision → pending (loop) → active / suspended. The `character_revisions` table records each round of Keeper feedback. Only characters with `status = 'active'` in a Chronicle appear in that Chronicle's member roster and can post to Chronicle boards.
 
 ### Chronicle Boards
 When Chronicles are built, `'chronicle'` is added to the `boards.scope` CHECK constraint. Chronicle boards use `scope = 'chronicle'` and `scope_id = chronicle_id`. RLS enforces that only active Chronicle members can read and write Chronicle boards.
 
+Note: `'chronicle'` is already forward-declared in the `boards.scope` CHECK constraint (Migration 017). No migration needed when Chronicle boards are built — just use `scope = 'chronicle'` directly.
+
 ### Do Not Build Chronicle Features Early
-No Chronicle tables, pages, or actions belong in Phases 1–13. If a build prompt appears to require Chronicle infrastructure, stop and flag it — the requirement is either a misread of scope or a reason to schedule a Phase 14 prompt.
+No Chronicle tables, pages, or actions belong in Phases 1–13. If a build prompt appears to require Chronicle infrastructure, stop and flag it.
 
 ---
 
-*Last updated: June 2026 — v1.5 (Phase 2 TWH-2.1 through TWH-2.3 complete — roles, permissions, factions, character schema, notifications, Whispers, Essence economy, Chronicles system rules)*
-*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds) → v1.5 (Phase 2 TWH-2.1–2.3: §16 approval gate + status expansion, §17 faction rewrite, §18 queue cleared, §21 Phase 1 rules promoted + R7–R9 added, §22 Essence economy rules, §23 Chronicles system rules)*
+## 24. Admin Role System Rules
+
+### Two-Tier Admin Model
+There are two administrative tiers:
+
+**Super Admin** — full control. `is_permanent = true`. Assigned via `user_roles` with role name `'super_admin'`. Can grant/revoke all roles including other Super Admins and the admin badge. Cannot be banned. `is_admin()` Postgres function returns true.
+
+**Admin (badge)** — cosmetic only. Grants no permissions on its own. Shows "Administrator" on profile. Combined with functional admin roles to unlock specific panel sections.
+
+### Functional Admin Roles (invisible)
+Eight invisible roles (`is_invisible = true`) each unlock one admin panel section when granted alongside the admin badge:
+
+```
+character_manager → approve_characters, award_xp
+faction_manager   → manage_factions
+board_manager     → manage_boards
+events_manager    → manage_events
+apothecary_manager→ manage_apothecary
+settings_manager  → manage_site, manage_waitlist
+player_manager    → manage_users, award_xp
+ban_manager       → ban_users
+```
+
+### ADMIN_TIER_ROLES Constant
+The constant `ADMIN_TIER_ROLES` in `lib/actions/admin-roles.ts` defines which roles require the `manage_admins` permission to grant or revoke:
+
+```ts
+['admin', 'super_admin', 'character_manager',
+ 'faction_manager', 'board_manager', 'events_manager',
+ 'apothecary_manager', 'settings_manager',
+ 'player_manager', 'ban_manager']
+```
+
+This check is enforced server-side in `grantRole()` and `revokeRole()`. Never gate admin-tier role changes on client-side permission checks alone.
+
+### is_admin() Postgres Function
+The `is_admin()` SECURITY DEFINER function checks for EITHER `'admin'` OR `'super_admin'` role name:
+
+```sql
+SELECT EXISTS (
+  SELECT 1 FROM user_roles ur
+  JOIN roles r ON r.id = ur.role_id
+  WHERE ur.user_id = auth.uid()
+    AND r.name IN ('admin', 'super_admin')
+)
+```
+
+Both roles satisfy RLS `is_admin()` checks. Updated in Migration 019.
+
+### Permanent Roles Cannot Be Revoked
+Roles with `is_permanent = true` (admin badge, super_admin) cannot be revoked via `revokeRole()`. The action checks `is_permanent` before deleting the `user_roles` row and returns an error if true. This prevents accidental lockout.
+
+### Ban Protections
+Super Admin accounts cannot be banned. The `banUser()` action calls `isSuperAdmin(targetUserId)` before proceeding — if true, returns an error. A user also cannot ban themselves.
+
+---
+
+## 25. Forum and Thread System Rules
+
+### board_threads.updated_at Is Trigger-Maintained
+The `board_threads.updated_at` column is updated automatically by the `trg_board_posts_update_thread` trigger (created in Migration 017). This trigger fires AFTER INSERT on `board_posts` and sets `updated_at = now()` on the parent thread.
+
+Do not update `board_threads.updated_at` manually in application code — the trigger handles it. Any code path that creates a `board_post` will automatically refresh the parent thread's `updated_at`.
+
+This column is the signal used for:
+- Last-activity sorting on thread lists
+- Turn-state detection in the My Threads tracker (compare `board_threads.updated_at` to `thread_reads.last_read_at` for the current user)
+
+### thread_reads Upsert Pattern
+The `thread_reads` table tracks the last time a user opened a thread. Updated on every thread view via `markThreadRead()` in `lib/actions/forums.ts` (Phase 3 implementation).
+
+`markThreadRead()` must use `getAdminClient()` — the `thread_reads` table has INSERT and UPDATE policies for the owning user, but the upsert pattern (`INSERT ... ON CONFLICT DO UPDATE`) resolves more reliably via the admin client. Confirmed in TWH-2.4b build report.
+
+### getCachedPublicBoards vs Live Board Fetch
+`getCachedPublicBoards()` (`lib/cached-settings.ts`, `'boards'` tag, 5-min TTL) returns only public and rp scoped boards. Use it for the forum index and any globally-visible board list.
+
+Faction, staff, admin, and chronicle boards are always fetched live with RLS — their visibility varies per user and cannot safely be cached globally.
+
+Every admin mutation that creates, edits, or deletes a board must call `revalidateTag('boards', {})` alongside any `revalidatePath` calls.
+
+### min_level_required Is Application-Layer Only
+The `boards.min_level_required` column is enforced at the application layer, not in RLS. Boards with a minimum level appear in board lists for all users but show a "your character hasn't unlocked this location yet" message to under-level characters. This keeps RLS simple while still communicating the gate clearly.
+
+### Board Scope 'chronicle' Is Forward-Declared
+The `'chronicle'` value is already present in the `boards.scope` CHECK constraint (Migration 017). When Chronicle boards are built in Phase 14, no migration is needed to alter the CHECK constraint — just use `scope = 'chronicle'` directly.
+
+---
+
+*Last updated: June 2026 — v1.6 (Phase 2 complete — TWH-2.1 through TWH-2.7b: roles, super admin model, character approval revision loop, Essence economy, forum schema, all Phase 1 and Phase 2 lessons incorporated)*
+*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds) → v1.5 (planned but never applied to disk — all content incorporated into v1.6) → v1.6 (Phase 2 complete: §16 approval gate + status expansion, §17 faction rewrite, §18 queue cleared, §21 R1–R16 all Phase 1 and Phase 2 rules, §22 Essence economy, §23 Chronicles rules, §24 admin role system, §25 forum and thread rules)*
 *This document must be updated whenever a new standing rule is agreed upon.*
 *Cross-reference: TWH_BRIEF_v1.md*
