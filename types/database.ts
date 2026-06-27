@@ -120,7 +120,6 @@ export type Database = {
       }
       boards: {
         Row: {
-          category: string
           created_at: string
           description: string | null
           discord_announce: boolean
@@ -141,7 +140,6 @@ export type Database = {
           thread_count: number
         }
         Insert: {
-          category: string
           created_at?: string
           description?: string | null
           discord_announce?: boolean
@@ -162,7 +160,6 @@ export type Database = {
           thread_count?: number
         }
         Update: {
-          category?: string
           created_at?: string
           description?: string | null
           discord_announce?: boolean

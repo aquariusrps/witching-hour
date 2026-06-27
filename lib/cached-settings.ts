@@ -68,7 +68,7 @@ export const getCachedPublicBoards = unstable_cache(
     const { data, error } = await admin
       .from('boards')
       .select(
-        'id, name, description, category, scope, ' +
+        'id, name, description, scope, ' +
         'is_rp_board, forced_theme, min_level_required, ' +
         'discord_announce, display_order'
       )
