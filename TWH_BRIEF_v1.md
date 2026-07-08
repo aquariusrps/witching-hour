@@ -1,6 +1,6 @@
 # The Witching Hour — Master Project Brief
-### Comprehensive Build Document v1.6 — Complete & Authoritative
-### Created: June 2026 | Last Updated: 2026-06-27
+### Comprehensive Build Document v1.7 — Complete & Authoritative
+### Created: June 2026 | Last Updated: June 2026
 
 ---
 
@@ -97,16 +97,15 @@ Authentication → URL Configuration:
   Also add: `https://the-witching-hour.vercel.app/auth/callback` for Vercel preview
 
 ### Supabase Storage Buckets (all public)
-- `avatars` — user account profile images (one per user;
-  shown in masthead chip, profile page, posts, online list)
+- `avatars` — user account profile images
+  (uploaded via P-DC pattern, public read)
 - `character-portraits` — RP character portrait images
-  (one per character; shown on character profiles, IC post
-  headers, character selector)
-- `rich-text-images` — Tiptap editor image uploads (admin-only)
+  (uploaded via P-DC, public read)
+- `rich-text-images` — admin-uploaded assets including
+  board icons and future rich text editor images (public read)
 
-Note: `avatars` and `character-portraits` mirror the
-two-table naming convention (`users` = the person,
-`characters` = their RP personas).
+Note: board icons use path pattern:
+  `board-icons/{boardId}-{timestamp}.{ext}`
 ---
 
 ## 3. Canons & Show Hierarchy
@@ -188,9 +187,9 @@ The default theme is **Blood Moon**. All UI is built to this palette first. Othe
 | Char (base) | `#100808` | Page background — near-black with red undertone |
 | Deep Claret (surface) | `#301010` | Cards, panels, nav surfaces |
 | Rose Ash (light) | `#f0d4c0` | Primary text — warm, not pure white |
-| Ember (primary accent) | `#c83818` | Links, Cabal faction, CTA buttons, unread indicators |
+| Ember (primary accent) | `#c83818` | Links, The Underworld faction, CTA buttons, unread indicators |
 | Harvest Gold (secondary) | `#e0b028` | Covenant faction, active states, XP bars, gold trim |
-| Moonstone (tertiary) | `#3878a8` | Unbound faction, success states, Buffy canon tag, cool contrast |
+| Moonstone (tertiary) | `#3878a8` | The Wayward faction, success states, Buffy canon tag, cool contrast |
 
 ### Extended / Derived Tones
 
@@ -212,8 +211,10 @@ The default theme is **Blood Moon**. All UI is built to this palette first. Othe
 | Faction | Color | Hex | Light variant | Fill |
 |---|---|---|---|---|
 | The Covenant | Harvest Gold | `#e0b028` | `#f0c840` | `rgba(224,176,40,0.12)` |
-| The Cabal | Ember | `#c83818` | `#e06030` | `rgba(200,56,24,0.12)` |
-| The Unbound | Moonstone | `#3878a8` | `#58a8d0` | `rgba(56,120,168,0.12)` |
+| The Underworld | Ember | `#c83818` | `#e06030` | `rgba(200,56,24,0.12)` |
+| The Wayward | Moonstone | `#3878a8` | `#58a8d0` | `rgba(56,120,168,0.12)` |
+
+Members of The Wayward are called Wanderers. CSS internal variable names (--cab-fill, --unb-fill, etc.) are implementation artifacts only and do not reflect the current faction names.
 
 **Faction diamond pip:** A small square rotated 45° in the faction color. Used in post headers, online lists, character badges, nav indicators throughout.
 
@@ -355,16 +356,16 @@ Each faction supports multiple leaders simultaneously. Leaders are assigned via 
 - **Lore:** Practitioners of ancient protective magic and Wiccan tradition. Not purely good — bound by agreements, sometimes constrained by their own rules. Draw from: the Halliwells, Willow (reformed), white lighters.
 - **Faction page accent:** Gold borders, warm candlelight atmosphere
 
-### The Cabal
+### The Underworld
 - **Alignment:** Dark-leaning, power-seeking, pragmatic
-- **Color:** Ember (`#c83818`)
-- **Lore:** Those who seek power by other means. Not purely evil — includes anti-heroes, grey practitioners, those who rejected the Covenant's constraints. Draw from: Cole Turner (S3–4), dark witches, demon-aligned.
+- **Color:** Ember (`#c83818`) — `var(--ember)`
+- **Lore:** The dark faction. Power-seekers, demonologists, and those who reject the Covenant's restrictions.
 - **Faction page accent:** Ember borders, deep claret atmosphere
 
-### The Unbound
+### The Wayward
 - **Alignment:** Neutral, chaotic, independent
-- **Color:** Moonstone (`#3878a8`)
-- **Lore:** Rogues, mercenaries, and those who rejected both sides. Wildcards who operate on their own terms. Often the most morally interesting characters.
+- **Color:** Moonstone (`#3878a8`) — `var(--moonstone)`
+- **Lore:** The neutral faction. Unaffiliated witches, rogues, and those who walk between worlds beholden to none. Members are called Wanderers.
 - **Faction page accent:** Moonstone borders, cool midnight atmosphere
 
 ---
@@ -624,7 +625,7 @@ Direct port of Wizard Mansion's Whispering Chamber — all CHAT-1 through CHAT-3
 
 TWH additions:
 - IC mode toggle (post as active character)
-- Multiple channels: General, Covenant (faction-gated), Cabal (faction-gated), Unbound (faction-gated), Watch Party (temporary, per-event)
+- Multiple channels: General, Covenant (faction-gated), Underworld (faction-gated), Wayward (faction-gated), Watch Party (temporary, per-event)
 
 **Critical Realtime requirements (WM hard lessons):**
 1. `REPLICA IDENTITY FULL` required on `chat_messages` for UPDATE events
@@ -660,6 +661,8 @@ Cached functions and tags (to be extended as features are built):
 | `getCachedCharacterLevelThresholds()` | `level-thresholds` | 1 hr |
 | `getCachedPublicBoards()` | `boards` | 5 min |
 | `getActiveEvent()` | `active-event` | 5 min |
+| `getCachedBoardTree()` | `board-tree` | 5 min |
+| `getCachedFullBoardTree()` | `board-tree-admin` | 5 min |
 
 **Critical integration rules:**
 1. Before writing any new query against a cached table, check `lib/cached-settings.ts` first. If a cached version exists, use it.
@@ -677,6 +680,37 @@ The second argument (empty CacheLifeConfig object) is non-optional. Single-argum
 - `browserSupabase` singleton — `lib/supabase/browserClient.ts` — all client Realtime subscriptions use this, never `createClient()` in a component
 - getUserPermissions() and isSuperAdmin() are wrapped with React.cache() — duplicate calls within the same request tree are deduplicated automatically
 
+**New cached functions (Phase 3+):**
+
+`getCachedBoardTree()`
+- File: `lib/cached-settings.ts` | Tag: `'board-tree'` | TTL: 5 minutes
+- Scope: boards WHERE scope IN ('public', 'rp') only
+- Returns: `BoardNode[]` — full hierarchy with children nested recursively
+- Use for: public forum index, thread list breadcrumbs, thread list board data
+- Never use for: admin board manager (use `getCachedFullBoardTree()` instead)
+
+`getCachedFullBoardTree()`
+- File: `lib/cached-settings.ts` | Tag: `'board-tree-admin'` | TTL: 5 minutes
+- Scope: ALL boards, no scope filter
+- Returns: `BoardNode[]`
+- Use for: admin board manager ONLY
+- CRITICAL: Never expose output to non-admin users. The manage_boards permission gate at the page level is the enforcement point. RLS is the DB backstop.
+
+`invalidateBoards()` helper
+- File: `lib/actions/admin-boards.ts`
+- Must call ALL THREE tags on every board mutation:
+  ```ts
+  revalidateTag('board-tree', {})
+  revalidateTag('boards', {})
+  revalidateTag('board-tree-admin', {})
+  ```
+- Omitting any tag leaves a stale cache on the board manager or public forum index.
+
+`getUnreadBoardIds(userId: string)`
+- File: `lib/forums.ts` | NOT cached — per-user live query
+- Returns: `Set<string>` of board_ids containing unread threads for userId
+- Used by: forum index unread dots
+
 ---
 
 ## 18. Database Schema
@@ -693,7 +727,59 @@ These names are final and intentional. `users` is the person. `characters` are t
 ```sql
 -- SITE CONFIGURATION
 site_settings    — key (text PK), value (text), updated_at
+```
 
+### Site Settings Catalog
+
+All values are stored as text. Numeric values must be `parseInt()`/`parseFloat()`. JSON values must be `JSON.parse()` before use (marked below).
+
+**Core keys (Migrations 001, 020):**
+- `site_name` — site display name
+- `site_tagline` — tagline text
+- `registration_open` — `'true'` = registration + login landing; `'false'` = waitlist + login (TWH-ADMIN.1)
+- `max_characters_per_user` = `'5'` — max RP characters per user account
+- `xp_per_rp_post` = `'10'` — XP awarded per approved RP post
+- `maintenance_mode` — `'true'` redirects all non-admin traffic to /maintenance; 60-second cache in proxy.ts (TWH-ADMIN.2)
+- `launch_date` — site launch date
+- `offering_cost` = `'50'` — Essence cost for The Offering ritual
+- `offering_refund_amount` = `'25'` — partial Essence refund if drawn item already owned
+- `offering_cooldown_hours` = `'24'` — hours between Offering attempts per user
+
+**Phase 3 + Combat System Seeds (Migration 025, 026a):**
+
+Stat system:
+- `stat_base_value` = `'1'` — base value for each stat at character creation
+- `stat_creation_pool` = `'5'` — points available to distribute at character creation
+- `stat_creation_cap` = `'3'` — max points from creation pool into any single stat
+- `stat_points_per_level` = `'2'` — stat points awarded on level up
+- `hp_per_vitality_point` = `'5'` — HP added per point of Vitality above base
+- `defense_rating_base` = `'10'` — base Defense Rating before Ward modifier
+
+Combat system:
+- `xp_per_combat_win` = `'50'` — base XP awarded to winners
+- `combat_turn_timeout_hours` = `'24'` — hours before turn auto-advances
+- `combat_invite_expiry_hours` = `'48'` — hours before pending invitation expires
+- `max_concurrent_combat_threads` = `'3'` — max active combat threads per user
+- `combat_xp_level_scaling_min` = `'0.5'` — minimum XP multiplier (vs lower-level opponent)
+- `combat_xp_level_scaling_max` = `'2.0'` — maximum XP multiplier (vs higher-level opponent)
+- `combat_defeat_cooldown_hours` = `'24'` — cooldown before defeated character can initiate new combat
+
+Post enchantments:
+- `post_enchantment_types` = `'[JSON array]'` — array of `{emoji, label}` objects. **ALWAYS `JSON.parse()` before use.** Default: Enchanted ✨, Fierce 🔥, Dark 💀, Coven 💜, Power ⚡
+
+Ascension system (all admin-configurable):
+- `ascension_rite_label` = `'Ascension Rite'`
+- `ascension_granted_label` = `'Ascension Granted'`
+- `ascension_return_label` = `'Return to Practice'`
+- `ascension_request_label` = `'Request Ascension Rite'`
+- `ascension_chamber_label` = `'The Ascension Chamber'`
+- `ascension_summons_label` = `'The Summoning'`
+- `ascension_forfeit_label` = `'Withdrawal — Return to Practice'`
+
+Thread system:
+- `max_thread_title_length` = `'200'` — maximum thread title character length
+
+```sql
 -- USER ACCOUNTS (Supabase Auth handles auth.users)
 users            — id (uuid PK = auth.users.id), display_name (text unique),
                    avatar_url (text nullable), bio (text nullable),
@@ -730,6 +816,10 @@ factions         — id (uuid), name (text unique), slug (text unique),
                    leader_user_id (uuid nullable FK auth.users),
                    leader_title (text default 'Keeper'),
                    display_order (integer default 0),
+                   promotions_board_id (uuid FK boards nullable
+                     — the Ascension Chamber board for this faction; set in faction manager),
+                   ascension_chamber_label (text nullable
+                     — override label for this faction's ascension chamber),
                    created_at
 
 -- RP CHARACTERS
@@ -742,11 +832,32 @@ characters       — id (uuid), user_id (uuid FK users.id ON DELETE CASCADE),
                    status (text CHECK pending/needs_revision/active/suspended
                      default 'pending'),
                    is_npc (boolean default false),
+                   vitality (integer default 1),
+                   arcana (integer default 1),
+                   intuition (integer default 1),
+                   aura (integer default 1),
+                   ward (integer default 1),
+                   unspent_stat_points (integer default 0
+                     — incremented on level up by stat_points_per_level; spent via UI),
+                   pending_promotion (boolean default false
+                     — true while Ascension Rite is in progress; prevents duplicate requests),
+                   last_combat_defeat_at (timestamptz nullable
+                     — enforces combat_defeat_cooldown_hours),
+                   updated_at (timestamptz default now()
+                     — maintained by trg_characters_updated_at trigger, Migration 025.
+                     R16 RESOLVED.),
                    created_at (timestamptz)
                    -- Index: (user_id), (faction_id), (status)
 
 character_level_thresholds — level (integer PK), xp_required (integer),
-                   label (text), unlocks_description (text nullable), created_at
+                   label (text), unlocks_description (text nullable),
+                   max_hp (integer default 20
+                     — base max HP at this level before Vitality modifier),
+                   stat_points_awarded (integer default 0
+                     — stat points granted on reaching this level),
+                   created_at
+                   -- IMPORTANT: PK column is `level` (integer), NOT `level_number`.
+                   -- All queries use WHERE level = N.
 
 character_powers — id (uuid), character_id (uuid FK characters ON DELETE CASCADE),
                    power_name (text), power_description (text nullable),
@@ -797,20 +908,41 @@ notifications    — id (uuid), user_id (uuid FK auth.users),
 
 -- MESSAGE BOARDS
 boards           — id (uuid), name (text), description (text nullable),
-                   category (text), scope (text CHECK public/faction/rp/staff/admin/chronicle),
+                   scope (text CHECK public/faction/rp/staff/admin/chronicle),
                    scope_id (uuid nullable — faction_id or chronicle_id),
                    is_rp_board (boolean default false),
                    forced_theme (text nullable),
                    min_level_required (integer nullable),
                    discord_announce (boolean default false),
                    display_order (integer default 0),
+                   parent_id (uuid FK boards ON DELETE CASCADE nullable
+                     — hierarchy; null = root),
+                   is_category (boolean default false
+                     — categories are display groupings only, not postable spaces),
+                   thread_count (integer default 0 — denormalized, trigger-maintained),
+                   post_count (integer default 0 — denormalized, trigger-maintained),
+                   last_post_at (timestamptz nullable),
+                   last_post_user_id (uuid FK public.users nullable),
+                   icon_url (text nullable),
+                   staff_only_threads (boolean default false
+                     — when true, only moderate_boards permission can create new threads;
+                     replies open to all),
                    created_at
+                   -- NOTE: boards.category column DROPPED in Migration 024
 
 board_threads    — id (uuid), board_id (uuid FK boards), author_id (uuid FK auth.users),
                    title (text), canon_source (text nullable),
                    is_spoiler (boolean default false),
                    is_pinned (boolean default false), is_locked (boolean default false),
+                   thread_type (text default 'standard'
+                     CHECK standard/combat/ascension),
+                   is_locked_for_edit (boolean default false
+                     — set true on combat posts; prevents editing after dice roll submitted),
+                   reply_count (integer default 0
+                     — trigger-maintained: trg_thread_reply_count_inc/dec on board_posts),
                    created_at, updated_at
+                   -- IMPORTANT: author column is author_id, NOT user_id.
+                   -- This applies to both board_threads and board_posts.
 
 board_posts      — id (uuid), thread_id (uuid FK board_threads),
                    author_id (uuid FK auth.users),
@@ -1354,14 +1486,40 @@ Live URL: https://atwitchinghour.com
 - app/(authenticated)/mod/ — mod panel shell
 - app/(authenticated)/whispers/ — inbox, compose, thread view
 
-### Phase 3 — Forums UI (next)
+### Phase 3 — Forums (The Boards) — IN PROGRESS
 
-TWH-3.1 — Forum index page (board categories, show filter, canon badges)
-TWH-3.2 — Thread list + create thread modal
-TWH-3.3 — Thread view, Tiptap post editor, spoiler extension, enchantments
-TWH-3.4 — Mod tools (pin, lock, delete, report queue)
-TWH-3.5 — Thread bookmarks, Discord webhook
-TWH-3.6 — My Threads tracker (/my-threads — turn-state detection, reply owed, Chronicles-ready)
+**Completed:**
+
+**TWH-3.1 — Complete** (commit: a00ed94)
+Forum index, board hierarchy migration (023), getCachedBoardTree(), unread state, LocalTime component.
+
+**TWH-3.1b — Complete** (commit: 6118ec9)
+Board manager admin panel, migration 024 (drop boards.category), admin-boards actions, CRUD + reorder.
+
+**TWH-3.2-pre — Complete** (commit: 6be844d)
+Migration 025: combat/stat preflight, getCachedFullBoardTree(), staff_only_threads, thread_type, character stat columns, ascension site_settings seeds.
+
+**TWH-3.2a — Complete** (commit: ab90b9c)
+Migration 026a: reply_count, triggers, createThread() implemented.
+
+**TWH-3.2b — Complete** (commit: 5644884)
+ThreadRow component, canon validation fix (angel, all).
+
+**TWH-ADMIN.1 — Complete** (commit: 6861041)
+Registration toggle, waitlist as default landing, admin settings toggle.
+
+**TWH-ADMIN.2 — Complete** (commit: 0351253)
+Maintenance mode wired in proxy.ts, maintenance page built.
+
+**Remaining:**
+
+TWH-3.2c — Canon color admin system
+TWH-3.2d — Thread list page + CreateThreadModal
+TWH-3.3 — Thread view, Tiptap editor, OOC sidebar, spoiler extension, enchantments
+TWH-3.4 — Mod tools, report queue
+TWH-3.5 — Thread bookmarks, Discord webhook (Migration 026b)
+TWH-3.6a — My Threads tracker (/my-threads, OOC forums only)
+TWH-3.6b — Roleplay Tracker (/roleplay-tracker, IC RP boards only)
 
 ---
 
@@ -1423,6 +1581,181 @@ The boards table includes a min_level_required integer column (nullable, null = 
 
 ---
 
-*This document is updated at the completion of each
-build phase.*
+---
+
+## 22. The Five Stats (Combat System)
+
+Characters have five stats stored as integer columns on the `characters` table. All default to `site_settings.stat_base_value` (default 1). Players distribute additional points from a creation pool at character creation (`stat_creation_pool`, default 5; cap per stat `stat_creation_cap`, default 3). Further points are awarded on level up (`stat_points_per_level` per level). Additional points are purchasable via Essence in the Apothecary (Phase 7.5+).
+
+**Stat definitions:**
+- **Vitality** — Max HP and physical resilience. Max HP = `character_level_thresholds.max_hp` + (vitality × `hp_per_vitality_point`).
+- **Arcana** — Magical power. Modifier added to spell damage rolls (d20 + Arcana mod vs Defense Rating).
+- **Intuition** — Speed and sixth sense. Modifier added to initiative rolls (d20 + Intuition mod). Determines turn order in combat threads.
+- **Aura** — Healing and spiritual resistance. Modifier added to healing power rolls and resistance to dark magic effects.
+- **Ward** — Magical shielding. Sets Defense Rating = `defense_rating_base` + Ward mod (default: 10 + Ward). Attackers must meet or beat this to land a hit.
+
+**Hit resolution sequence:**
+1. Attacker rolls: d20 + Arcana mod
+2. Defender's Defense Rating: 10 + Ward mod
+3. If attack roll ≥ Defense Rating: hit → apply damage roll
+4. If attack roll < Defense Rating: miss → no HP change
+
+All stat mechanics built in Phase 7.5. Stat columns and site_settings seeds are in place from Migration 025.
+
+---
+
+## 23. Combat System (Phase 7.5)
+
+Magical combat is handled through roleplay posts in dedicated combat threads (`thread_type = 'combat'`). 8 prompts, TWH-7C.1 through TWH-7C.8.
+
+**Key mechanics:**
+- **Initiative:** d20 + Intuition mod rolled on joining a combat thread. Determines post order.
+- **Turn enforcement:** only the character whose turn it is can submit an IC combat post. 24-hour timer (`combat_turn_timeout_hours`) before turn auto-advances. Cron job on Vercel (slot 1 of 2).
+- **Power use:** dropdown in combat composer. Confirm modal. Dice roll animation. Roll inserted into post body. Post submits. `is_locked_for_edit = true`. No editing.
+- **Targeting:** damage powers target opposing factions. Healing/support powers target same faction. The Wayward (neutral) can be targeted by anyone for damage; can heal themselves and other Wayward.
+- **Area effect:** applies to all valid targets simultaneously.
+- **HP deduction:** automatic, server-enforced. Stored in `combat_participants.current_hp`. Each combat starts at full HP (isolated).
+- **Conclusion:** HP hits 0 (defeated character cannot post further IC, narrated rescue to faction base), withdrawal, or manual close by initiator. Auto-conclude when only allied participants remain.
+- **XP scaling:** base `xp_per_combat_win` × clamp(winner_level/defeated_level, scaling_min, scaling_max). Defeated characters earn no combat XP. Defeat cooldown: `combat_defeat_cooldown_hours`.
+- **Max concurrent:** `max_concurrent_combat_threads` (default 3) enforced at initiation.
+- **Invitation:** 48-hour window. Declined or expired = locked out unless reinvited.
+- **Dispute flag:** any participant can request staff assistance. Thread halted. Faction leaders of participating factions notified. First to respond claims. Clears on faction leader action.
+
+**Schema (Phase 7.5 — designed, not yet built):**
+`combat_threads`, `combat_participants`, `combat_invitations`, `combat_post_actions`, `combat_turn_log`, `promotion_requests`
+
+---
+
+## 24. Ascension Rite (Promotion System)
+
+When a character's XP reaches the threshold for their current level and `pending_promotion = false`, the XP bar displays the `ascension_request_label` button (default: "Request Ascension Rite").
+
+**Flow:**
+1. Character submits request (optional note). `promotion_requests` row created, `pending_promotion = true`. All faction leaders of that faction notified.
+2. First faction leader to respond claims it (others notified claim is taken).
+3. Claiming leader initiates a special combat thread (`thread_type = 'ascension'`) pre-wired to `factions.promotions_board_id`. The candidate character is pre-selected and non-removable. Leader writes IC summoning post.
+4. Combat proceeds via Phase 7.5 mechanics.
+5. Faction leader can mark at any time:
+   - **Ascension Granted** → level increments, `stat_points_per_level` added to `unspent_stat_points`, `pending_promotion = false`, candidate notified, system post added to thread.
+   - **Return to Practice** → feedback sent, `promotion_requests` status → returned, `pending_promotion = false`. Character may re-request after further RP.
+6. Faction leader decision is final regardless of HP outcome — assesses writing quality and characterization, not just combat result.
+7. Character withdrawal from ascension thread = forfeit → Return to Practice auto-triggered.
+
+All label strings are admin-configurable via `site_settings` ascension_* keys. The promotions board per faction is set via `factions.promotions_board_id` in the faction manager. Default board label: 'The Ascension Chamber'.
+
+---
+
+## 25. Book of Shadows (Phase 4 — TWH-4.6)
+
+A per-character journal. Each character has their own Book of Shadows accessible from their profile.
+
+**Entry types:**
+- `private` — visible only to the character's owner. Used for personal notes and plot planning.
+- `public` — visible to all authenticated users. Deliberate reveals and one-shot story posts.
+- `faction` — visible to characters in the same faction only.
+
+**Schema (to be created in Phase 4):**
+```sql
+character_journal_entries — id (uuid), character_id (uuid FK characters ON DELETE CASCADE),
+                   title (text nullable),
+                   body (text HTML — Tiptap output),
+                   visibility (text CHECK private/public/faction),
+                   created_at, updated_at
+```
+
+---
+
+## 26. Contributor System (Phase 10+)
+
+Three donation tiers for users who financially support the site:
+
+**The Vigil (entry tier)**
+- Supporter badge on profile
+- Bonus monthly Essence stipend
+- +1 character slot above site default
+
+**The Initiated (mid tier)**
+- Everything in The Vigil
+- Exclusive cosmetic avatar frame
+- Larger Essence stipend
+- +2 character slots above default
+- Access to contributor-only forum board
+
+**The Devoted (top tier)**
+- Everything above
+- The Devoted badge (displayed on profile and post headers)
+- Exclusive character portrait frame for all characters
+- Priority character approval
+- One-time Apothecary credit on signup
+- Name in Devoted Hall of Honor
+
+**Schema additions (Phase 10+):**
+```sql
+users.contributor_tier         — text nullable (vigil/initiated/devoted/null)
+users.contributor_since        — timestamptz nullable
+users.contributor_expires_at   — timestamptz nullable
+```
+
+Payment processor: Ko-fi recommended for launch. Webhooks update `contributor_tier` on successful payment. Stripe migration path available if volume demands.
+
+---
+
+## 27. Staff Lounge
+
+A staff-only forum category. Manual setup via the board manager — no dedicated build prompt required.
+
+**Structure:**
+```
+Staff Lounge (category, scope: staff)
+├── The Council Chamber      (scope: admin — staff and admin discussion)
+├── Moderation Desk          (scope: staff — mod coordination, report discussion)
+├── Faction Leaders' Circle  (scope: staff — faction leader coordination)
+└── Announcements Drafts     (scope: admin — staging area for announcements)
+```
+
+All use existing scope values. No migration needed. Create via admin board manager.
+
+---
+
+## 28. Standing Rules
+
+Rules established during Phase 3 builds. Earlier rules (R1–R15) live in TWH_PROCESS_v1.md §21.
+
+### R16 (RESOLVED — Migration 025)
+`characters.updated_at` added in Migration 025. Trigger `trg_characters_updated_at` maintains it on every UPDATE. No workaround needed.
+
+### R17 — author_id, Not user_id, on Thread and Post Tables
+`board_posts` and `board_threads` use `author_id` for the post author column, NOT `user_id`. Always verify with `information_schema` before writing any INSERT or query on these tables.
+
+### R18 — character_level_thresholds PK Is `level`, Not `level_number`
+The PK column is `level` (integer). All queries must use `WHERE level = N`. The name `level_number` does not exist.
+
+### R19 — hasPermission() Is Safe in Server Actions
+`hasPermission()` uses `getAdminClient()` internally and creates no cookie-aware client. The two-cookie rule (§7 Process) is not violated by calling `hasPermission()` alongside one `getServerClient()` call.
+
+### R20 — invalidateBoards() Must Call All Three Tags
+Every board mutation must call all three revalidateTag calls:
+```ts
+revalidateTag('board-tree', {})
+revalidateTag('boards', {})
+revalidateTag('board-tree-admin', {})
+```
+Omitting any tag leaves stale cache on the board manager or public forum index.
+
+### R21 — getCachedFullBoardTree() Is Admin-Only
+Its output must never be exposed to non-admin users. The `manage_boards` permission gate at the page level is the enforcement point. RLS is the DB backstop.
+
+### R22 — post_enchantment_types Is a JSON String
+`post_enchantment_types` in `site_settings` is stored as a JSON string. Always `JSON.parse()` before use. Never treat it as a plain string.
+
+### R23 — Prompt Sizing: Split at More Than One Major Deliverable
+If a prompt touches more than one of {migration, server action, page, modal/component}, evaluate splitting into sub-prompts (e.g. the 3.2a/b/c/d pattern). One clear deliverable per prompt that can be fully verified before the next begins.
+
+### R24 — window.location.href Over router.push() for Post-Mutation Navigation
+`window.location.href` is preferred over `router.push()` for post-action navigation in Client Components that require a full Server Component re-render after a mutation. Confirmed pattern: `CharacterReviewPanel.tsx`.
+
+---
+
+*This document is updated at the completion of each build phase.*
+*Version history: v1 → v1.1 → v1.2 → v1.3 → v1.4 → v1.5 (merged into v1.6) → v1.6 (Phase 2 complete) → v1.7 (Phase 3 partial complete: faction renames Underworld/Wayward, combat system design, five stats, ascension rite, book of shadows, contributor system, staff lounge, schema updates Migrations 023–026a, site settings catalog, new cached functions, R16 resolved, R17–R24 added, My Threads/Roleplay Tracker split captured)*
 *Cross-reference: TWH_PROCESS_v1.md (build governance)*

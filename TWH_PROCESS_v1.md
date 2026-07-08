@@ -1,6 +1,6 @@
 # The Witching Hour — Process & Build Governance
-### TWH_PROCESS_v1.md
-### Created: June 2026
+### TWH_PROCESS_v1.md — v1.7
+### Created: June 2026 | Last Updated: June 2026
 
 This document governs how every build session is run. It exists alongside the Brief as a required read at the start of every Claude Code session. These rules are not suggestions — they are the standards that keep builds clean, efficient, and error-free.
 
@@ -68,6 +68,10 @@ Q1. [Question about something noticed but not acted on]
 Q2. [Another question]
 ```
 These carry forward to the next prompt.
+
+**Prompt size evaluation:** Before writing any build prompt, count how many of these it touches: {migration, server action, page, modal/component}. If more than one, evaluate splitting into sub-prompts (e.g. 3.2a/b/c/d pattern). The goal is one clear deliverable per prompt that can be fully verified before the next begins. This is enforced at planning time, not build time. See R23.
+
+**ADMIN-prefixed prompts:** `TWH-ADMIN.[N]` prompts (`TWH-ADMIN.1`, `TWH-ADMIN.2`, etc.) are for standalone admin or infrastructure features that don't belong to a specific phase sequence. They may be executed at any point in the build, independent of phase numbering. They follow all the same standards as phase-numbered prompts: mandatory document reads, schema verification, grep verification, quality gates, and a build report. Numbering increments from 1.
 
 ---
 
@@ -353,7 +357,7 @@ Every UI element must use the Blood Moon design tokens from §4 of the Brief. Wh
 2. Use CSS custom properties (`var(--ember)`, `var(--gold)`, etc.) — never hardcode hex values in component code
 3. Typography: Cormorant Upright for display, Playfair Display for headings, Cinzel for UI labels, EB Garamond for body — no other fonts
 4. Border radius: small and elegant — 2px, 4px, 7px, 11px. No pill shapes unless explicitly specified
-5. The faction color system must be consistent throughout: Covenant = gold, Cabal = ember, Unbound = moonstone — everywhere, always
+5. The faction color system must be consistent throughout: Covenant = gold, The Underworld = ember, The Wayward = moonstone — everywhere, always
 
 **Filigree vocabulary (canonical):**
 - Dividers: gradient lines (ember → gold) with `◆` diamond pips or `✦` star glyphs
@@ -434,7 +438,7 @@ See Brief §7 for the complete approval flow.
 
 ## 17. Faction System Rules
 
-Factions are fully admin-editable via the faction manager in the admin panel (TWH-2.6). Name, slug, color_hex, description, lore, leader_title, and display_order are all configurable. The three factions were seeded in Migration 010 as starting placeholders — they are not hardcoded.
+Factions are fully admin-editable via the faction manager in the admin panel (TWH-2.6) — never hardcode faction data in component code. See TWH_BRIEF_v1.md §6 for the editable field list and design rationale.
 
 ### Multiple Leaders
 Each faction supports multiple leaders simultaneously. Leaders are assigned via user_roles with scope_id = faction_id and the faction_leader role. No single-leader constraint — grant to as many users as needed.
@@ -449,9 +453,9 @@ The faction color must appear consistently everywhere:
 - Fill color on faction badges and character cards
 - data-faction CSS attribute for scoped theming
 
-Covenant = var(--gold) / #e0b028
-Cabal    = var(--ember) / #c83818
-Unbound  = var(--moonstone) / #3878a8
+Covenant    = var(--gold) / #e0b028
+Underworld  = var(--ember) / #c83818
+Wayward     = var(--moonstone) / #3878a8
 
 These hex values are fixed brand colors. Do not invent alternatives.
 
@@ -528,7 +532,7 @@ All visual verification is done manually by the operator. Claude Code must not o
 
 ---
 
-## 21. Promoted Rules from Phase 1 and Phase 2 Builds
+## 21. Promoted Rules from Phase 1, Phase 2, and Phase 3 Builds
 
 These rules were discovered during builds and are now standing rules.
 
@@ -606,16 +610,53 @@ The font variable for headings in this codebase is `var(--f-head)`. The name `va
 ### R15 — window.location.href for Post-Action Navigation in Client Components
 In Client Components where a Server Action modifies data that affects the Server Component above it (e.g. the approval queue list), use `window.location.href = '/path'` for post-success navigation rather than `router.push()`. `router.push()` may not trigger a full Server Component re-render in all cases. The hard navigate ensures the page refetches live data. Confirmed pattern: `CharacterReviewPanel.tsx` (TWH-2.7b).
 
-### R16 — characters Table Has No updated_at Column
-The `characters` table (Migration 011) does not have an `updated_at` column. Any query or sort that references `characters.updated_at` will produce a PostgREST runtime error. Use `created_at` as the fallback sort column. Add `updated_at` to `characters` in Phase 4 when character creation is built — it is needed for "last updated" display and for the needs_revision queue sort.
+### R16 (RESOLVED — Migration 025) — characters.updated_at Added
+`characters.updated_at` (timestamptz default now()) was added in Migration 025. Trigger `trg_characters_updated_at` maintains it on every UPDATE. No workaround needed. The needs_revision queue can now sort by `updated_at`.
+
+### R17 — author_id, Not user_id, on Thread and Post Tables
+`board_posts` and `board_threads` use `author_id` for the post author column, NOT `user_id`. Never assume `user_id`. Verify with `information_schema` before writing any INSERT or query on these tables.
+
+### R18 — character_level_thresholds PK Is `level`, Not `level_number`
+The PK column is `level` (integer), NOT `level_number`. All queries must use `WHERE level = N`. The name `level_number` does not exist and will cause a silent failure or error.
+
+### R19 — hasPermission() Is Safe in Server Actions
+`hasPermission()` uses `getAdminClient()` internally and creates no cookie-aware client. The two-cookie rule (§7) is not violated by calling `hasPermission()` alongside one `getServerClient()` call in the same Server Action.
+
+### R20 — invalidateBoards() Must Call All Three revalidateTag Calls
+Every board mutation must call all three:
+```ts
+revalidateTag('board-tree', {})
+revalidateTag('boards', {})
+revalidateTag('board-tree-admin', {})
+```
+Omitting any tag leaves stale cache on the board manager or public forum index.
+
+### R21 — getCachedFullBoardTree() Is Admin-Only
+Its output must never be exposed to non-admin users. The `manage_boards` permission gate at the page level is the enforcement point. RLS is the DB backstop. See Brief §17 for details.
+
+### R22 — post_enchantment_types Is a JSON String
+`post_enchantment_types` in `site_settings` is stored as a JSON string. Always `JSON.parse()` before use. Never treat it as a plain string.
+
+### R23 — Prompt Sizing: Split at More Than One Major Deliverable
+If a build prompt touches more than one of {migration, server action, page, modal/component}, evaluate splitting into sub-prompts (e.g. the 3.2a/b/c/d pattern). The goal is one clear deliverable per prompt that can be fully verified before the next begins. Enforced at planning time, not build time.
+
+### R24 — window.location.href Over router.push() for Post-Mutation Navigation
+Duplicate of R15 — restated during the Phase 3 rule-promotion pass without checking whether it already existed. See R15 for the canonical statement (same rule, same example: `CharacterReviewPanel.tsx`, TWH-2.7b). Retained here rather than deleted/renumbered to preserve rule-number parity with TWH_BRIEF_v1.md §28, which also lists R24 under this same heading.
+
+### R25 — sanitize-html for Server-Side HTML Sanitization
+DOMPurify is browser-only and cannot run in Server Actions or Server Components. For server-side sanitization of user-generated HTML (faction lore in `admin-factions.ts`, character bios in the admin character review page), use the `sanitize-html` package. DOMPurify remains correct for client-side rendering via `dangerouslySetInnerHTML` in Client Components — the two are not interchangeable, they cover different render contexts. Installed and in use since TWH-2.6 (`app/(authenticated)/admin/characters/page.tsx`, `lib/actions/admin-factions.ts`).
+
+### R26 — React.cache() Wraps getUserPermissions() and isSuperAdmin()
+`getUserPermissions()` and `isSuperAdmin()` in `lib/permissions.ts` are wrapped with `cache()` from `react`. This deduplicates identical calls within the same request render tree — the authenticated layout and admin layout both call these, and the wrapper ensures only one DB round-trip per request. Never remove the wrapper. `React.cache()` only deduplicates within a single server request lifecycle — it has no effect if called from a Client Component or a standalone script. Confirmed in TWH-2.6.
 
 ---
 
 ## 22. Essence and Economy Rules
 
-### Two Currencies — Never Conflate Them
-- **XP** — character-level, earned only, permanent. Tracks a character's growth and drives levelling. Never deducted, never spent. Stored on the `characters` table.
-- **Essence** — account-level, earned and spent. The site's reward currency. Pools across all of a user's characters. Stored on the `users` table as `essence integer default 0`.
+See TWH_BRIEF_v1.md §12 for the Essence/Apothecary/Offering design and §18 for the `essence_log` schema. This section is operational rules only.
+
+### Never Conflate XP and Essence
+XP (`characters` table) is earned-only and never deducted. Essence (`users.essence`) is earned and spent. Do not write Essence-deduction logic against the `characters` table or XP-award logic against `users`.
 
 ### Essence Deduction Pattern
 Always atomic — never read then subtract:
@@ -629,34 +670,17 @@ RETURNING id
 
 If no row is returned: insufficient Essence. Reject with a clear error. Never proceed with the purchase.
 
-### Essence Log
-Every Essence credit and debit must be recorded in `essence_log` (`user_id`, `amount`, `reason`, `awarded_by` nullable, `created_at`). Amount is positive for credits, negative for debits. Always write the log row alongside any essence UPDATE. Log failures are console.error'd server-side but do not block the action — the Essence change already landed.
+### Essence Log Is Mandatory on Every Credit/Debit
+Always write an `essence_log` row alongside any `essence` UPDATE (positive amount = credit, negative = debit). Log failures are console.error'd server-side but do not block the action — the Essence change already landed.
 
-### The Offering Cooldown
-Per-user Offering cooldown is enforced via `users.last_offering_at` (timestamptz nullable). Before processing an Offering, check:
-
-```sql
-last_offering_at IS NULL
-OR last_offering_at < now() - (cooldown_hours || ' hours')::interval
-```
-
-where `cooldown_hours` comes from the `offering_cooldown_hours` site_setting. Never rely on client-side time for cooldown enforcement.
-
-### Apothecary Purchases Are Character-Assigned
-Although Essence is account-level, Apothecary purchases are assigned to a specific character (`character_id` FK on `apothecary_purchases`). When a user makes a purchase, they must select which of their active characters receives the item. The Essence deduction happens at the user level; the item grant happens at the character level.
+### The Offering Cooldown Is Server-Time Only
+Cooldown check uses `users.last_offering_at` compared against `now()` server-side, with the threshold read from the `offering_cooldown_hours` site_setting. Never rely on client-side time for cooldown enforcement.
 
 ### Admin Client for All Economy Writes
 Essence award, Essence deduction, XP award, Offering resolution, and Apothecary purchase writes all use `getAdminClient()`. These are system-level or game-mechanic writes — they must not be blocked by user RLS.
 
-### Postgres Economy Functions
-Two SECURITY DEFINER functions handle atomic economy writes (created in Migration 021a):
-
-`increment_user_essence(p_user_id uuid, p_amount integer)`
-→ Returns new essence balance. Used by `grantEssence()` in `lib/actions/admin-players.ts`.
-
-`award_character_xp(p_character_id uuid, p_amount integer)`
-→ Returns new xp total. Used by `awardXp()` in `lib/actions/admin-players.ts`.
-→ Level-up detection deferred to Phase 4.
+### Use the Postgres RPC Functions for Admin Grants
+`increment_user_essence()` and `award_character_xp()` (Migration 021a, detailed in Brief §18) are the canonical way to credit Essence or XP from an admin Server Action (`grantEssence()`, `awardXp()`). Call via `supabase.rpc()` — do not reimplement these as inline UPDATEs. This is distinct from the Essence Deduction Pattern above, which is a spend-side balance check the RPCs do not perform.
 
 ---
 
@@ -668,7 +692,7 @@ Chronicles are Phase 14+ features. These rules are established now so they are a
 The keeper role is scoped to `chronicle_id` via `scope_id` in `user_roles`. Multiple Keepers per Chronicle are supported. Keepers hold the `manage_chronicle` permission scoped to their Chronicle only. Admins hold `manage_chronicle` on all Chronicles.
 
 ### Character-Based Membership
-Users join Chronicles as specific characters, not as themselves. A user may have characters in multiple Chronicles simultaneously. Chronicle character limits are set per Chronicle (`max_characters_per_user` on the `chronicles` table, nullable — null inherits the site-wide `site_settings` value).
+See TWH_BRIEF_v1.md §21 for the membership model. Operationally: when checking a user's Chronicle character count against the limit, read `chronicles.max_characters_per_user` first and fall back to the site-wide `site_settings` value only if it is null — do not hardcode the site-wide default as the limit.
 
 ### Approval Gate for Chronicles
 The same status lifecycle applies to Chronicle characters as to site-wide characters: pending → needs_revision → pending (loop) → active / suspended. The `character_revisions` table records each round of Keeper feedback. Only characters with `status = 'active'` in a Chronicle appear in that Chronicle's member roster and can post to Chronicle boards.
@@ -769,9 +793,39 @@ The `boards.min_level_required` column is enforced at the application layer, not
 ### Board Scope 'chronicle' Is Forward-Declared
 The `'chronicle'` value is already present in the `boards.scope` CHECK constraint (Migration 017). When Chronicle boards are built in Phase 14, no migration is needed to alter the CHECK constraint — just use `scope = 'chronicle'` directly.
 
+### My Threads vs Roleplay Tracker — Two Separate Pages
+These are two separate pages and two separate navigation entries. Do not combine them.
+
+**My Threads (`/my-threads`):** OOC forum threads only. Boards where `is_rp_board = false`. Standard forum tracker showing threads the user has participated in, with unread indicators. Built in TWH-3.6a.
+
+**Roleplay Tracker (`/roleplay-tracker`):** IC threads only. Boards where `is_rp_board = true`. Two sections: standard RP threads and combat threads. Combat threads show turn status and time remaining when it is the user's turn. Built in TWH-3.6b.
+
 ---
 
-*Last updated: June 2026 — v1.6 (Phase 2 complete — TWH-2.1 through TWH-2.7b: roles, super admin model, character approval revision loop, Essence economy, forum schema, all Phase 1 and Phase 2 lessons incorporated)*
-*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds) → v1.5 (planned but never applied to disk — all content incorporated into v1.6) → v1.6 (Phase 2 complete: §16 approval gate + status expansion, §17 faction rewrite, §18 queue cleared, §21 R1–R16 all Phase 1 and Phase 2 rules, §22 Essence economy, §23 Chronicles rules, §24 admin role system, §25 forum and thread rules)*
+## 26. Phase 3 Build Sequence
+
+Current status as of v1.7. Check marks = complete.
+
+```
+TWH-3.1   ✓ Forum index (board hierarchy, getCachedBoardTree, unread state)
+TWH-3.1b  ✓ Board manager admin panel (Migration 024, admin-boards CRUD)
+TWH-3.2-pre ✓ Migration 025 (combat/stat preflight, thread_type, stat columns)
+TWH-3.2a  ✓ Migration 026a (reply_count, triggers, createThread())
+TWH-3.2b  ✓ ThreadRow component (canon validation fix: angel, all)
+TWH-ADMIN.1 ✓ Registration toggle (waitlist as default landing)
+TWH-ADMIN.2 ✓ Maintenance mode (proxy.ts + maintenance page)
+TWH-3.2c    Canon color admin system
+TWH-3.2d    Thread list page + CreateThreadModal
+TWH-3.3     Thread view + Tiptap editor + OOC sidebar + enchantments
+TWH-3.4     Mod tools + report queue
+TWH-3.5     Thread bookmarks + Discord webhook (Migration 026b)
+TWH-3.6a    My Threads (/my-threads, OOC forums only)
+TWH-3.6b    Roleplay Tracker (/roleplay-tracker, IC RP boards only)
+```
+
+---
+
+*Last updated: June 2026 — v1.7 (Phase 3 partial complete)*
+*Version history: v1 → v1.1 (§19 Google Fonts + Next.js version) → v1.2 (table rename, email confirmation) → v1.3 (clean slate: proxy.ts, @theme, Vercel framework preset, lint commands) → v1.4 (Phase 1 complete: §15 canon expansion, §17 faction migration number, §18 outstanding rules from Phase 1 builds) → v1.5 (planned but never applied to disk — all content incorporated into v1.6) → v1.6 (Phase 2 complete: §16 approval gate + status expansion, §17 faction rewrite, §18 queue cleared, §21 R1–R16 all Phase 1 and Phase 2 rules, §22 Essence economy, §23 Chronicles rules, §24 admin role system, §25 forum and thread rules) → v1.7 (Phase 3 partial complete: faction renames Underworld/Wayward, R16 resolved, R17–R24 added, prompt sizing rule, My Threads/Roleplay Tracker split, Phase 3 build sequence, §26 added; gap-fill pass: §21 retitled to include Phase 3, R25 sanitize-html added, R26 React.cache added, R24 deduplicated against R15, ADMIN-prefixed prompt pattern documented in §3; redundancy audit: §17 faction field list, §22 Essence/XP definitions + essence_log column list + Apothecary assignment note + Postgres Economy Functions section, and §23 Chronicle membership description replaced with TWH_BRIEF_v1.md cross-references)*
 *This document must be updated whenever a new standing rule is agreed upon.*
 *Cross-reference: TWH_BRIEF_v1.md*
