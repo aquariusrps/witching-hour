@@ -78,12 +78,43 @@ const NAV_ITEMS = [
   },
 ]
 
-export default function DashboardNav() {
+interface DashboardNavProps {
+  showAdmin?: boolean
+  showMod?: boolean
+}
+
+export default function DashboardNav({ showAdmin = false, showMod = false }: DashboardNavProps) {
   const pathname = usePathname()
+
+  const items = [...NAV_ITEMS]
+  if (showAdmin) {
+    items.push({
+      label: 'Admin Panel',
+      href: '/admin',
+      exact: false,
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" style={{ width: 12, height: 12, flexShrink: 0 }}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 1.5l5 1.8v3.7c0 3.6-2.1 5.9-5 7-2.9-1.1-5-3.4-5-7V3.3l5-1.8z" />
+        </svg>
+      ),
+    })
+  }
+  if (showMod) {
+    items.push({
+      label: 'Mod Panel',
+      href: '/mod',
+      exact: false,
+      icon: (
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" style={{ width: 12, height: 12, flexShrink: 0 }}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 2v12M3 2h8l-2 3 2 3H3" />
+        </svg>
+      ),
+    })
+  }
 
   return (
     <nav aria-label="Dashboard navigation">
-      {NAV_ITEMS.map(({ label, href, exact, icon }) => {
+      {items.map(({ label, href, exact, icon }) => {
         const isActive = exact ? pathname === href : pathname.startsWith(href)
         return (
           <Link

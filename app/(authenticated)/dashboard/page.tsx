@@ -3,8 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { getCachedSiteSettings } from '@/lib/cached-settings'
 import { getUserRow } from '@/lib/db/users'
+import { getUserPermissions, isSuperAdmin } from '@/lib/permissions'
 import DashboardNav from './DashboardNav'
 import ThemePanel from './ThemePanel'
+
+// Mirrors MastheadUser.tsx's ADMIN_PERMS gate (TWH-2.6) — same definition of
+// "isAdmin" used for the equivalent Admin Panel / Mod Panel links elsewhere.
+const ADMIN_PERMS = [
+  'manage_site', 'manage_users', 'manage_factions', 'manage_boards',
+  'manage_events', 'manage_apothecary', 'manage_waitlist',
+  'approve_characters', 'award_xp', 'ban_users', 'manage_admins',
+  'moderate_boards',
+]
 
 // ─── CSS injected into the page ─────────────────────────────────────────────
 
@@ -139,12 +149,14 @@ export default async function DashboardPage() {
   const { data: { session } } = await supabase.auth.getSession()
   const sessionUserId = session?.user?.id
 
-  const [settings, { data: { user } }, userRow, unreadCount, activeEvent] = await Promise.all([
+  const [settings, { data: { user } }, userRow, unreadCount, activeEvent, permissions, superAdmin] = await Promise.all([
     getCachedSiteSettings(),
     supabase.auth.getUser(),
     getUserRow(sessionUserId),
     fetchUnreadCount(sessionUserId ?? ''),
     fetchActiveEvent(),
+    sessionUserId ? getUserPermissions(sessionUserId) : Promise.resolve([] as string[]),
+    sessionUserId ? isSuperAdmin(sessionUserId) : Promise.resolve(false),
   ])
 
   if (!user) redirect('/login')
@@ -152,6 +164,8 @@ export default async function DashboardPage() {
   const displayName = userRow?.display_name ?? user.email?.split('@')[0] ?? 'Witch'
   const theme = userRow?.theme_preference ?? 'blood-moon'
   const memberSince = formatMemberSince(userRow?.created_at)
+  const showAdmin = superAdmin || permissions.some((p) => ADMIN_PERMS.includes(p))
+  const showMod = permissions.includes('moderate_boards')
 
   void settings // available for future use
 
@@ -357,7 +371,7 @@ export default async function DashboardPage() {
           {/* Navigate panel */}
           <Panel title="Navigate">
             <div style={{ padding: '6px 4px' }}>
-              <DashboardNav />
+              <DashboardNav showAdmin={showAdmin} showMod={showMod} />
             </div>
           </Panel>
 
