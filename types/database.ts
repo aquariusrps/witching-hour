@@ -751,6 +751,7 @@ export type Database = {
           notes_misc: string | null
           notes_partners: string | null
           notes_plot: string | null
+          primary_stack_id: string | null
           rp_id: string
           status: string
         }
@@ -764,6 +765,7 @@ export type Database = {
           notes_misc?: string | null
           notes_partners?: string | null
           notes_plot?: string | null
+          primary_stack_id?: string | null
           rp_id: string
           status?: string
         }
@@ -777,6 +779,7 @@ export type Database = {
           notes_misc?: string | null
           notes_partners?: string | null
           notes_plot?: string | null
+          primary_stack_id?: string | null
           rp_id?: string
           status?: string
         }
@@ -786,6 +789,13 @@ export type Database = {
             columns: ["faceclaim_id"]
             isOneToOne: false
             referencedRelation: "mojo_faceclaims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_characters_primary_stack_id_fkey"
+            columns: ["primary_stack_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_image_stacks"
             referencedColumns: ["id"]
           },
           {
@@ -817,6 +827,105 @@ export type Database = {
           notes?: string | null
         }
         Relationships: []
+      }
+      mojo_image_stack_members: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          mime_type: string
+          stack_id: string
+          storage_path: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          mime_type?: string
+          stack_id: string
+          storage_path: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          mime_type?: string
+          stack_id?: string
+          storage_path?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_image_stack_members_stack_id_fkey"
+            columns: ["stack_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_image_stacks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mojo_image_stacks: {
+        Row: {
+          character_id: string | null
+          created_at: string
+          expires_at: string | null
+          faceclaim_id: string | null
+          id: string
+          label: string
+          last_served_index: number | null
+          last_served_member_id: string | null
+          rotation_mode: string
+          token: string
+        }
+        Insert: {
+          character_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          faceclaim_id?: string | null
+          id?: string
+          label: string
+          last_served_index?: number | null
+          last_served_member_id?: string | null
+          rotation_mode?: string
+          token?: string
+        }
+        Update: {
+          character_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          faceclaim_id?: string | null
+          id?: string
+          label?: string
+          last_served_index?: number | null
+          last_served_member_id?: string | null
+          rotation_mode?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_image_stacks_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_image_stacks_faceclaim_id_fkey"
+            columns: ["faceclaim_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_faceclaims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_image_stacks_last_served_member_id_fkey"
+            columns: ["last_served_member_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_image_stack_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mojo_image_tokens: {
         Row: {

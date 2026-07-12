@@ -4,11 +4,13 @@ import { useState } from 'react'
 import MojoCharacterNotes from './MojoCharacterNotes'
 import MojoThreadTracker from './MojoThreadTracker'
 import MojoResourcesTab from './MojoResourcesTab'
+import MojoCharacterAvatarTabs from './MojoCharacterAvatarTabs'
 import type { Tables } from '@/types/database'
 
 type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
 type MojoResource = Tables<'mojo_resources'>
+type MojoImageStack = Tables<'mojo_image_stacks'>
 
 const TABS = [
   { key: 'notes', label: 'Notes' },
@@ -27,6 +29,7 @@ export default function MojoCharacterTabs({
   resources,
   faceclaimResources,
   faceclaimName,
+  characterStacks,
 }: {
   character: MojoCharacter
   threads: MojoThread[]
@@ -35,6 +38,7 @@ export default function MojoCharacterTabs({
   resources: MojoResource[]
   faceclaimResources: MojoResource[]
   faceclaimName: string | null
+  characterStacks: Array<MojoImageStack & { member_count: number }>
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>('notes')
 
@@ -88,14 +92,12 @@ export default function MojoCharacterTabs({
       )}
 
       {activeTab === 'avatars' && (
-        <div>
-          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: '1.5rem', color: 'var(--gold)', margin: '0 0 8px' }}>
-            Avatars
-          </h2>
-          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '1rem', color: 'var(--mist)', margin: 0 }}>
-            Avatar manager with crop, resize, and one-click URL copy — coming in MOJO-4.
-          </p>
-        </div>
+        <MojoCharacterAvatarTabs
+          charId={charId}
+          rpId={rpId}
+          characterStacks={characterStacks}
+          primaryStackId={character.primary_stack_id}
+        />
       )}
     </div>
   )

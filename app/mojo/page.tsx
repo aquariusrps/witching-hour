@@ -114,10 +114,11 @@ export default async function MojoDashboardPage() {
 
       <div style={{ marginBottom: 40 }}>
         <StatsRowLabel>The Library</StatsRowLabel>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <MojoDashboardStatTile href="/mojo/library" value={stats.snippetCount} label="Snippets" />
           <MojoDashboardStatTile href="/mojo/wishlist" value={stats.wishlistCount} label="Wishlist Items" />
           <MojoDashboardStatTile href="/mojo/partners" value={stats.partnerCount} label="Partners" />
+          <MojoDashboardStatTile href="/mojo/stacks" value={stats.stackCount} label="Stacks" />
         </div>
       </div>
 

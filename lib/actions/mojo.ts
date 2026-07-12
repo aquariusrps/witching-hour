@@ -15,9 +15,12 @@ type MojoResource = Tables<'mojo_resources'>
 type MojoSnippet = Tables<'mojo_snippets'>
 type MojoWishlist = Tables<'mojo_wishlist'>
 type MojoPartner = Tables<'mojo_partners'>
+type MojoImageStack = Tables<'mojo_image_stacks'>
+type MojoImageStackMember = Tables<'mojo_image_stack_members'>
 
 const SNIPPET_TYPES = ['general', 'app_code', 'template', 'formatting', 'other']
 const WISHLIST_TYPES = ['character_concept', 'plot_idea', 'fandom', 'other']
+const ROTATION_MODES = ['truly_random', 'weighted', 'sequential', 'no_repeat']
 
 type ActionError = { error: string }
 
@@ -894,5 +897,248 @@ export async function deleteMojoPartner(
   if (error) return { error: 'Failed to delete partner' }
 
   revalidatePath('/mojo/partners')
+  return { success: true as const }
+}
+
+// ─── IMAGE STACK ACTIONS ───────────────────────────────────
+
+export async function createMojoImageStack(payload: {
+  label: string
+  rotation_mode: 'truly_random' | 'weighted' | 'sequential' | 'no_repeat'
+  character_id?: string | null
+  faceclaim_id?: string | null
+  expires_at?: string | null
+}): Promise<ActionError | { success: true; stack: MojoImageStack }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const label = payload.label?.trim()
+  if (!label) return { error: 'Label is required' }
+  if (!ROTATION_MODES.includes(payload.rotation_mode)) {
+    return { error: 'Invalid rotation mode' }
+  }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_image_stacks')
+    .insert({
+      label,
+      rotation_mode: payload.rotation_mode,
+      character_id: payload.character_id ?? null,
+      faceclaim_id: payload.faceclaim_id ?? null,
+      expires_at: payload.expires_at ?? null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create stack' }
+
+  revalidatePath('/mojo/stacks')
+  if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
+  if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
+  return { success: true as const, stack: data }
+}
+
+export async function updateMojoImageStack(
+  stackId: string,
+  payload: {
+    label?: string
+    rotation_mode?: 'truly_random' | 'weighted' | 'sequential' | 'no_repeat'
+    expires_at?: string | null
+  }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('label' in payload && !payload.label?.trim()) {
+    return { error: 'Label cannot be empty' }
+  }
+  if (payload.rotation_mode && !ROTATION_MODES.includes(payload.rotation_mode)) {
+    return { error: 'Invalid rotation mode' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: stack } = await admin
+    .from('mojo_image_stacks')
+    .select('character_id, faceclaim_id')
+    .eq('id', stackId)
+    .single()
+
+  if (!stack) return { error: 'Stack not found' }
+
+  const updates: TablesUpdate<'mojo_image_stacks'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_image_stacks')
+    .update(updates)
+    .eq('id', stackId)
+
+  if (error) return { error: 'Failed to update stack' }
+
+  revalidatePath('/mojo/stacks')
+  if (stack.character_id) revalidatePath('/mojo/characters/' + stack.character_id)
+  if (stack.faceclaim_id) revalidatePath('/mojo/faceclaims/' + stack.faceclaim_id)
+  return { success: true as const }
+}
+
+export async function deleteMojoImageStack(
+  stackId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: stack } = await admin
+    .from('mojo_image_stacks')
+    .select('character_id, faceclaim_id')
+    .eq('id', stackId)
+    .single()
+
+  if (!stack) return { error: 'Stack not found' }
+
+  await admin
+    .from('mojo_characters')
+    .update({ primary_stack_id: null })
+    .eq('primary_stack_id', stackId)
+
+  const { error } = await admin.from('mojo_image_stacks').delete().eq('id', stackId)
+
+  if (error) return { error: 'Failed to delete stack' }
+
+  revalidatePath('/mojo/stacks')
+  if (stack.character_id) revalidatePath('/mojo/characters/' + stack.character_id)
+  if (stack.faceclaim_id) revalidatePath('/mojo/faceclaims/' + stack.faceclaim_id)
+  return { success: true as const }
+}
+
+export async function addMemberToStack(payload: {
+  stack_id: string
+  storage_path: string
+  mime_type: string
+  weight?: number
+  display_order?: number
+}): Promise<ActionError | { success: true; member: MojoImageStackMember }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const stackId = payload.stack_id?.trim()
+  const storagePath = payload.storage_path?.trim()
+  if (!stackId || !storagePath) {
+    return { error: 'Stack and storage path are required' }
+  }
+  if (!payload.mime_type?.startsWith('image/')) {
+    return { error: 'MIME type must be an image type' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data, error } = await admin
+    .from('mojo_image_stack_members')
+    .insert({
+      stack_id: stackId,
+      storage_path: storagePath,
+      mime_type: payload.mime_type,
+      weight: payload.weight ?? 1,
+      display_order: payload.display_order ?? 0,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to add image to stack' }
+
+  revalidatePath('/mojo/stacks')
+  return { success: true as const, member: data }
+}
+
+export async function removeMemberFromStack(
+  memberId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: member } = await admin
+    .from('mojo_image_stack_members')
+    .select('stack_id')
+    .eq('id', memberId)
+    .single()
+
+  if (!member) return { error: 'Image not found' }
+
+  await admin
+    .from('mojo_image_stacks')
+    .update({ last_served_member_id: null })
+    .eq('last_served_member_id', memberId)
+
+  const { error } = await admin.from('mojo_image_stack_members').delete().eq('id', memberId)
+
+  if (error) return { error: 'Failed to remove image from stack' }
+
+  revalidatePath('/mojo/stacks')
+  return { success: true as const }
+}
+
+export async function updateStackMember(
+  memberId: string,
+  payload: { weight?: number; display_order?: number }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: member } = await admin
+    .from('mojo_image_stack_members')
+    .select('stack_id')
+    .eq('id', memberId)
+    .single()
+
+  if (!member) return { error: 'Image not found' }
+
+  const updates: TablesUpdate<'mojo_image_stack_members'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_image_stack_members')
+    .update(updates)
+    .eq('id', memberId)
+
+  if (error) return { error: 'Failed to update image' }
+
+  revalidatePath('/mojo/stacks')
+  return { success: true as const }
+}
+
+export async function setCharacterPrimaryStack(
+  characterId: string,
+  stackId: string | null
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  if (stackId) {
+    const { data: stack } = await admin
+      .from('mojo_image_stacks')
+      .select('character_id')
+      .eq('id', stackId)
+      .single()
+
+    if (!stack || stack.character_id !== characterId) {
+      return { error: 'Stack does not belong to this character' }
+    }
+  }
+
+  const { error } = await admin
+    .from('mojo_characters')
+    .update({ primary_stack_id: stackId })
+    .eq('id', characterId)
+
+  if (error) return { error: 'Failed to set primary stack' }
+
+  revalidatePath('/mojo/characters/' + characterId)
   return { success: true as const }
 }

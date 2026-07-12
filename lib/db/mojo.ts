@@ -10,6 +10,8 @@ type MojoAvatar = Tables<'mojo_avatars'>
 type MojoSnippet = Tables<'mojo_snippets'>
 type MojoWishlist = Tables<'mojo_wishlist'>
 type MojoPartner = Tables<'mojo_partners'>
+type MojoImageStack = Tables<'mojo_image_stacks'>
+type MojoImageStackMember = Tables<'mojo_image_stack_members'>
 
 function sortResourcesByTypeThenOrder(resources: MojoResource[]): MojoResource[] {
   return [...resources].sort((a, b) => {
@@ -384,6 +386,7 @@ export async function getMojoDashboardStats(): Promise<{
   snippetCount: number
   wishlistCount: number
   partnerCount: number
+  stackCount: number
 }> {
   const admin = getAdminClient()
 
@@ -394,6 +397,7 @@ export async function getMojoDashboardStats(): Promise<{
     { count: snippetCount },
     { count: wishlistCount },
     { count: partnerCount },
+    { count: stackCount },
   ] = await Promise.all([
     admin.from('mojo_rps').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     admin.from('mojo_characters').select('id', { count: 'exact', head: true }),
@@ -401,6 +405,7 @@ export async function getMojoDashboardStats(): Promise<{
     admin.from('mojo_snippets').select('id', { count: 'exact', head: true }),
     admin.from('mojo_wishlist').select('id', { count: 'exact', head: true }),
     admin.from('mojo_partners').select('id', { count: 'exact', head: true }),
+    admin.from('mojo_image_stacks').select('id', { count: 'exact', head: true }),
   ])
 
   return {
@@ -410,5 +415,73 @@ export async function getMojoDashboardStats(): Promise<{
     snippetCount: snippetCount ?? 0,
     wishlistCount: wishlistCount ?? 0,
     partnerCount: partnerCount ?? 0,
+    stackCount: stackCount ?? 0,
   }
+}
+
+export async function getMojoImageStacks(filter?: {
+  character_id?: string
+  faceclaim_id?: string
+}): Promise<Array<MojoImageStack & { member_count: number }>> {
+  const admin = getAdminClient()
+
+  let query = admin.from('mojo_image_stacks').select('*').order('created_at', { ascending: false })
+  if (filter?.character_id) {
+    query = query.eq('character_id', filter.character_id)
+  }
+  if (filter?.faceclaim_id) {
+    query = query.eq('faceclaim_id', filter.faceclaim_id)
+  }
+
+  const { data: stacks, error } = await query
+  if (error || !stacks) return []
+
+  const stackIds = stacks.map((s) => s.id)
+  const { data: memberRows } = stackIds.length
+    ? await admin.from('mojo_image_stack_members').select('stack_id').in('stack_id', stackIds)
+    : { data: [] as Array<{ stack_id: string }> }
+
+  const memberCounts = new Map<string, number>()
+  for (const row of memberRows ?? []) {
+    memberCounts.set(row.stack_id, (memberCounts.get(row.stack_id) ?? 0) + 1)
+  }
+
+  return stacks.map((stack) => ({
+    ...stack,
+    member_count: memberCounts.get(stack.id) ?? 0,
+  }))
+}
+
+export async function getMojoImageStack(
+  stackId: string
+): Promise<(MojoImageStack & { members: MojoImageStackMember[] }) | null> {
+  const admin = getAdminClient()
+
+  const { data: stack, error } = await admin
+    .from('mojo_image_stacks')
+    .select('*')
+    .eq('id', stackId)
+    .single()
+  if (error || !stack) return null
+
+  const { data: members } = await admin
+    .from('mojo_image_stack_members')
+    .select('*')
+    .eq('stack_id', stackId)
+    .order('display_order', { ascending: true })
+
+  return {
+    ...stack,
+    members: members ?? [],
+  }
+}
+
+export async function getMojoStackMembers(stackId: string): Promise<MojoImageStackMember[]> {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_image_stack_members')
+    .select('*')
+    .eq('stack_id', stackId)
+    .order('display_order', { ascending: true })
+  return data ?? []
 }

@@ -27,6 +27,7 @@ const NAV_ITEMS = [
   { label: 'Library', href: '/mojo/library' },
   { label: 'Wishlist', href: '/mojo/wishlist' },
   { label: 'Partners', href: '/mojo/partners' },
+  { label: 'Stacks', href: '/mojo/stacks' },
   { label: 'Search', href: '/mojo/search' },
 ]
 
