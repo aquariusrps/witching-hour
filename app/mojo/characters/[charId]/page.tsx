@@ -7,6 +7,7 @@ import {
   getMojoCharacterResources,
   getMojoFaceclaimResources,
   getMojoImageStacks,
+  getMojoAvatars,
 } from '@/lib/db/mojo'
 import MojoCharacterArchiveToggle from '@/app/mojo/components/MojoCharacterArchiveToggle'
 import MojoCharacterTabs from '@/app/mojo/components/MojoCharacterTabs'
@@ -28,6 +29,7 @@ export default async function MojoCharacterPage({
     ? await getMojoFaceclaimResources(character.faceclaim_id)
     : []
   const characterStacks = await getMojoImageStacks({ character_id: charId })
+  const characterAvatars = await getMojoAvatars({ character_id: charId })
   const isArchived = character.status === 'archived'
 
   return (
@@ -90,6 +92,7 @@ export default async function MojoCharacterPage({
         faceclaimResources={faceclaimResources}
         faceclaimName={character.faceclaim_name}
         characterStacks={characterStacks}
+        characterAvatars={characterAvatars}
       />
     </div>
   )

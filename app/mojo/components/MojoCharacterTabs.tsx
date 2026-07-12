@@ -11,6 +11,7 @@ type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
 type MojoResource = Tables<'mojo_resources'>
 type MojoImageStack = Tables<'mojo_image_stacks'>
+type MojoAvatar = Tables<'mojo_avatars'>
 
 const TABS = [
   { key: 'notes', label: 'Notes' },
@@ -30,6 +31,7 @@ export default function MojoCharacterTabs({
   faceclaimResources,
   faceclaimName,
   characterStacks,
+  characterAvatars,
 }: {
   character: MojoCharacter
   threads: MojoThread[]
@@ -39,6 +41,7 @@ export default function MojoCharacterTabs({
   faceclaimResources: MojoResource[]
   faceclaimName: string | null
   characterStacks: Array<MojoImageStack & { member_count: number }>
+  characterAvatars: MojoAvatar[]
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>('notes')
 
@@ -97,6 +100,8 @@ export default function MojoCharacterTabs({
           rpId={rpId}
           characterStacks={characterStacks}
           primaryStackId={character.primary_stack_id}
+          characterAvatars={characterAvatars}
+          faceclaimId={character.faceclaim_id}
         />
       )}
     </div>

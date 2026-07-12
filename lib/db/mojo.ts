@@ -485,3 +485,32 @@ export async function getMojoStackMembers(stackId: string): Promise<MojoImageSta
     .order('display_order', { ascending: true })
   return data ?? []
 }
+
+export async function getMojoAvatars(filter?: {
+  character_id?: string
+  faceclaim_id?: string
+}): Promise<MojoAvatar[]> {
+  const admin = getAdminClient()
+
+  let query = admin.from('mojo_avatars').select('*').order('created_at', { ascending: false })
+  if (filter?.character_id) {
+    query = query.eq('character_id', filter.character_id)
+  }
+  if (filter?.faceclaim_id) {
+    query = query.eq('faceclaim_id', filter.faceclaim_id)
+  }
+
+  const { data } = await query
+  return data ?? []
+}
+
+export async function getMojoAvatar(avatarId: string): Promise<MojoAvatar | null> {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_avatars')
+    .select('*')
+    .eq('id', avatarId)
+    .single()
+  if (error || !data) return null
+  return data
+}

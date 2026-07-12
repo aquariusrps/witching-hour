@@ -2,11 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { setCharacterPrimaryStack } from '@/lib/actions/mojo'
+import { setCharacterPrimaryStack, deleteMojoAvatar, addMemberToStack } from '@/lib/actions/mojo'
 import MojoStackUrlCopy from './MojoStackUrlCopy'
+import MojoAvatarUpload from './MojoAvatarUpload'
+import MojoAvatarGrid from './MojoAvatarGrid'
+import MojoStackDropZone from './MojoStackDropZone'
 import type { Tables } from '@/types/database'
 
 type MojoImageStack = Tables<'mojo_image_stacks'>
+type MojoAvatar = Tables<'mojo_avatars'>
+
+function navigateToCharacter(charId: string) {
+  window.location.href = '/mojo/characters/' + charId
+}
 
 const SUB_TABS = [
   { key: 'images', label: 'Images' },
@@ -103,16 +111,37 @@ export default function MojoCharacterAvatarTabs({
   charId,
   characterStacks,
   primaryStackId,
+  characterAvatars,
+  faceclaimId,
 }: {
   charId: string
   rpId: string
   characterStacks: Array<MojoImageStack & { member_count: number }>
   primaryStackId: string | null
+  characterAvatars: MojoAvatar[]
+  faceclaimId: string | null
 }) {
   const [subTab, setSubTab] = useState<SubTabKey>('stacks')
   const [primary, setPrimary] = useState(primaryStackId)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dropError, setDropError] = useState<string | null>(null)
+
+  async function handleDeleteAvatar(avatarId: string) {
+    const result = await deleteMojoAvatar(avatarId)
+    if ('error' in result) return
+    navigateToCharacter(charId)
+  }
+
+  async function handleStackDrop(stackId: string, storagePath: string, mimeType: string) {
+    setDropError(null)
+    const result = await addMemberToStack({ stack_id: stackId, storage_path: storagePath, mime_type: mimeType, weight: 1 })
+    if ('error' in result) {
+      setDropError(result.error)
+      return
+    }
+    navigateToCharacter(charId)
+  }
 
   async function handlePrimaryChange(value: string) {
     const stackId = value || null
@@ -155,12 +184,47 @@ export default function MojoCharacterAvatarTabs({
 
       {subTab === 'images' && (
         <div>
-          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: '1.375rem', color: 'var(--gold)', margin: '0 0 8px' }}>
-            Images
-          </h2>
-          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.9375rem', color: 'var(--mist)', margin: 0 }}>
-            Avatar image upload with crop, resize, and bulk queue — coming in MOJO-4B.
-          </p>
+          <span style={{ fontFamily: 'var(--f-head)', fontSize: '0.875rem', color: 'var(--roseash)', display: 'block', marginBottom: 12 }}>
+            Upload to this character
+          </span>
+          <div style={{ marginBottom: 24 }}>
+            <MojoAvatarUpload
+              characterId={charId}
+              faceclaimId={faceclaimId}
+              onUploadComplete={() => navigateToCharacter(charId)}
+            />
+          </div>
+
+          <MojoAvatarGrid avatars={characterAvatars} onDelete={handleDeleteAvatar} showDragHandle={true} />
+
+          <div style={{ marginTop: 24 }}>
+            {characterStacks.length > 0 ? (
+              <>
+                <p style={{ fontFamily: 'var(--f-ui)', fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', margin: '0 0 10px' }}>
+                  Drag an image onto a stack to add it
+                </p>
+                {dropError && (
+                  <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--ember)', margin: '0 0 10px' }}>{dropError}</p>
+                )}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {characterStacks.map((s) => (
+                    <div key={s.id} style={{ flex: '1 1 200px', minWidth: 180 }}>
+                      <MojoStackDropZone
+                        stackId={s.id}
+                        stackLabel={s.label}
+                        memberCount={s.member_count}
+                        onDrop={(storagePath, mimeType) => handleStackDrop(s.id, storagePath, mimeType)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.8125rem', color: 'var(--faded)', margin: 0 }}>
+                No stacks for this character yet. Create one on the Stacks page.
+              </p>
+            )}
+          </div>
         </div>
       )}
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { addMemberToStack, removeMemberFromStack, updateStackMember } from '@/lib/actions/mojo'
+import MojoStackDropZone from './MojoStackDropZone'
 import type { Tables } from '@/types/database'
 
 type MojoImageStackMember = Tables<'mojo_image_stack_members'>
@@ -114,10 +115,12 @@ function MemberRow({ member, rotationMode }: { member: MojoImageStackMember; rot
 
 export default function MojoStackMembers({
   stackId,
+  stackLabel,
   members,
   rotationMode,
 }: {
   stackId: string
+  stackLabel: string
   members: MojoImageStackMember[]
   rotationMode: string
 }) {
@@ -126,6 +129,7 @@ export default function MojoStackMembers({
   const [weight, setWeight] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dropError, setDropError] = useState<string | null>(null)
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -148,10 +152,42 @@ export default function MojoStackMembers({
     navigateToStacks()
   }
 
+  async function handleDrop(dropStoragePath: string, dropMimeType: string) {
+    setDropError(null)
+    const result = await addMemberToStack({
+      stack_id: stackId,
+      storage_path: dropStoragePath,
+      mime_type: dropMimeType,
+      weight: rotationMode === 'weighted' ? 1 : undefined,
+    })
+
+    if ('error' in result) {
+      setDropError(result.error)
+      return
+    }
+
+    navigateToStacks()
+  }
+
   return (
     <div style={{ padding: '4px 16px 16px' }}>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', margin: '0 0 4px' }}>
+        <h4 style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', margin: '0 0 8px' }}>
+          Drag from character avatars
+        </h4>
+        {dropError && (
+          <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.78rem', color: 'var(--ember)', margin: '0 0 8px' }}>{dropError}</p>
+        )}
+        <MojoStackDropZone
+          stackId={stackId}
+          stackLabel={stackLabel}
+          memberCount={members.length}
+          onDrop={handleDrop}
+        />
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <h4 style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', margin: '16px 0 4px' }}>
           Add from library
         </h4>
         <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.78rem', color: 'var(--faded)', margin: '0 0 10px' }}>
@@ -219,7 +255,7 @@ export default function MojoStackMembers({
 
       {members.length === 0 ? (
         <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.82rem', color: 'var(--faded)' }}>
-          No images yet. Add from library above, or upload avatars in MOJO-4B.
+          No images yet. Drag an avatar from a character sheet onto the drop zone above, or add from library.
         </p>
       ) : (
         <div>

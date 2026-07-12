@@ -298,7 +298,7 @@ export default function MojoStackCard({
           {managingImages ? '▼' : '▶'} Manage images ({stack.member_count})
         </button>
         {managingImages && (
-          <MojoStackMembers stackId={stack.id} members={members} rotationMode={stack.rotation_mode} />
+          <MojoStackMembers stackId={stack.id} stackLabel={stack.label} members={members} rotationMode={stack.rotation_mode} />
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@ import { isSuperAdmin } from '@/lib/permissions'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { revalidatePath } from 'next/cache'
-import type { Tables, TablesUpdate } from '@/types/database'
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database'
 import { registerImageToken, getProxyUrl } from '@/lib/mojo/proxy'
 
 type MojoRp = Tables<'mojo_rps'>
@@ -17,6 +17,7 @@ type MojoWishlist = Tables<'mojo_wishlist'>
 type MojoPartner = Tables<'mojo_partners'>
 type MojoImageStack = Tables<'mojo_image_stacks'>
 type MojoImageStackMember = Tables<'mojo_image_stack_members'>
+type MojoAvatar = Tables<'mojo_avatars'>
 
 const SNIPPET_TYPES = ['general', 'app_code', 'template', 'formatting', 'other']
 const WISHLIST_TYPES = ['character_concept', 'plot_idea', 'fandom', 'other']
@@ -1140,5 +1141,168 @@ export async function setCharacterPrimaryStack(
   if (error) return { error: 'Failed to set primary stack' }
 
   revalidatePath('/mojo/characters/' + characterId)
+  return { success: true as const }
+}
+
+// ─── AVATAR ACTIONS ────────────────────────────────────────
+
+export async function registerUploadedAvatar(payload: {
+  storage_path: string
+  mime_type: string
+  title: string
+  expires_at: string | null
+  character_id?: string | null
+  faceclaim_id?: string | null
+  width?: number | null
+  height?: number | null
+  file_size?: number | null
+}): Promise<ActionError | { success: true; proxyUrl: string; avatar: MojoAvatar }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const storagePath = payload.storage_path?.trim()
+  const title = payload.title?.trim()
+  if (!storagePath || !title) {
+    return { error: 'Storage path and title are required' }
+  }
+
+  let token: string
+  try {
+    token = await registerImageToken(
+      storagePath,
+      payload.mime_type,
+      payload.expires_at ? new Date(payload.expires_at) : null,
+      title
+    )
+  } catch {
+    return { error: 'Failed to register image token' }
+  }
+
+  const proxyUrl = getProxyUrl(token)
+
+  const admin = getAdminClient()
+  const insertPayload: TablesInsert<'mojo_avatars'> = {
+    character_id: payload.character_id ?? null,
+    faceclaim_id: payload.faceclaim_id ?? null,
+    title,
+    storage_path: storagePath,
+    token,
+    expires_at: payload.expires_at ?? null,
+    width: payload.width ?? null,
+    height: payload.height ?? null,
+    file_size: payload.file_size ?? null,
+    mime_type: payload.mime_type,
+  }
+
+  const { data, error } = await admin
+    .from('mojo_avatars')
+    .insert(insertPayload)
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to save avatar' }
+
+  revalidatePath('/mojo/avatars')
+  if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
+  if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
+  return { success: true as const, proxyUrl, avatar: data }
+}
+
+export async function updateMojoAvatar(
+  avatarId: string,
+  payload: {
+    title?: string
+    expires_at?: string | null
+    character_id?: string | null
+    faceclaim_id?: string | null
+  }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Title cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: avatar } = await admin
+    .from('mojo_avatars')
+    .select('token, character_id, faceclaim_id')
+    .eq('id', avatarId)
+    .single()
+
+  if (!avatar) return { error: 'Avatar not found' }
+
+  const updates: TablesUpdate<'mojo_avatars'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_avatars')
+    .update(updates)
+    .eq('id', avatarId)
+
+  if (error) return { error: 'Failed to update avatar' }
+
+  if ('expires_at' in payload) {
+    await admin
+      .from('mojo_image_tokens')
+      .update({ expires_at: payload.expires_at ?? null })
+      .eq('token', avatar.token)
+  }
+
+  revalidatePath('/mojo/avatars')
+  if (avatar.character_id) revalidatePath('/mojo/characters/' + avatar.character_id)
+  if (avatar.faceclaim_id) revalidatePath('/mojo/faceclaims/' + avatar.faceclaim_id)
+  if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
+  if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
+  return { success: true as const }
+}
+
+export async function deleteMojoAvatar(
+  avatarId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: avatar } = await admin
+    .from('mojo_avatars')
+    .select('storage_path, token, character_id, faceclaim_id')
+    .eq('id', avatarId)
+    .single()
+
+  if (!avatar) return { error: 'Avatar not found' }
+
+  const { error: storageError } = await admin.storage
+    .from('mojo-private')
+    .remove([avatar.storage_path])
+  if (storageError) {
+    console.error('Failed to delete storage object:', storageError)
+  }
+
+  await admin.from('mojo_image_tokens').delete().eq('token', avatar.token)
+
+  const { error } = await admin.from('mojo_avatars').delete().eq('id', avatarId)
+
+  if (error) return { error: 'Failed to delete avatar' }
+
+  const { data: staleMembers } = await admin
+    .from('mojo_image_stack_members')
+    .select('id')
+    .eq('storage_path', avatar.storage_path)
+
+  const staleMemberIds = (staleMembers ?? []).map((m) => m.id)
+  if (staleMemberIds.length > 0) {
+    await admin
+      .from('mojo_image_stacks')
+      .update({ last_served_member_id: null })
+      .in('last_served_member_id', staleMemberIds)
+  }
+
+  revalidatePath('/mojo/avatars')
+  revalidatePath('/mojo/stacks')
+  if (avatar.character_id) revalidatePath('/mojo/characters/' + avatar.character_id)
+  if (avatar.faceclaim_id) revalidatePath('/mojo/faceclaims/' + avatar.faceclaim_id)
   return { success: true as const }
 }

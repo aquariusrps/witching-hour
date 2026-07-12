@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getMojoFaceclaimWithCharacters, getMojoFaceclaimResources } from '@/lib/db/mojo'
+import { getMojoFaceclaimWithCharacters, getMojoFaceclaimResources, getMojoAvatars } from '@/lib/db/mojo'
 import MojoFaceclaimNameEdit from '@/app/mojo/components/MojoFaceclaimNameEdit'
 import MojoQuickCopyPanel from '@/app/mojo/components/MojoQuickCopyPanel'
 import MojoAddResource from '@/app/mojo/components/MojoAddResource'
 import MojoResourceList from '@/app/mojo/components/MojoResourceList'
+import MojoFaceclaimAvatars from '@/app/mojo/components/MojoFaceclaimAvatars'
 
 function FiligreeDivider() {
   return (
@@ -23,6 +24,7 @@ export default async function MojoFaceclaimDetailPage({
 
   const resources = await getMojoFaceclaimResources(fcId)
   const imageResources = resources.filter((r) => r.type === 'image' || r.type === 'gif')
+  const faceclaimAvatars = await getMojoAvatars({ faceclaim_id: fcId })
 
   return (
     <div style={{ maxWidth: 780, margin: '0 auto', padding: '28px 28px 64px' }}>
@@ -85,6 +87,14 @@ export default async function MojoFaceclaimDetailPage({
         resources={resources}
         redirectPath={`/mojo/faceclaims/${faceclaim.id}`}
       />
+
+      <FiligreeDivider />
+
+      <h2 style={{ fontFamily: 'var(--f-head)', fontSize: '1.125rem', color: 'var(--roseash)', margin: '0 0 14px' }}>
+        Avatars
+      </h2>
+
+      <MojoFaceclaimAvatars fcId={faceclaim.id} avatars={faceclaimAvatars} />
     </div>
   )
 }
