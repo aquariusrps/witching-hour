@@ -644,6 +644,234 @@ export type Database = {
         }
         Relationships: []
       }
+      mojo_characters: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_order: number
+          faceclaim_id: string | null
+          id: string
+          name: string
+          notes_misc: string | null
+          notes_partners: string | null
+          notes_plot: string | null
+          rp_id: string
+          status: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          faceclaim_id?: string | null
+          id?: string
+          name: string
+          notes_misc?: string | null
+          notes_partners?: string | null
+          notes_plot?: string | null
+          rp_id: string
+          status?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          faceclaim_id?: string | null
+          id?: string
+          name?: string
+          notes_misc?: string | null
+          notes_partners?: string | null
+          notes_plot?: string | null
+          rp_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_characters_faceclaim_id_fkey"
+            columns: ["faceclaim_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_faceclaims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_characters_rp_id_fkey"
+            columns: ["rp_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_rps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mojo_faceclaims: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+        }
+        Relationships: []
+      }
+      mojo_resources: {
+        Row: {
+          character_id: string | null
+          content: string | null
+          created_at: string
+          display_order: number
+          faceclaim_id: string | null
+          id: string
+          public_url: string | null
+          storage_path: string | null
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          character_id?: string | null
+          content?: string | null
+          created_at?: string
+          display_order?: number
+          faceclaim_id?: string | null
+          id?: string
+          public_url?: string | null
+          storage_path?: string | null
+          title: string
+          type: string
+          url?: string | null
+        }
+        Update: {
+          character_id?: string | null
+          content?: string | null
+          created_at?: string
+          display_order?: number
+          faceclaim_id?: string | null
+          id?: string
+          public_url?: string | null
+          storage_path?: string | null
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_resources_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_resources_faceclaim_id_fkey"
+            columns: ["faceclaim_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_faceclaims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mojo_rps: {
+        Row: {
+          color_hex: string
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          notes_misc: string | null
+          notes_partners: string | null
+          notes_plot: string | null
+          site_name: string
+          site_url: string | null
+          status: string
+        }
+        Insert: {
+          color_hex?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          notes_misc?: string | null
+          notes_partners?: string | null
+          notes_plot?: string | null
+          site_name: string
+          site_url?: string | null
+          status?: string
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          notes_misc?: string | null
+          notes_partners?: string | null
+          notes_plot?: string | null
+          site_name?: string
+          site_url?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      mojo_threads: {
+        Row: {
+          character_id: string
+          created_at: string
+          display_order: number
+          id: string
+          partner_names: string | null
+          rp_id: string
+          status: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          partner_names?: string | null
+          rp_id: string
+          status?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          partner_names?: string | null
+          rp_id?: string
+          status?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_threads_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_threads_rp_id_fkey"
+            columns: ["rp_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_rps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string
