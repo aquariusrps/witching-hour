@@ -8,7 +8,7 @@ import {
   deleteMojoThread,
   updateMojoThreadWhoseTurn,
 } from '@/lib/actions/mojo'
-import { deriveWhoseTurn } from '@/lib/mojo/thread-fetchers'
+import { deriveWhoseTurn, detectPlatformClient, formatRelativeTime } from '@/lib/mojo/utils'
 import type { Tables } from '@/types/database'
 
 type MojoThread = Tables<'mojo_threads'>
@@ -63,32 +63,6 @@ function FiligreeDividerLight() {
 
 function navigateToCharacter(charId: string) {
   window.location.href = '/mojo/characters/' + charId
-}
-
-function formatRelativeTime(isoString: string): string {
-  const diffMs = Date.now() - new Date(isoString).getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return 'just now'
-  if (diffMin < 60) return `${diffMin}m ago`
-  const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `${diffHr}h ago`
-  const diffDay = Math.floor(diffHr / 24)
-  if (diffDay < 7) return `${diffDay} days ago`
-  return new Date(isoString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-// Pure URL string logic only — safe for the client bundle. The full
-// detectPlatform in lib/mojo/thread-fetchers.ts is a server module
-// (uses Node/env APIs) and cannot be imported here.
-function detectPlatformClient(url: string): string {
-  try {
-    const hostname = new URL(url).hostname.toLowerCase()
-    if (hostname.includes('tumblr.com')) return 'tumblr'
-    if (hostname.endsWith('.jcink.net') || hostname.endsWith('.jcink.com')) return 'jcink'
-    return 'generic'
-  } catch {
-    return 'unknown'
-  }
 }
 
 type RefreshResponse = {

@@ -514,3 +514,187 @@ export async function getMojoAvatar(avatarId: string): Promise<MojoAvatar | null
   if (error || !data) return null
   return data
 }
+
+// ─── DASHBOARD ─────────────────────────────────────────────
+
+export type DashboardCharacter = {
+  id: string
+  name: string
+  status: string
+  faceclaim_name: string | null
+  primary_stack_token: string | null // null if no primary stack set
+  avatar_token: string | null // fallback: most recent avatar token
+  active_threads: Array<{
+    id: string
+    last_poster: string | null
+    fetch_status: string | null
+    manual_whose_turn: string | null
+  }>
+}
+
+export type DashboardRp = {
+  id: string
+  name: string
+  site_name: string
+  site_url: string | null
+  color_hex: string
+  status: string
+  notes_plot: string | null
+  display_order: number
+  total_thread_count: number
+  active_thread_count: number
+  characters: DashboardCharacter[]
+}
+
+type DashboardStats = {
+  activeRpCount: number
+  characterCount: number
+  activeThreadCount: number
+  snippetCount: number
+  wishlistCount: number
+  partnerCount: number
+  stackCount: number
+}
+
+export async function getMojoDashboardData(): Promise<{
+  stats: DashboardStats
+  activeRps: DashboardRp[]
+  inactiveRps: DashboardRp[]
+}> {
+  const admin = getAdminClient()
+
+  const [
+    stats,
+    rpsResult,
+    charactersResult,
+    faceclaimsResult,
+    stacksResult,
+    avatarsResult,
+    threadsResult,
+  ] = await Promise.all([
+    getMojoDashboardStats(),
+
+    // All RPs
+    admin.from('mojo_rps')
+      .select('id, name, site_name, site_url, color_hex, status, notes_plot, display_order')
+      .order('display_order', { ascending: true }),
+
+    // All characters (all statuses — dashboard shows archived chars too)
+    admin.from('mojo_characters')
+      .select('id, rp_id, name, status, faceclaim_id, primary_stack_id')
+      .order('display_order', { ascending: true }),
+
+    // All faceclaims (for name lookup)
+    admin.from('mojo_faceclaims')
+      .select('id, name'),
+
+    // All stacks that could be set as primary stacks — get their tokens
+    // Joined in app code via: characters.primary_stack_id → mojo_image_stacks.id → token
+    admin.from('mojo_image_stacks')
+      .select('id, token'),
+
+    // Most recent avatar per character (fallback if no primary stack)
+    // Fetch all avatars ordered by created_at DESC, deduplicated in app code
+    admin.from('mojo_avatars')
+      .select('id, character_id, token')
+      .not('character_id', 'is', null)
+      .order('created_at', { ascending: false }),
+
+    // Active threads with whose-turn fields
+    admin.from('mojo_threads')
+      .select('id, rp_id, character_id, status, last_poster, fetch_status, manual_whose_turn'),
+  ])
+
+  const rps = rpsResult.data ?? []
+  const characters = charactersResult.data ?? []
+  const faceclaims = faceclaimsResult.data ?? []
+  const stacks = stacksResult.data ?? []
+  const avatars = avatarsResult.data ?? []
+  const threads = threadsResult.data ?? []
+
+  // Build lookup maps
+  const faceclaimMap = new Map(faceclaims.map((f) => [f.id, f.name]))
+  const stackMap = new Map(stacks.map((s) => [s.id, s.token]))
+
+  // Most recent avatar per character (first in the DESC-ordered array)
+  const avatarByCharacter = new Map<string, string>()
+  for (const av of avatars) {
+    if (av.character_id && !avatarByCharacter.has(av.character_id)) {
+      avatarByCharacter.set(av.character_id, av.token)
+    }
+  }
+
+  // Thread counts per RP
+  const threadCountByRp = new Map<string, { total: number; active: number }>()
+  for (const t of threads) {
+    const existing = threadCountByRp.get(t.rp_id) ?? { total: 0, active: 0 }
+    existing.total++
+    if (t.status === 'active') existing.active++
+    threadCountByRp.set(t.rp_id, existing)
+  }
+
+  // Active threads per character (for whose-turn computation)
+  const activeThreadsByCharacter = new Map<string, typeof threads>()
+  for (const t of threads) {
+    if (t.status === 'active' && t.character_id) {
+      const existing = activeThreadsByCharacter.get(t.character_id) ?? []
+      existing.push(t)
+      activeThreadsByCharacter.set(t.character_id, existing)
+    }
+  }
+
+  // Build character data per RP
+  const charactersByRp = new Map<string, DashboardCharacter[]>()
+  for (const c of characters) {
+    const existing = charactersByRp.get(c.rp_id) ?? []
+    existing.push({
+      id: c.id,
+      name: c.name,
+      status: c.status,
+      faceclaim_name: c.faceclaim_id ? (faceclaimMap.get(c.faceclaim_id) ?? null) : null,
+      primary_stack_token: c.primary_stack_id
+        ? (stackMap.get(c.primary_stack_id) ?? null)
+        : null,
+      avatar_token: avatarByCharacter.get(c.id) ?? null,
+      active_threads: (activeThreadsByCharacter.get(c.id) ?? []).map((t) => ({
+        id: t.id,
+        last_poster: t.last_poster,
+        fetch_status: t.fetch_status,
+        manual_whose_turn: t.manual_whose_turn,
+      })),
+    })
+    charactersByRp.set(c.rp_id, existing)
+  }
+
+  // Build final RP data
+  const buildRp = (rp: (typeof rps)[0]): DashboardRp => ({
+    id: rp.id,
+    name: rp.name,
+    site_name: rp.site_name,
+    site_url: rp.site_url ?? null,
+    color_hex: rp.color_hex,
+    status: rp.status,
+    notes_plot: rp.notes_plot ?? null,
+    display_order: rp.display_order,
+    total_thread_count: threadCountByRp.get(rp.id)?.total ?? 0,
+    active_thread_count: threadCountByRp.get(rp.id)?.active ?? 0,
+    characters: charactersByRp.get(rp.id) ?? [],
+  })
+
+  const activeRps = rps
+    .filter((r) => r.status === 'active')
+    .sort((a, b) => a.display_order - b.display_order)
+    .map(buildRp)
+
+  const inactiveRps = rps
+    .filter((r) => r.status !== 'active')
+    .sort((a, b) => {
+      // hiatus before ended
+      if (a.status === b.status) return a.display_order - b.display_order
+      if (a.status === 'hiatus') return -1
+      return 1
+    })
+    .map(buildRp)
+
+  return { stats, activeRps, inactiveRps }
+}

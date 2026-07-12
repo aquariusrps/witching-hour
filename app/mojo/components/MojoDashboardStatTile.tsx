@@ -25,17 +25,17 @@ export default function MojoDashboardStatTile({
         background: hover ? 'var(--raised)' : 'var(--claret)',
         border: '1px solid var(--elevated)',
         borderRadius: 4,
-        padding: 16,
+        padding: '10px 14px',
         textDecoration: 'none',
         cursor: 'pointer',
       }}
     >
-      <p style={{ fontFamily: 'var(--f-display)', fontSize: '1.75rem', color: 'var(--gold)', margin: '0 0 4px' }}>
+      <p style={{ fontFamily: 'var(--f-display)', fontSize: '1.5rem', color: 'var(--gold)', margin: '0 0 2px' }}>
         {value}
       </p>
       <p style={{
         fontFamily: 'var(--f-ui)',
-        fontSize: '0.68rem',
+        fontSize: '0.625rem',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
         color: 'var(--mist)',

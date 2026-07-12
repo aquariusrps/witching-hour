@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import MojoCharacterNotes from './MojoCharacterNotes'
 import MojoThreadTracker from './MojoThreadTracker'
 import MojoResourcesTab from './MojoResourcesTab'
@@ -21,6 +22,8 @@ const TABS = [
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
+
+const VALID_TABS: TabKey[] = ['notes', 'threads', 'resources', 'avatars']
 
 export default function MojoCharacterTabs({
   character,
@@ -43,7 +46,11 @@ export default function MojoCharacterTabs({
   characterStacks: Array<MojoImageStack & { member_count: number }>
   characterAvatars: MojoAvatar[]
 }) {
-  const [activeTab, setActiveTab] = useState<TabKey>('notes')
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab') as TabKey | null
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    initialTab && VALID_TABS.includes(initialTab) ? initialTab : 'notes'
+  )
 
   return (
     <div>

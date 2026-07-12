@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import {
   getMojoCharacter,
   getMojoCharacterThreads,
@@ -83,17 +84,19 @@ export default async function MojoCharacterPage({
         </div>
       </div>
 
-      <MojoCharacterTabs
-        character={character}
-        threads={threads}
-        charId={character.id}
-        rpId={character.rp_id}
-        resources={characterResources}
-        faceclaimResources={faceclaimResources}
-        faceclaimName={character.faceclaim_name}
-        characterStacks={characterStacks}
-        characterAvatars={characterAvatars}
-      />
+      <Suspense fallback={null}>
+        <MojoCharacterTabs
+          character={character}
+          threads={threads}
+          charId={character.id}
+          rpId={character.rp_id}
+          resources={characterResources}
+          faceclaimResources={faceclaimResources}
+          faceclaimName={character.faceclaim_name}
+          characterStacks={characterStacks}
+          characterAvatars={characterAvatars}
+        />
+      </Suspense>
     </div>
   )
 }
