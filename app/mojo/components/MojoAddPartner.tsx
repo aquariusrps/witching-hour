@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createMojoPartner } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 
 function navigateToPartners() {
   window.location.href = '/mojo/partners'
@@ -105,29 +106,29 @@ export default function MojoAddPartner() {
           </div>
           <div>
             <label style={LABEL_STYLE}>Pace Notes</label>
-            <textarea
-              value={paceNotes}
-              onChange={(e) => setPaceNotes(e.target.value)}
+            <MojoRichTextEditor
+              content={paceNotes}
+              onChange={setPaceNotes}
+              minHeight="60px"
               placeholder="Fast, slow, matches partners, replies weekly..."
-              style={{ ...INPUT_STYLE, minHeight: 60, resize: 'vertical' }}
             />
           </div>
           <div>
             <label style={LABEL_STYLE}>Style Notes</label>
-            <textarea
-              value={styleNotes}
-              onChange={(e) => setStyleNotes(e.target.value)}
+            <MojoRichTextEditor
+              content={styleNotes}
+              onChange={setStyleNotes}
+              minHeight="60px"
               placeholder="Novella, para, multi-para, icons..."
-              style={{ ...INPUT_STYLE, minHeight: 60, resize: 'vertical' }}
             />
           </div>
           <div>
             <label style={LABEL_STYLE}>History Notes</label>
-            <textarea
-              value={historyNotes}
-              onChange={(e) => setHistoryNotes(e.target.value)}
+            <MojoRichTextEditor
+              content={historyNotes}
+              onChange={setHistoryNotes}
+              minHeight="80px"
               placeholder="How you met, RPs you've done, threads to remember..."
-              style={{ ...INPUT_STYLE, minHeight: 80, resize: 'vertical' }}
             />
           </div>
           <div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateMojoPartner, deleteMojoPartner } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 import type { Tables } from '@/types/database'
 
 type MojoPartner = Tables<'mojo_partners'>
@@ -46,9 +47,9 @@ function NoteSection({ label, content }: { label: string; content: string | null
         {label}
       </span>
       {content ? (
-        <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.875rem', color: 'var(--roseash)', margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>
-          {content}
-        </p>
+        <div style={{ margin: '4px 0 0' }}>
+          <MojoRichTextEditor content={content} onChange={() => {}} readonly />
+        </div>
       ) : (
         <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.78rem', color: 'var(--faded)', margin: '4px 0 0' }}>
           No {label.toLowerCase()} notes yet.
@@ -155,15 +156,15 @@ export default function MojoPartnerCard({
           </div>
           <div>
             <label style={LABEL_STYLE}>Pace Notes</label>
-            <textarea value={paceNotes} onChange={(e) => setPaceNotes(e.target.value)} style={{ ...INPUT_STYLE, minHeight: 60, resize: 'vertical' }} />
+            <MojoRichTextEditor content={paceNotes} onChange={setPaceNotes} minHeight="60px" />
           </div>
           <div>
             <label style={LABEL_STYLE}>Style Notes</label>
-            <textarea value={styleNotes} onChange={(e) => setStyleNotes(e.target.value)} style={{ ...INPUT_STYLE, minHeight: 60, resize: 'vertical' }} />
+            <MojoRichTextEditor content={styleNotes} onChange={setStyleNotes} minHeight="60px" />
           </div>
           <div>
             <label style={LABEL_STYLE}>History Notes</label>
-            <textarea value={historyNotes} onChange={(e) => setHistoryNotes(e.target.value)} style={{ ...INPUT_STYLE, minHeight: 80, resize: 'vertical' }} />
+            <MojoRichTextEditor content={historyNotes} onChange={setHistoryNotes} minHeight="80px" />
           </div>
         </div>
         <div style={{ marginTop: 10 }}>

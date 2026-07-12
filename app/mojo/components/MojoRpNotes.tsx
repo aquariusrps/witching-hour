@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateMojoRp } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 
 const TABS = [
   { key: 'plot', label: 'Plot Threads', field: 'notes_plot' },
@@ -117,22 +118,11 @@ export default function MojoRpNotes({
 
       {editing ? (
         <div>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: 160,
-              resize: 'vertical',
-              background: 'var(--raised)',
-              color: 'var(--roseash)',
-              border: '1px solid var(--elevated)',
-              borderRadius: 2,
-              padding: 10,
-              fontFamily: 'var(--f-body)',
-              fontSize: '0.88rem',
-              boxSizing: 'border-box',
-            }}
+          <MojoRichTextEditor
+            content={draft}
+            onChange={setDraft}
+            minHeight="160px"
+            autoFocus
           />
           <div style={{ marginTop: 10 }}>
             <button
@@ -171,15 +161,7 @@ export default function MojoRpNotes({
           </div>
         </div>
       ) : currentValue ? (
-        <p style={{
-          whiteSpace: 'pre-wrap',
-          fontFamily: 'var(--f-body)',
-          fontSize: '0.9rem',
-          color: 'var(--roseash)',
-          margin: 0,
-        }}>
-          {currentValue}
-        </p>
+        <MojoRichTextEditor content={currentValue} onChange={() => {}} readonly />
       ) : (
         <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.9rem', color: 'var(--faded)', margin: 0 }}>
           No notes yet.

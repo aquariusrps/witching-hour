@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createMojoWishlistItem } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 
 function navigateToWishlist() {
   window.location.href = '/mojo/wishlist'
@@ -93,10 +94,11 @@ export default function MojoAddWishlistItem() {
       </div>
       <div>
         <label style={LABEL_STYLE}>Notes</label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          style={{ ...INPUT_STYLE, minHeight: 80, resize: 'vertical' }}
+        <MojoRichTextEditor
+          content={notes}
+          onChange={setNotes}
+          minHeight="80px"
+          placeholder="Add any notes about this idea..."
         />
       </div>
       <div>

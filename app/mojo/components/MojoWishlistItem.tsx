@@ -6,6 +6,7 @@ import {
   updateMojoWishlistStatus,
   deleteMojoWishlistItem,
 } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 import type { Tables } from '@/types/database'
 
 type MojoWishlist = Tables<'mojo_wishlist'>
@@ -114,11 +115,7 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
           <select value={type} onChange={(e) => setType(e.target.value)} style={INPUT_STYLE}>
             {TYPE_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            style={{ ...INPUT_STYLE, minHeight: 80, resize: 'vertical' }}
-          />
+          <MojoRichTextEditor content={notes} onChange={setNotes} minHeight="80px" />
         </div>
         <div style={{ marginTop: 10 }}>
           <button type="button" onClick={handleSave} disabled={loading} style={{ background: 'var(--ember)', color: 'var(--roseash)', border: 'none', borderRadius: 2, padding: '6px 16px', fontFamily: 'var(--f-ui)', fontSize: '0.75rem', cursor: loading ? 'not-allowed' : 'pointer' }}>
@@ -152,9 +149,9 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
             </span>
           </span>
           {item.notes && (
-            <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.85rem', color: 'var(--mist)', margin: '6px 0 0', whiteSpace: 'pre-wrap' }}>
-              {item.notes}
-            </p>
+            <div style={{ margin: '6px 0 0' }}>
+              <MojoRichTextEditor content={item.notes} onChange={() => {}} readonly />
+            </div>
           )}
         </div>
 

@@ -1,10 +1,12 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.0
+### Created: July 2026 | Current version: v1.1
+### Last updated: July 2026 — through MOJO-4B (commit 9406cff)
 
 This is the single authoritative document for the Mojo personal RP
 dashboard. It combines project brief, build governance, and roadmap.
-Read it in full at the start of every Mojo build session.
+Read it in full at the start of every Mojo build session alongside
+TWH_BRIEF_v1.md and TWH_PROCESS_v1.md.
 
 ---
 
@@ -15,58 +17,67 @@ operator only. It lives at `/mojo` within The Witching Hour codebase
 but is completely isolated from the TWH application — no TWH tables are
 read or written, no TWH features are modified, no TWH users have access.
 
-It is a one-stop-shop for the operator's personal online roleplaying
-life across multiple platforms and sites. Features include:
-- RP and character organisation (Site → RP → Character hierarchy)
-- Thread tracker with auto-fetch reply detection
-- Avatar and image management with a private storage bucket
-- Rotating image stacks (one URL, randomised display from a pool)
+Features include:
+- Dashboard / RP Command Center — home page; stats + full RP world with
+  nested character cards and quick actions
+- RP and character organisation — Site → RP → Character hierarchy
+- Thread tracker with auto-fetch reply detection (Tumblr, JCINK, generic)
+- Avatar and image management — private storage, proxy URLs, per-image
+  expiry, bulk upload with optional crop
+- Rotating image stacks — one URL, randomised display from a pool
+  (four rotation modes)
 - Per-character and global resource libraries
 - Faceclaim management with cross-character resource aggregation
-- A global snippet/template library
+- Global snippet/template library with rich text support
 - RP wishlist and ideas board
 - Writing partner notes book
+- Personal image repository — flat folders + tags, not tied to any
+  character or RP
+- Rich text editing throughout — Tiptap with full toolbar
 
-Mojo is operator-only. No public registration. No other users. Auth is
-the existing TWH super admin session — if the operator is logged into
-TWH as super admin, they have access. Everyone else is hard-redirected
-to `/`.
+Mojo is operator-only. No public registration. No other users.
+Auth is the existing TWH super admin session.
 
-**URL:** `https://atwitchinghour.com/mojo`
-**Theme:** Silver & Onyx (hardcoded — not user-switchable)
-**Storage bucket:** `mojo-private` (PRIVATE — not public)
-**Image proxy:** `https://atwitchinghour.com/i/[token]`
+URL: https://atwitchinghour.com/mojo
+Theme: Silver & Onyx (hardcoded — not user-switchable)
+Storage bucket: mojo-private (PRIVATE — not public)
+Image proxy: https://atwitchinghour.com/i/[token]
 
 ---
 
 ## 2. Relationship to the TWH Codebase
 
 Mojo shares:
-- The Next.js 16.2.9 / Supabase / Vercel stack
-- The `globals.css` design tokens (Blood Moon `:root`, all theme overrides)
-- The Supabase project (`vkhuttcusqubteseifui`)
-- The auth system (Supabase Auth, same session)
-- `lib/supabase/adminClient.ts` and `lib/supabase/serverClient.ts`
-- `lib/permissions.ts` (isSuperAdmin only — no other permission helpers used)
-- Google Fonts already loaded in `app/layout.tsx`
+- Next.js 16.2.9 / Supabase / Vercel stack
+- globals.css design tokens (all theme overrides including Silver & Onyx)
+- Supabase project (vkhuttcusqubteseifui)
+- Auth system (Supabase Auth, same session)
+- lib/supabase/adminClient.ts, serverClient.ts, browserClient.ts
+- lib/permissions.ts (isSuperAdmin only)
+- Google Fonts already loaded in app/layout.tsx
+- sharp (already installed)
+- @tiptap/react, @tiptap/starter-kit (already installed)
+- dompurify, @types/dompurify (already installed)
 
 Mojo does NOT share:
 - Any TWH database table
 - Any TWH RLS policy
 - Any TWH cached settings
 - Any TWH server action or page component
-- The (authenticated) route group layout (Masthead, Sidebar, PageLayout)
+- The (authenticated) route group layout
 
 Mojo has its own:
-- Layout: `app/mojo/layout.tsx` (outside the (authenticated) route group)
-- All DB tables prefixed `mojo_`
-- All migrations prefixed `mojo_NNN_`
-- All server actions in `lib/actions/mojo.ts`
-- All DB helpers in `lib/db/mojo.ts`
-- All client components in `app/mojo/components/`
-- Storage bucket: `mojo-private`
-- Image proxy infrastructure: `app/i/[token]/route.ts`, `lib/mojo/proxy.ts`
-- External image fetch API: `app/api/mojo/fetch-image/route.ts`
+- Layout: app/mojo/layout.tsx (outside (authenticated) route group)
+- All DB tables prefixed mojo_
+- All migrations prefixed mojo_NNN_
+- All server actions in lib/actions/mojo.ts
+- All DB helpers in lib/db/mojo.ts
+- All client components in app/mojo/components/
+- Storage bucket: mojo-private
+- Image proxy: app/i/[token]/route.ts + lib/mojo/proxy.ts
+- External image fetch API: app/api/mojo/fetch-image/route.ts
+- Image processing API: app/api/mojo/process-image/route.ts
+- Thread refresh API: app/api/mojo/refresh-thread/route.ts (MOJO-5)
 
 ---
 
@@ -74,932 +85,740 @@ Mojo has its own:
 
 Every Mojo Claude Code prompt must open with this block verbatim:
 
-```
-Before writing any code or SQL, read these three files in full
-and confirm you have read them before proceeding:
-1. TWH_BRIEF_v1.md — tech stack, design system, database conventions
-2. TWH_PROCESS_v1.md — build governance rules
-3. MOJO_BRIEF_v1.md — Mojo architecture, schema, patterns, and roadmap
-Once you have read all three, confirm you are ready and I will
-provide the build instructions.
-```
+  Before writing any code or SQL, read these three files in full
+  and confirm you have read them before proceeding:
+  1. TWH_BRIEF_v1.md — tech stack, design system, database conventions
+  2. TWH_PROCESS_v1.md — build governance rules
+  3. MOJO_BRIEF_v1.md — Mojo architecture, schema, patterns, and roadmap
+  Once you have read all three, confirm you are ready and I will
+  provide the build instructions.
 
-Also required at the start of every Claude Code session:
-**Enable live task tracking in Terminal before beginning any build work.**
+Also required: Enable live task tracking in Terminal before beginning
+any build work.
 
 ---
 
 ## 4. Tech Stack & Conventions (Mojo-Specific)
 
 ### Authentication
-- Auth check: `isSuperAdmin(userId: string)` from `lib/permissions.ts`
-- This function is already `React.cache()` wrapped
-- The shared helper `requireSuperAdmin()` in `lib/actions/mojo.ts`
-  wraps the full pattern and returns `Promise<string | null>`
-  (returns the userId string on success, null if not super admin)
 
-**Correct pattern in every server action:**
-```ts
-const userId = await requireSuperAdmin()
-if (!userId) return { error: 'Unauthorized' }
-```
+requireSuperAdmin() in lib/actions/mojo.ts returns Promise<string | null>
+— userId string on success, null if not super admin.
 
-**Correct pattern in server components:**
-```ts
-const supabase = await getServerClient()
-const { data: { user } } = await supabase.auth.getUser()
-if (!user) redirect('/')
-const superAdmin = await isSuperAdmin(user.id)
-if (!superAdmin) redirect('/')
-```
+Correct pattern in every server action:
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
 
-CRITICAL: `requireSuperAdmin()` returns `string | null`.
-It does NOT return a discriminated union `{ error } | { userId }`.
-Never check `'error' in result` on this call.
+Correct pattern in server components and route handlers:
+  const supabase = await getServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/') // or return 401 in route handlers
+  const superAdmin = await isSuperAdmin(user.id)
+  if (!superAdmin) redirect('/') // or return 401
+
+CRITICAL: requireSuperAdmin() returns string | null.
+It does NOT return { error } | { userId }.
+Never check 'error' in result on this call.
+
+The proxy route at app/i/[token]/route.ts has NO auth check.
+The token IS the access control. Never add auth to the proxy route.
 
 ### Database Client
-All mojo DB operations use `getAdminClient()` — service role, bypasses
-RLS. Mojo tables have no RLS policies. This is correct and intentional.
-Never use the cookie-aware server client for mojo DB reads or writes.
+All mojo DB operations use getAdminClient(). No RLS on mojo tables.
+
+### Browser Supabase Client — CORRECT IMPORT
+  import { createBrowserClient } from '@/lib/supabase/browserClient'
+  const supabase = createBrowserClient()
+
+NOT createClient — that export does not exist in this codebase.
+Confirmed correction from MOJO-4B Q3. Every client-side Supabase
+operation uses createBrowserClient.
 
 ### No RLS on Mojo Tables
-Mojo tables have no Row Level Security policies. Access is controlled
-entirely at the application layer via `requireSuperAdmin()` / `isSuperAdmin()`.
-Do not add RLS to mojo tables.
+No Row Level Security on any mojo_ table. Access controlled entirely
+at application layer via requireSuperAdmin() / isSuperAdmin().
 
 ### No Caching Layer
-Mojo does not use `unstable_cache`, `revalidateTag`, or any cached
-settings functions. Use `revalidatePath()` only.
-`revalidateTag()` is never called in mojo code.
+No unstable_cache, no revalidateTag. Use revalidatePath() only.
 
 ### Server Action Return Types
-All server actions must declare explicit return types:
-```ts
-async function myAction(): Promise<{ error: string } | { success: true }> {
-```
-For actions returning data:
-```ts
-async function myAction(): Promise<{ error: string } | { success: true; item: MojoSnippet }> {
-```
-Use `TablesInsert<'table_name'>` and `TablesUpdate<'table_name'>` from
-`@/types/database` for insert/update payload objects.
+  async function myAction(): Promise<{ error: string } | { success: true }> {
+
+Use TablesInsert<'table_name'> / TablesUpdate<'table_name'> for payloads.
 
 ### Client-Side Result Narrowing
-```ts
-const result = await myAction()
-if ('error' in result) {
-  // handle error
-  return
-}
-// result is now the success branch
-```
+  const result = await myAction()
+  if ('error' in result) { /* handle */ return }
+  // success branch
 
 ### Navigation After Mutations
-All post-action navigation uses `window.location.href` (R15 from
-TWH_PROCESS_v1.md). Never use `router.push()` in mojo client components.
+All post-action navigation uses window.location.href. Never router.push().
 
-CRITICAL: All `window.location.href` assignments must be in functions
-defined at MODULE LEVEL — outside any component function body.
-```ts
-// CORRECT — module level
-function navigateToCharacter(charId: string) {
-  window.location.href = '/mojo/characters/' + charId
-}
+CRITICAL: All window.location.href assignments must be in MODULE-LEVEL
+functions — outside any component function body:
 
-// WRONG — inside component or JSX callback (violates react-hooks/immutability)
-onClick={() => { window.location.href = '/mojo/characters/' + charId }}
-```
-This rule was established after MOJO-2 Q1 where the ESLint rule
-`react-hooks/immutability` flagged inline assignments inconsistently.
-The module-level pattern prevents all such violations.
+  // CORRECT — module level
+  function navigateToCharacter(charId: string) {
+    window.location.href = '/mojo/characters/' + charId
+  }
+  // WRONG — violates react-hooks/immutability ESLint rule
+  onClick={() => { window.location.href = '...' }}
+
+Exception: window.location.reload() in a module-level function is
+acceptable in shared components with no fixed path context (confirmed
+MOJO-4B Q5 — MojoAvatarGrid uses this pattern).
 
 ### No useTransition
-Use `useState(false)` + direct `await` for loading states.
-Never use `useTransition` or `startTransition` in mojo components.
+Use useState(false) + direct await for all loading states.
 
-### CSS Variables & Theme
-The `/mojo` layout applies `data-theme="silver-onyx"` to the outermost
-wrapper div. All CSS variables (`var(--roseash)`, `var(--claret)`, etc.)
-remap automatically to Silver & Onyx values via the existing
-`[data-theme="silver-onyx"]` block in `globals.css`.
+### CSS Variables and Theme
+data-theme="silver-onyx" on the mojo layout wrapper div.
+All var(--*) tokens remap to Silver & Onyx values automatically.
+Never hardcode Silver & Onyx hex values in component code.
+data-theme on wrapper div — NOT on html or body.
 
-NEVER hardcode Silver & Onyx hex values in component code.
-Always use `var(--token)` — the theme handles the remapping.
-
-`data-theme` goes on the layout wrapper div, NOT on `<html>` or `<body>`.
-
-CSS variable tokens that do NOT exist (never use these):
-- `var(--moonstone-dim)` — DOES NOT EXIST. Use `var(--moon-dim)` instead.
-- `var(--f-heading)` — DOES NOT EXIST. Use `var(--f-head)` instead.
+Tokens that DO NOT EXIST (never use):
+  var(--moonstone-dim) — use var(--moon-dim) instead
+  var(--f-heading) — use var(--f-head) instead
 
 ### Image Display
-Use `<img>` (not `<Image>` from next/image) for all mojo storage images.
-The mojo-private bucket is not in `next.config` remotePatterns and the
-proxy route makes this unnecessary.
-```tsx
-{/* eslint-disable-next-line @next/next/no-img-element */}
-<img src={proxyUrl} alt={title} />
-```
+  {/* eslint-disable-next-line @next/next/no-img-element */}
+  <img src={proxyUrl} alt={title} />
 
 ### Sharp Buffer Pattern
-When using `sharp().toBuffer()`, wrap the result in `new Uint8Array()`
-before passing to `NextResponse`:
-```ts
-const pngBuffer = await sharp(buffer).png().toBuffer()
-return new NextResponse(new Uint8Array(pngBuffer), { ... })
-```
-Direct `Buffer` fails TypeScript's `BodyInit` type check in this project.
-Confirmed in MOJO-3A Q6.
+  const pngBuffer = await sharp(buffer).png().toBuffer()
+  return new NextResponse(new Uint8Array(pngBuffer), { ... })
+Direct Buffer fails BodyInit type check (confirmed MOJO-3A Q6).
 
-### Image Upload Pattern (P-DC)
-Images MUST NOT pass through Server Actions. Vercel Hobby enforces a
-4.5MB body limit at the platform layer.
+### P-DC Upload Pattern
+Images MUST NOT pass through Server Actions (4.5MB Vercel limit).
 
-Correct pattern for all image uploads:
-1. Client reads the file
-2. Client uploads DIRECTLY to `mojo-private` bucket via browser Supabase client
-   (`createClient` from `lib/supabase/browserClient.ts`)
-3. Client receives the storage path from Supabase
-4. Client calls `registerUploadedImage()` Server Action with the storage
-   path string only (never the file data)
-5. Server Action generates proxy token, writes to DB, returns proxy URL
+  1. Client processes file (optional crop via MojoAvatarCrop.tsx)
+  2. Client sends blob to /api/mojo/process-image → PNG or GIF returned
+  3. Client uploads to mojo-private via createBrowserClient()
+  4. Client calls registerUploadedAvatar() with storage path only
 
-Never pass File, Blob, ArrayBuffer, Buffer, or base64 through a Server Action.
+Never pass File, Blob, ArrayBuffer, or base64 through a Server Action.
+
+### Crop Tool — Optional by Default (IMPORTANT)
+The crop tool (MojoAvatarCrop.tsx) is opt-in, never mandatory.
+Files queue and upload immediately by default.
+A Crop button on each queued item opens the crop tool for that
+specific file before it uploads.
+This applies everywhere in the system — avatar upload, image
+repository, everywhere.
+NOTE: MOJO-4B built crop as mandatory. This is TD-5, fixed in MOJO-6A.
+
+### Rich Text Fields
+All user-facing text inputs use MojoRichTextEditor.tsx (built MOJO-6A)
+EXCEPT: snippet fields where type = app_code or formatting (stay plain
+monospace textarea — raw text preserved).
+
+Rich text output stored as HTML in existing text columns.
+Display: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+
+### mojo_image_tokens + mojo_avatars are paired
+Registering an avatar creates TWO rows:
+  1. mojo_image_tokens row — provides the proxy token
+  2. mojo_avatars row — stores metadata + token
+
+Deleting an avatar requires THREE cleanup steps in order:
+  1. Storage file deleted from mojo-private
+  2. mojo_image_tokens row deleted (by token)
+  3. mojo_avatars row deleted
+Always in this order. Storage first, then DB rows.
 
 ---
 
 ## 5. Migration Naming Convention
 
-Mojo migrations use their own filename prefix, completely separate from
-the TWH numeric migration sequence (001–022+).
-
-Format: `mojo_NNN_descriptive_name.sql`
-Examples: `mojo_001_foundation.sql`, `mojo_002_content_system.sql`
-
-Applied via Supabase MCP (same workflow as TWH migrations).
-Never copy-paste into the Supabase UI SQL editor.
+Format: mojo_NNN_descriptive_name.sql
+Never use the TWH numeric sequence (001-022+).
+Applied via Supabase MCP.
 
 After every migration:
-```bash
-npx supabase gen types typescript --project-id vkhuttcusqubteseifui > types/database.ts
-```
+  npx supabase gen types typescript --project-id vkhuttcusqubteseifui > types/database.ts
 
 Applied migrations:
-- `mojo_001_foundation` — 5 core tables
-- `mojo_002_content_system` — 6 additional tables + thread tracker columns
+  mojo_001_foundation — 5 core tables
+  mojo_002_content_system — 6 additional tables + thread tracker columns
+  mojo_003_image_stacks — mojo_image_stacks, mojo_image_stack_members,
+    primary_stack_id on mojo_characters (circular FK resolved in-migration)
+  mojo_004_storage_policy — RLS policies on storage.objects for mojo-private
+    (INSERT, SELECT, DELETE for authenticated users)
+
+Pending migrations:
+  mojo_005_personal_images — mojo_image_folders, mojo_personal_images (MOJO-6B)
+  mojo_006_wanted — mojo_wanted with image_token field (MOJO-7)
 
 ---
 
 ## 6. Complete Database Schema
 
-All tables are in the `public` schema. No RLS on any mojo table.
+All tables in public schema. No RLS on any mojo_ table.
 
-### mojo_rps
-```sql
-id            uuid PK DEFAULT gen_random_uuid()
-name          text NOT NULL
-site_name     text NOT NULL
-site_url      text
-color_hex     text NOT NULL DEFAULT '#c83818'
-status        text NOT NULL DEFAULT 'active'
-                CHECK (status IN ('active','hiatus','ended'))
-notes_plot    text
-notes_partners text
-notes_misc    text
-display_order integer NOT NULL DEFAULT 0
-created_at    timestamptz NOT NULL DEFAULT now()
-```
+mojo_rps:
+  id uuid PK, name text NOT NULL, site_name text NOT NULL,
+  site_url text, color_hex text DEFAULT '#c83818',
+  status text CHECK (active/hiatus/ended) DEFAULT active,
+  notes_plot text, notes_partners text, notes_misc text,
+  -- all notes fields store HTML (rich text) from MOJO-6A
+  display_order integer DEFAULT 0, created_at timestamptz
 
-### mojo_faceclaims
-```sql
-id         uuid PK DEFAULT gen_random_uuid()
-name       text NOT NULL UNIQUE
-notes      text
-created_at timestamptz NOT NULL DEFAULT now()
-```
+mojo_faceclaims:
+  id uuid PK, name text NOT NULL UNIQUE, notes text,
+  created_at timestamptz
 
-### mojo_characters
-```sql
-id             uuid PK DEFAULT gen_random_uuid()
-rp_id          uuid NOT NULL FK mojo_rps(id) ON DELETE CASCADE
-faceclaim_id   uuid FK mojo_faceclaims(id) ON DELETE SET NULL
-name           text NOT NULL
-status         text NOT NULL DEFAULT 'active'
-                 CHECK (status IN ('active','archived'))
-bio            text
-notes_plot     text
-notes_partners text
-notes_misc     text
-display_order  integer NOT NULL DEFAULT 0
-created_at     timestamptz NOT NULL DEFAULT now()
--- Indexes: rp_id, faceclaim_id, status
-```
+mojo_characters:
+  id uuid PK, rp_id uuid FK mojo_rps CASCADE,
+  faceclaim_id uuid FK mojo_faceclaims SET NULL,
+  name text NOT NULL, status text CHECK (active/archived) DEFAULT active,
+  bio text, notes_plot text, notes_partners text, notes_misc text,
+  -- bio and all notes fields store HTML (rich text) from MOJO-6A
+  display_order integer DEFAULT 0, created_at timestamptz,
+  primary_stack_id uuid FK mojo_image_stacks SET NULL
+  -- Indexes: rp_id, faceclaim_id, status, primary_stack_id
 
-NOTE: `characters` table has no `primary_stack_id` column yet.
-This FK to `mojo_image_stacks` is added in mojo_003 (MOJO-4).
+mojo_resources:
+  id uuid PK, faceclaim_id uuid FK mojo_faceclaims CASCADE,
+  character_id uuid FK mojo_characters SET NULL,
+  title text NOT NULL, type text CHECK (text/link/snippet/image/gif),
+  content text,  -- HTML for text type; raw for snippet/code types
+  url text, storage_path text, public_url text,
+  display_order integer DEFAULT 0, created_at timestamptz
+  -- resource with both FKs null = global library resource
+  -- Indexes: faceclaim_id, character_id, type
 
-### mojo_resources
-```sql
-id            uuid PK DEFAULT gen_random_uuid()
-faceclaim_id  uuid FK mojo_faceclaims(id) ON DELETE CASCADE
-character_id  uuid FK mojo_characters(id) ON DELETE SET NULL
-title         text NOT NULL
-type          text NOT NULL
-                CHECK (type IN ('text','link','snippet','image','gif'))
-content       text
-url           text
-storage_path  text
-public_url    text        -- the proxy URL (atwitchinghour.com/i/[token])
-display_order integer NOT NULL DEFAULT 0
-created_at    timestamptz NOT NULL DEFAULT now()
--- Indexes: faceclaim_id, character_id, type
--- A resource with both FKs null is a global library resource
-```
+mojo_threads:
+  id uuid PK, rp_id uuid FK mojo_rps CASCADE,
+  character_id uuid FK mojo_characters CASCADE,
+  title text NOT NULL, url text, partner_names text,
+  status text CHECK (active/archived) DEFAULT active,
+  display_order integer DEFAULT 0, created_at timestamptz,
+  -- Auto-fetch columns (added mojo_002):
+  detected_platform text CHECK (tumblr/jcink/generic/unknown),
+  last_poster text,
+  fetch_status text CHECK (success/failed/unsupported/pending/uncertain),
+  last_checked_at timestamptz
+  -- Indexes: rp_id, character_id, status
 
-### mojo_threads
-```sql
-id                uuid PK DEFAULT gen_random_uuid()
-rp_id             uuid NOT NULL FK mojo_rps(id) ON DELETE CASCADE
-character_id      uuid NOT NULL FK mojo_characters(id) ON DELETE CASCADE
-title             text NOT NULL
-url               text
-partner_names     text
-status            text NOT NULL DEFAULT 'active'
-                    CHECK (status IN ('active','archived'))
-display_order     integer NOT NULL DEFAULT 0
-created_at        timestamptz NOT NULL DEFAULT now()
--- Added in mojo_002 (thread auto-fetch columns):
-detected_platform text CHECK (detected_platform IN ('tumblr','jcink','generic','unknown'))
-last_poster       text
-fetch_status      text CHECK (fetch_status IN ('success','failed','unsupported','pending','uncertain'))
-last_checked_at   timestamptz
--- Indexes: rp_id, character_id, status
-```
+mojo_avatars:
+  id uuid PK, character_id uuid FK mojo_characters SET NULL,
+  faceclaim_id uuid FK mojo_faceclaims SET NULL,
+  title text, storage_path text NOT NULL, token text NOT NULL UNIQUE,
+  expires_at timestamptz, width integer, height integer,
+  file_size integer, mime_type text DEFAULT image/png,
+  created_at timestamptz
+  -- Indexes: character_id, faceclaim_id, token
 
-### mojo_avatars
-```sql
-id            uuid PK DEFAULT gen_random_uuid()
-character_id  uuid FK mojo_characters(id) ON DELETE SET NULL
-faceclaim_id  uuid FK mojo_faceclaims(id) ON DELETE SET NULL
-title         text
-storage_path  text NOT NULL
-token         text NOT NULL UNIQUE
-expires_at    timestamptz        -- NULL = indefinite
-width         integer
-height        integer
-file_size     integer
-mime_type     text NOT NULL DEFAULT 'image/png'
-created_at    timestamptz NOT NULL DEFAULT now()
--- Indexes: character_id, faceclaim_id, token
-```
+mojo_image_tokens:
+  id uuid PK, token text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text,
+  storage_path text NOT NULL, mime_type text DEFAULT image/png,
+  expires_at timestamptz, label text, created_at timestamptz
+  -- Index: token
 
-### mojo_image_tokens
-```sql
-id           uuid PK DEFAULT gen_random_uuid()
-token        text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text
-storage_path text NOT NULL
-mime_type    text NOT NULL DEFAULT 'image/png'
-expires_at   timestamptz        -- NULL = indefinite
-label        text
-created_at   timestamptz NOT NULL DEFAULT now()
--- Index: token
-```
+mojo_image_stacks:
+  id uuid PK, token text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text,
+  label text NOT NULL,
+  rotation_mode text CHECK (truly_random/weighted/sequential/no_repeat)
+    DEFAULT truly_random,
+  character_id uuid FK mojo_characters SET NULL,
+  faceclaim_id uuid FK mojo_faceclaims SET NULL,
+  expires_at timestamptz, last_served_index integer,
+  last_served_member_id uuid FK mojo_image_stack_members SET NULL,
+  created_at timestamptz
+  -- Indexes: token, character_id, faceclaim_id
+  -- NOTE: circular FK resolved by creating table without
+  --   last_served_member_id, then creating members, then ALTER
 
-### mojo_snippets
-```sql
-id            uuid PK DEFAULT gen_random_uuid()
-title         text NOT NULL
-content       text NOT NULL
-type          text NOT NULL DEFAULT 'general'
-                CHECK (type IN ('general','app_code','template','formatting','other'))
-tags          text           -- comma-separated, plain text
-display_order integer NOT NULL DEFAULT 0
-created_at    timestamptz NOT NULL DEFAULT now()
-```
+mojo_image_stack_members:
+  id uuid PK, stack_id uuid FK mojo_image_stacks CASCADE,
+  storage_path text NOT NULL, mime_type text DEFAULT image/png,
+  weight integer DEFAULT 1, display_order integer DEFAULT 0,
+  created_at timestamptz
+  -- Index: stack_id
 
-### mojo_wishlist
-```sql
-id            uuid PK DEFAULT gen_random_uuid()
-title         text NOT NULL
-notes         text
-type          text NOT NULL DEFAULT 'plot_idea'
-                CHECK (type IN ('character_concept','plot_idea','fandom','other'))
-status        text NOT NULL DEFAULT 'idea'
-                CHECK (status IN ('idea','active','shelved'))
-display_order integer NOT NULL DEFAULT 0
-created_at    timestamptz NOT NULL DEFAULT now()
-```
+mojo_snippets:
+  id uuid PK, title text NOT NULL,
+  content text NOT NULL,  -- HTML for general/template; raw for app_code/formatting
+  type text CHECK (general/app_code/template/formatting/other) DEFAULT general,
+  tags text, display_order integer DEFAULT 0, created_at timestamptz
 
-### mojo_partners
-```sql
-id             uuid PK DEFAULT gen_random_uuid()
-handle         text NOT NULL
-sites          text           -- comma-separated
-pace_notes     text
-style_notes    text
-history_notes  text
-display_order  integer NOT NULL DEFAULT 0
-created_at     timestamptz NOT NULL DEFAULT now()
-```
+mojo_wishlist:
+  id uuid PK, title text NOT NULL,
+  notes text,  -- HTML (rich text) from MOJO-6A
+  type text CHECK (character_concept/plot_idea/fandom/other) DEFAULT plot_idea,
+  status text CHECK (idea/active/shelved) DEFAULT idea,
+  display_order integer DEFAULT 0, created_at timestamptz
 
-### mojo_character_resources (junction)
-```sql
-id           uuid PK DEFAULT gen_random_uuid()
-character_id uuid NOT NULL FK mojo_characters(id) ON DELETE CASCADE
-resource_id  uuid NOT NULL FK mojo_resources(id) ON DELETE CASCADE
-created_at   timestamptz NOT NULL DEFAULT now()
-UNIQUE (character_id, resource_id)
--- Indexes: character_id, resource_id
-```
+mojo_partners:
+  id uuid PK, handle text NOT NULL, sites text,
+  pace_notes text, style_notes text, history_notes text,
+  -- all notes fields store HTML (rich text) from MOJO-6A
+  display_order integer DEFAULT 0, created_at timestamptz
 
-### mojo_image_stacks (NOT YET CREATED — mojo_003, MOJO-4)
-```sql
-id                    uuid PK DEFAULT gen_random_uuid()
-token                 text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text
-label                 text NOT NULL
-rotation_mode         text NOT NULL DEFAULT 'truly_random'
-                        CHECK (rotation_mode IN
-                          ('truly_random','weighted','sequential','no_repeat'))
-character_id          uuid FK mojo_characters(id) ON DELETE SET NULL
-faceclaim_id          uuid FK mojo_faceclaims(id) ON DELETE SET NULL
-expires_at            timestamptz        -- NULL = indefinite
-last_served_index     integer            -- used by sequential mode
-last_served_member_id uuid               -- used by no_repeat mode
-created_at            timestamptz NOT NULL DEFAULT now()
--- Index: token
-```
+mojo_character_resources (junction):
+  id uuid PK, character_id uuid FK mojo_characters CASCADE,
+  resource_id uuid FK mojo_resources CASCADE,
+  created_at timestamptz, UNIQUE (character_id, resource_id)
+  -- Indexes: character_id, resource_id
 
-### mojo_image_stack_members (NOT YET CREATED — mojo_003, MOJO-4)
-```sql
-id           uuid PK DEFAULT gen_random_uuid()
-stack_id     uuid NOT NULL FK mojo_image_stacks(id) ON DELETE CASCADE
-storage_path text NOT NULL
-mime_type    text NOT NULL DEFAULT 'image/png'
-weight       integer NOT NULL DEFAULT 1   -- used by weighted mode only
-display_order integer NOT NULL DEFAULT 0
-created_at   timestamptz NOT NULL DEFAULT now()
--- Index: stack_id
-```
+mojo_image_folders (NOT YET CREATED — mojo_005, MOJO-6B):
+  id uuid PK, name text NOT NULL, display_order integer DEFAULT 0,
+  created_at timestamptz
+  -- Flat folders only, no nesting
 
-Addition to mojo_characters in mojo_003:
-```sql
-ALTER TABLE mojo_characters
-  ADD COLUMN primary_stack_id uuid
-  REFERENCES mojo_image_stacks(id) ON DELETE SET NULL;
-```
+mojo_personal_images (NOT YET CREATED — mojo_005, MOJO-6B):
+  id uuid PK, folder_id uuid FK mojo_image_folders SET NULL,
+  title text NOT NULL, storage_path text NOT NULL,
+  token text NOT NULL UNIQUE, mime_type text DEFAULT image/png,
+  expires_at timestamptz, tags text, file_size integer,
+  created_at timestamptz
+  -- Indexes: folder_id, token
+
+mojo_wanted (NOT YET CREATED — mojo_006, MOJO-7):
+  id uuid PK, rp_id uuid FK mojo_rps CASCADE,
+  character_id uuid FK mojo_characters SET NULL,
+  title text NOT NULL, description text,  -- HTML (rich text)
+  image_token text,  -- proxy token for optional reference image
+  status text CHECK (open/filled) DEFAULT open,
+  display_order integer DEFAULT 0, created_at timestamptz
+  -- Indexes: rp_id, character_id, status
 
 ---
 
 ## 7. Image Proxy Architecture
 
 ### Single-Image Proxy
-- Table: `mojo_image_tokens`
-- One token → one `storage_path` in `mojo-private`
-- Route: `app/i/[token]/route.ts`
-- Helpers: `lib/mojo/proxy.ts`
-  - `generateProxyToken()` → `crypto.randomUUID()`
-  - `registerImageToken(storagePath, mimeType, expiresAt, label)` → token string
-  - `getProxyUrl(token)` → `process.env.NEXT_PUBLIC_SITE_URL + '/i/' + token`
+Table: mojo_image_tokens
+Token → one storage_path in mojo-private
+Route: app/i/[token]/route.ts
+Helpers: lib/mojo/proxy.ts
+  generateProxyToken() → crypto.randomUUID()
+  registerImageToken(storagePath, mimeType, expiresAt, label) → token
+  getProxyUrl(token) → NEXT_PUBLIC_SITE_URL + '/i/' + token
+Response: Content-Type, Cache-Control: public max-age=31536000 immutable,
+  X-Robots-Tag: noindex
 
 ### Rotating Stack Proxy
-- Tables: `mojo_image_stacks` + `mojo_image_stack_members`
-- One token → many storage paths → random/sequential selection per request
-- Same route: `app/i/[token]/route.ts`
-- Lookup order: check `mojo_image_tokens` first; if no match, check `mojo_image_stacks`
+Tables: mojo_image_stacks + mojo_image_stack_members
+Token → many storage paths → selection per rotation_mode
+Same route, checked AFTER single-image lookup
+Response: Cache-Control: no-store (MUST — caching defeats rotation)
 
-**Selection logic by rotation_mode:**
+Four rotation modes:
+  truly_random — Math.random(), stateless
+  weighted — weighted pool, stateless
+  sequential — writes last_served_index per request
+  no_repeat — writes last_served_member_id per request
 
-`truly_random`: `Math.random()` picks any member. No state written. Stateless.
-
-`weighted`: Each member has a `weight` integer. Build a weighted array,
-pick randomly. No state written. Stateless.
-
-`sequential`: Read `last_served_index`, increment (wrapping at member count),
-serve that member, write new index back to DB.
-
-`no_repeat`: Read `last_served_member_id`, exclude it from pool,
-pick randomly from remainder, write new `last_served_member_id` to DB.
-
-**Sequential and no_repeat write to DB on every image serve.** This is
-acceptable for a personal tool. There is a negligible race window on
-concurrent requests — the worst outcome is serving the same image twice.
-Not worth engineering around.
-
-### Proxy Route Behaviour
-- No auth on the route — the token IS the access control
-- If token not found: 404
-- If `expires_at` is set and past: 410 Gone
-- Response headers: `Content-Type`, `Cache-Control: public, max-age=31536000, immutable`,
-  `X-Robots-Tag: noindex`
-- Response headers MUST NOT reference 'mojo', 'supabase', 'storage', or 'witching-hour'
-- Serves from `mojo-private` bucket via admin client `.storage.from('mojo-private').download(path)`
+Sequential and no_repeat write to DB on every image serve.
+Acceptable for personal tool. Race condition possible but inconsequential.
 
 ### Per-Image Expiry
-- `expires_at timestamptz` on both `mojo_image_tokens` and `mojo_image_stacks`
-- `null` = indefinite (never expires)
-- Set at upload time; editable after the fact via the token manager UI
-- Options presented to operator: Never / 1 year / Custom date
+expires_at timestamptz on tokens, stacks, avatars, personal images.
+null = indefinite. Proxy returns 410 Gone if expired.
+Options: Never / 1 year / Custom date.
+
+### Storage Policies (mojo_004)
+Three policies on storage.objects for mojo-private bucket:
+  mojo_private_insert_authenticated — INSERT for authenticated
+  mojo_private_select_authenticated — SELECT for authenticated
+  mojo_private_delete_authenticated — DELETE for authenticated
+These enable P-DC client-side uploads via createBrowserClient().
 
 ---
 
-## 8. File Structure
+## 8. Rich Text System (MOJO-6A)
 
-```
+Component: MojoRichTextEditor.tsx — Client Component wrapping Tiptap.
+
+Required Tiptap extensions (install in MOJO-6A):
+  @tiptap/extension-underline
+  @tiptap/extension-text-style
+  @tiptap/extension-color
+  @tiptap/extension-link
+  StarterKit already installed (bold, italic, headings, lists,
+    blockquote, code, codeBlock, history, strike)
+
+Toolbar:
+  Bold · Italic · Underline · Strikethrough · H1 · H2 · H3
+  · Text color · Bullet list · Numbered list · Blockquote
+  · Code block · Inline code · Link · Horizontal rule
+
+Markdown shortcuts work automatically in Tiptap:
+  **bold**, _italic_, # heading, - list, `code`, > quote
+
+Output: HTML string stored in existing text columns.
+No schema changes needed.
+
+Display: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+
+Fields becoming rich text in MOJO-6A retrofit:
+  MojoRpNotes.tsx — notes_plot, notes_partners, notes_misc
+  MojoCharacterNotes.tsx — bio, notes_plot, notes_partners, notes_misc
+  MojoWishlistItem.tsx + MojoAddWishlistItem.tsx — notes
+  MojoPartnerCard.tsx + MojoAddPartner.tsx — pace/style/history notes
+  MojoSnippetCard.tsx + MojoAddSnippet.tsx — content (non-code types)
+
+Fields staying plain text forever:
+  Snippet content where type = app_code or formatting
+  All URL inputs, title inputs, tag inputs, storage path inputs
+
+---
+
+## 9. File Structure
+
 app/
   mojo/
-    layout.tsx                ← auth gate + Silver & Onyx theme + sidebar shell
-    page.tsx                  ← dashboard
+    layout.tsx
+    page.tsx  (Dashboard / RP Command Center)
     components/
-      MojoSidebar.tsx
-      MojoRpCard.tsx
-      MojoArchivedRps.tsx
-      MojoRpNotes.tsx
-      MojoAddCharacter.tsx
-      MojoCharacterStatusToggle.tsx
-      MojoCharacterArchiveToggle.tsx
-      MojoCharacterTabs.tsx
-      MojoCharacterNotes.tsx
+      MojoSidebar.tsx, MojoRpCard.tsx, MojoArchivedRps.tsx
+      MojoRpNotes.tsx, MojoRpEditForm.tsx
+      MojoAddCharacter.tsx, MojoCharacterStatusToggle.tsx
+      MojoCharacterArchiveToggle.tsx, MojoCharacterTabs.tsx
+      MojoCharacterNotes.tsx, MojoCharacterAvatarTabs.tsx
       MojoThreadTracker.tsx
-      MojoCharacterArchiveToggle.tsx
-      MojoFaceclaimAssign.tsx
-      MojoCreateFaceclaim.tsx
-      MojoFaceclaimRow.tsx
-      MojoFaceclaimNameEdit.tsx
-      MojoQuickCopyPanel.tsx
-      MojoAddResource.tsx
-      MojoResourceList.tsx
-      MojoResourcesTab.tsx
-      MojoLinkToCharacter.tsx
-      MojoAddSnippet.tsx
-      MojoLibraryTabs.tsx
-      MojoSnippetCard.tsx
-      MojoWishlistList.tsx
-      MojoAddWishlistItem.tsx
-      MojoWishlistItem.tsx
-      MojoAddPartner.tsx
-      MojoPartnerList.tsx
-      MojoPartnerCard.tsx
+      MojoFaceclaimAssign.tsx, MojoCreateFaceclaim.tsx
+      MojoFaceclaimRow.tsx, MojoFaceclaimNameEdit.tsx
+      MojoFaceclaimAvatars.tsx, MojoQuickCopyPanel.tsx
+      MojoAddResource.tsx, MojoResourceList.tsx
+      MojoResourcesTab.tsx, MojoLinkToCharacter.tsx
+      MojoAddSnippet.tsx, MojoLibraryTabs.tsx, MojoSnippetCard.tsx
+      MojoWishlistList.tsx, MojoAddWishlistItem.tsx, MojoWishlistItem.tsx
+      MojoAddPartner.tsx, MojoPartnerList.tsx, MojoPartnerCard.tsx
       MojoDashboardStatTile.tsx
-      MojoRpEditForm.tsx
-      -- MOJO-4 additions:
-      MojoAvatarUpload.tsx
-      MojoAvatarCrop.tsx
-      MojoAvatarGrid.tsx
-      MojoStackManager.tsx
-      MojoStackMemberList.tsx
-    rps/
-      page.tsx                ← redirect to /mojo
-      [rpId]/
-        page.tsx
-        edit/page.tsx
-    characters/
-      [charId]/page.tsx
-    faceclaims/
-      page.tsx
-      [fcId]/page.tsx
-    avatars/
-      page.tsx                ← stub → MOJO-4
-    library/
-      page.tsx
-    wishlist/
-      page.tsx
-    partners/
-      page.tsx
-    search/
-      page.tsx                ← stub → MOJO-6
-  i/
-    [token]/route.ts          ← image proxy (public, no auth)
-  api/
-    mojo/
-      fetch-image/route.ts    ← external image fetch + sharp conversion
+      MojoAvatarUpload.tsx, MojoAvatarCrop.tsx, MojoAvatarGrid.tsx
+      MojoAvatarFilter.tsx, MojoAvatarManager.tsx
+      MojoStackCard.tsx, MojoStackMembers.tsx, MojoStackDropZone.tsx
+      MojoStackUrlCopy.tsx, MojoCreateStack.tsx
+      MojoRichTextEditor.tsx  (MOJO-6A)
+      MojoImageFolderList.tsx, MojoPersonalImageGrid.tsx,
+      MojoPersonalImageManager.tsx  (MOJO-6B)
+    rps/page.tsx (redirect), rps/[rpId]/page.tsx, rps/[rpId]/edit/page.tsx
+    characters/[charId]/page.tsx
+    faceclaims/page.tsx, faceclaims/[fcId]/page.tsx
+    avatars/page.tsx
+    stacks/page.tsx
+    library/page.tsx
+    wishlist/page.tsx
+    partners/page.tsx
+    images/page.tsx  (MOJO-6B)
+    search/page.tsx  (stub → MOJO-7)
+  i/[token]/route.ts  (public, no auth)
+  api/mojo/
+    fetch-image/route.ts
+    process-image/route.ts
+    refresh-thread/route.ts  (MOJO-5)
 
 lib/
-  mojo/
-    proxy.ts                  ← generateProxyToken, registerImageToken, getProxyUrl
-  actions/
-    mojo.ts                   ← ALL mojo server actions
-  db/
-    mojo.ts                   ← ALL mojo DB helpers
-```
+  mojo/proxy.ts
+  actions/mojo.ts  (40 actions as of MOJO-4B)
+  db/mojo.ts
 
 ---
 
-## 9. Server Actions Reference
+## 10. Navigation
 
-All in `lib/actions/mojo.ts`. All call `requireSuperAdmin()` first.
+Sidebar nav order (current, after MOJO-4A):
+  1. Dashboard → /mojo
+  2. Faceclaims → /mojo/faceclaims
+  3. Library → /mojo/library
+  4. Wishlist → /mojo/wishlist
+  5. Partners → /mojo/partners
+  6. Stacks → /mojo/stacks
+  7. Search → /mojo/search
 
-### Built (MOJO-1 through MOJO-3B)
-
-**RP actions:**
-- `createMojoRp(formData)`
-- `updateMojoRp(rpId, formData)`
-
-**Character actions:**
-- `createMojoCharacter(formData)`
-- `updateMojoCharacter(charId, payload)`
-- `updateMojoCharacterStatus(characterId, status)`
-
-**Thread actions:**
-- `createMojoThread(payload)`
-- `updateMojoThread(threadId, payload)`
-- `updateMojoThreadStatus(threadId, status)`
-- `deleteMojoThread(threadId)`
-
-**Faceclaim actions:**
-- `createMojoFaceclaim(payload)`
-- `updateMojoFaceclaim(fcId, payload)`
-- `deleteMojoFaceclaim(fcId)`
-- `assignFaceclaimToCharacter(characterId, faceclaimId | null)`
-
-**Resource actions:**
-- `createMojoResource(payload)`
-- `updateMojoResource(resourceId, payload)`
-- `deleteMojoResource(resourceId)`
-- `registerUploadedImage(payload)` ← P-DC final step
-- `linkResourceToCharacter(resourceId, characterId)`
-- `unlinkResourceFromCharacter(resourceId, characterId)`
-
-**Snippet actions:**
-- `createMojoSnippet(payload)`
-- `updateMojoSnippet(snippetId, payload)`
-- `deleteMojoSnippet(snippetId)`
-
-**Wishlist actions:**
-- `createMojoWishlistItem(payload)`
-- `updateMojoWishlistItem(itemId, payload)`
-- `updateMojoWishlistStatus(itemId, status)`
-- `deleteMojoWishlistItem(itemId)`
-
-**Partner actions:**
-- `createMojoPartner(payload)`
-- `updateMojoPartner(partnerId, payload)`
-- `deleteMojoPartner(partnerId)`
-
-### To Be Built
-
-**MOJO-4 — Avatar & Stack actions:**
-- `registerUploadedAvatar(payload)` — P-DC final step for avatars
-- `updateMojoAvatar(avatarId, payload)` — title, expiry, character/faceclaim assignment
-- `deleteMojoAvatar(avatarId)` — deletes from storage + DB
-- `createMojoImageStack(payload)` — label, rotation_mode, character_id, faceclaim_id, expires_at
-- `updateMojoImageStack(stackId, payload)` — label, rotation_mode, expires_at
-- `deleteMojoImageStack(stackId)` — deletes all members + DB row
-- `addMemberToStack(payload)` — storage_path, mime_type, weight, can reference existing library image
-- `removeMemberFromStack(memberId)`
-- `updateStackMember(memberId, payload)` — weight, display_order
-- `setCharacterPrimaryStack(characterId, stackId | null)`
-
-**MOJO-5 — Thread auto-fetch actions:**
-- `refreshThreadStatus(threadId)` — detects platform, fetches, updates fetch_status/last_poster/last_checked_at
-- `refreshAllThreads()` — runs refreshThreadStatus for all active threads
-
-**MOJO-6 — Search:**
-- `searchMojo(query)` — searches across characters, faceclaims, thread titles, resource titles, RP names
+Sidebar nav order (after MOJO-6B adds Images):
+  1. Dashboard → /mojo
+  2. Images → /mojo/images  (NEW — second position)
+  3. Faceclaims → /mojo/faceclaims
+  4. Library → /mojo/library
+  5. Wishlist → /mojo/wishlist
+  6. Partners → /mojo/partners
+  7. Stacks → /mojo/stacks
+  8. Search → /mojo/search
 
 ---
 
-## 10. DB Helpers Reference
+## 11. Dashboard / RP Command Center (MOJO-6B redesign)
 
-All in `lib/db/mojo.ts`.
+The dashboard (/mojo) is completely redesigned in MOJO-6B to serve as
+both the stats overview AND the primary RP management interface.
+The current simple dashboard is retired and replaced.
 
-### Built
+Structure top to bottom:
 
-- `getMojoRpsWithCharacters()` → sidebar tree data
-- `getMojoRp(rpId)` → single RP
-- `getMojoRpWithCharactersAndThreads(rpId)` → RP detail page
-- `getMojoCharacter(charId)` → character + rp_name + faceclaim_name
-- `getMojoCharacterThreads(charId)` → threads for character
-- `getMojoThread(threadId)` → single thread
-- `getMojoFaceclaims()` → all faceclaims with resource_count + character_count
-- `getMojoFaceclaim(fcId)` → single faceclaim
-- `getMojoFaceclaimResources(fcId)` → resources for faceclaim
-- `getMojoFaceclaimWithCharacters(fcId)` → faceclaim + characters using it
-- `getMojoCharacterResources(charId)` → own resources + junction-linked global resources
-- `getMojoGlobalResources()` → resources with both FKs null
-- `getMojoSnippets()` → all snippets
-- `getMojoWishlist()` → all wishlist items
-- `getMojoPartners()` → all partners
-- `getMojoPartner(partnerId)` → single partner
-- `getMojoDashboardStats()` → 6 counts in parallel
+Stats strip (compact, one row, 6 small tiles):
+  Active RPs · Total Characters · Active Threads · Snippets · Partners · Stacks
+  Each tile links to the relevant page.
 
-### To Be Built
+Active Roleplays (main content area):
+  Each RP is a full-width panel with:
+  - Left accent bar in RP color_hex
+  - RP name + site name (linked to site_url) + status badge
+  - Edit / Add Character / Archive buttons inline
+  - Notes preview: first line of notes_plot italic, click to expand
+  - Character row: horizontal scroll of character cards showing:
+    avatar (from primary_stack proxy URL if set, else placeholder),
+    character name, faceclaim name, status badge,
+    four quick-action icon buttons: View, Threads, Resources, Archive/Restore
+  - Thread count + active thread count as panel footer
 
-**MOJO-4:**
-- `getMojoAvatars(filter?)` → all avatars, optionally filtered by character_id or faceclaim_id
-- `getMojoAvatar(avatarId)` → single avatar
-- `getMojoImageStacks(filter?)` → all stacks, optionally filtered
-- `getMojoImageStack(stackId)` → stack + members
-- `getMojoStackMembers(stackId)` → members for a stack
+Hiatus and Ended: collapsed section at bottom, same structure, muted.
+
+No separate /mojo/roleplays route. Dashboard IS the roleplays page.
 
 ---
 
-## 11. Known Technical Debt & Cleanup Items
+## 12. Personal Image Repository (MOJO-6B)
 
-These items are confirmed and scheduled for MOJO-6:
+Route: /mojo/images
+Sidebar: Second position (between Dashboard and Faceclaims)
 
-**TD-1 — Pre-MOJO-3A inline window.location.href violations**
-Five components have `window.location.href` inside component-level
-handlers rather than module-level functions (Pattern 3 violation):
-- `MojoAddCharacter.tsx`
-- `MojoCharacterArchiveToggle.tsx`
-- `MojoCharacterStatusToggle.tsx`
-- `MojoRpEditForm.tsx`
-- `MojoSidebar.tsx` (create-RP handler)
-ESLint doesn't flag these as errors currently but they are non-compliant.
-Fix in MOJO-6 cleanup pass.
+Organisation: Flat folders (one level, no nesting) + tags per image.
+Both coexist — image can be in a folder AND have tags.
 
-**TD-2 — MojoResourceList link affordance double-title**
-In `app/mojo/library/page.tsx`, the "link to character" section renders
-above `MojoResourceList.tsx`, causing resource titles to appear twice.
-Root cause: couldn't modify `MojoResourceList.tsx` in MOJO-3B scope.
-Fix in MOJO-6: merge the link affordance into `MojoResourceList.tsx` rows.
+Page structure:
+  Left panel: folder list + All Images + Untagged + New Folder
+  Main panel: image card grid filtered by folder or tag
+  Upload: same pipeline as avatars, crop optional/skippable by default
+  Tag filter chips above grid
+  Cards: image, title, folder badge, tag chips, copy URL, edit, delete
+  Proxy system: same mojo_image_tokens + /i/[token]
+  Can be dragged into stacks (same drag-to-stack as avatars)
 
-**TD-3 — MojoAvatar unused type alias**
-`MojoAvatar` type alias in `lib/db/mojo.ts` is unused until MOJO-4.
-Produces an ESLint warning (not error). Resolves naturally in MOJO-4.
-
-**TD-4 — Pre-existing img ESLint warnings**
-Two pre-existing `@next/next/no-img-element` warnings not related to
-mojo code. Not errors. Not blocking.
+Distinct from:
+  mojo_avatars — tied to characters and faceclaims
+  mojo_resources of type image/gif — tied to faceclaims/characters
+  mojo_personal_images — free-floating, no character/RP context
 
 ---
 
-## 12. The Auto Reply Tracker (MOJO-5)
+## 13. Auto Reply Tracker (MOJO-5)
 
-Thread auto-fetch detects the platform from the thread URL and uses the
-appropriate strategy to find the last poster.
+Environment Variable:
+  TUMBLR_API_KEY — Tumblr OAuth consumer key
+  Consumer Secret NOT needed (v2 API accepts key alone for public posts)
+  STATUS: Added to .env.local and Vercel. Redeployment confirmed.
 
-**Platform detection (from thread URL):**
-- `tumblr.com` → `detected_platform = 'tumblr'` → Tumblr API
-- `*.jcink.net` or `*.jcink.com` → `detected_platform = 'jcink'` → JCINK scraper
-- Any other URL → `detected_platform = 'generic'` → generic scraper
+Platform detection (automatic from thread URL):
+  tumblr.com → detected_platform=tumblr → Tumblr API
+  *.jcink.net or *.jcink.com → detected_platform=jcink → JCINK scraper
+  anything else → detected_platform=generic → generic scraper
 
-**Tumblr:** Uses Tumblr API (requires `TUMBLR_API_KEY` env var). Fetches
-reblog chain, identifies last poster. Most reliable.
+No manual selection ever required.
 
-**JCINK:** Scrapes HTML of the thread page. JCINK forum software has
-consistent post table structure across sites. May break if a site uses
-a heavily custom skin. `fetch_status = 'uncertain'` when structure unrecognised.
+Tumblr: OAuth 1.0a but v2 read endpoint accepts consumer key as Bearer
+  for public posts. Fetches reblog chain, finds last poster. Most reliable.
 
-**Generic:** Best-effort HTML parse for common forum post patterns.
-`fetch_status = 'uncertain'` when unconfident.
+JCINK: Scrapes HTML. Consistent post table structure across JCINK sites.
+  fetch_status=uncertain when structure not recognised.
 
-**`whose_turn` display:** Derived at render time from `last_poster` vs
-the character name attached to the thread. Not a stored column.
-- If `last_poster` matches character name (case-insensitive): "Their turn"
-- If `last_poster` is different: "Your turn"
-- If `fetch_status` is 'uncertain', 'failed', or 'unsupported': "Unknown"
+Generic: Best-effort HTML parse for common forum software.
+  fetch_status=uncertain when unconfident.
+  fetch_status=unsupported for JS-rendered sites.
 
-**`last_checked_at`** is always displayed on every thread row so the
-operator knows how fresh the data is.
+whose_turn: Derived at render time, NOT a stored column.
+  last_poster matches character name → Their turn
+  last_poster differs → Your turn
+  fetch_status uncertain/failed/unsupported → Unknown
 
-**Manual fallback:** A manual toggle is always available regardless of
-fetch status. Auto-fetch is additive, not a replacement.
+last_checked_at always shown so operator knows data freshness.
 
-**Env var required:** `TUMBLR_API_KEY` — must be added to `.env.local`
-AND Vercel environment variables before MOJO-5 runs.
+Manual override always available regardless of fetch status.
 
----
+API route: app/api/mojo/refresh-thread/route.ts — POST, auth required.
+  Body: { threadId: string }
+  Updates: last_poster, fetch_status, last_checked_at, detected_platform
 
-## 13. Rotating Image Stacks (MOJO-4)
-
-**Concept:** One public-facing URL (`atwitchinghour.com/i/[token]`) that
-resolves to a different image on each request, randomly selected from a
-pool of images (the "stack"). The URL looks identical to a single-image
-URL — no external indication that it's a rotating stack.
-
-**Use case:** Avatar rotation — four variants of a character's avatar,
-one URL used in all RP posts, each page load may show a different image.
-
-**Four rotation modes (selectable per stack):**
-1. `truly_random` — pure `Math.random()`, stateless, any member equally likely
-2. `weighted` — members have `weight` integers, higher weight = more frequent, stateless
-3. `sequential` — cycles through in order, writes `last_served_index` to DB per request
-4. `no_repeat` — random but never the same image twice in a row, writes `last_served_member_id`
-
-**Stack membership:** Members can be:
-- Images already in the library (reference their `storage_path`)
-- New uploads directly to the stack
-
-**Primary stack:** A character can have one `primary_stack_id` (FK to
-`mojo_image_stacks`). This is the "canonical" avatar stack for that
-character. Additional stacks can exist as freestanding resources.
-
-**Proxy route lookup order:**
-1. Check `mojo_image_tokens` (single image) — if found, serve it
-2. Check `mojo_image_stacks` (rotating stack) — if found, apply rotation logic
-
-**Expiry:** Same per-item `expires_at` as single images. Null = indefinite.
+Refresh all: sequential (not parallel) to avoid Tumblr rate limits.
 
 ---
 
-## 14. MOJO-4 Build Plan: Avatars & Rotating Stacks
+## 14. Rotating Image Stacks
 
-**Migration:** `mojo_003_avatars_and_stacks.sql`
-Creates: `mojo_image_stacks`, `mojo_image_stack_members`
-Alters: `mojo_characters` adds `primary_stack_id`
+One URL → different image each request from a pool.
+Proxy lookup order:
+  1. Check mojo_image_tokens (single image) → serve if found
+  2. Check mojo_image_stacks (rotating stack) → apply rotation if found
+  3. Neither found → 404
 
-**Pages built/completed:**
-- `app/mojo/avatars/page.tsx` — global avatar manager (replaces stub)
-- Avatars tab on character sheet fully wired (replaces MOJO-2 stub)
+Stack member drag-drop:
+  dataTransfer key: 'application/mojo-avatar'
+  Payload: { storage_path, mime_type, avatar_id }
+  Key must be identical in MojoAvatarGrid.tsx (setData) and
+  MojoStackDropZone.tsx (getData). Confirmed consistent in MOJO-4B.
 
-**Avatar upload features:**
-- Drag-and-drop multi-file queue
-- Processes files one by one through the queue
-- Crop tool: canvas-based, aspect ratio presets (100×100, 150×150, 200×200, freeform)
-- Resize: set target dimensions before saving
-- Static images → lossless PNG via `sharp` (API route, not Server Action)
-- Animated GIFs → kept as `.gif`, no conversion
-- P-DC upload pattern: browser → mojo-private → `registerUploadedAvatar()` Server Action
-- Per-image expiry selector: Never / 1 year / Custom date
-- One-click URL copy (flashes ✓ for 1.5s)
+Primary stack: character can have one primary_stack_id FK.
+  Additional freestanding stacks also supported.
 
-**Sharp usage in API route (not Server Action):**
-```ts
-// API route at app/api/mojo/process-image/route.ts
-const pngBuffer = await sharp(buffer).png().toBuffer()
-return new NextResponse(new Uint8Array(pngBuffer), {
-  headers: { 'Content-Type': 'image/png' }
-})
-```
-Remember `new Uint8Array()` wrapper (confirmed fix from MOJO-3A Q6).
-
-**Stack UI:**
-- Create stack: label, rotation_mode selector, optional character/faceclaim assignment
-- Add members: upload new OR select from existing library images
-- Weight input per member (shown only when mode = weighted)
-- Reorder members (displayed in display_order)
-- Preview mode: shows which image would be served (simulates a request)
-- Primary stack selector on character sheet header
+Known limitation: Stack edit mode does not support character/faceclaim
+reassignment. Fix scheduled for MOJO-7 (TD-6).
 
 ---
 
-## 15. MOJO-5 Build Plan: Auto Reply Tracker
+## 15. Wanted / Connections Board (MOJO-7)
 
-**Migration:** None (all columns added in mojo_002)
-
-**New env var required:** `TUMBLR_API_KEY`
-Add to `.env.local` and Vercel environment variables before this prompt runs.
-
-**New API route:** `app/api/mojo/refresh-thread/route.ts`
-POST handler: `{ threadId: string }`
-1. Auth check (isSuperAdmin)
-2. Fetch thread from DB
-3. Detect platform from thread.url
-4. Run appropriate fetch strategy
-5. Update thread: last_poster, fetch_status, last_checked_at, detected_platform
-6. Return updated thread row
-
-**Refresh all:** A "Refresh all active threads" button on the thread
-tracker calls individual refresh requests for each active thread in
-sequence (not parallel — avoid rate limiting Tumblr API).
-
-**whose_turn badge display:**
-- "Your turn" → ember/gold treatment
-- "Their turn" → moonstone treatment
-- "Unknown" → faded treatment
-- Always show last_checked_at timestamp below the badge
+Per-RP section on the RP detail page.
+Fields: title, rich text description, optional reference image
+(P-DC upload, stored as image_token), character assignment (optional),
+status (open/filled).
 
 ---
 
-## 16. MOJO-6 Build Plan: Search, Polish & Cleanup
+## 16. Known Technical Debt
 
-**Migration:** None
+TD-1: Pre-MOJO-3A inline window.location.href violations (5 components)
+  MojoAddCharacter.tsx, MojoCharacterArchiveToggle.tsx,
+  MojoCharacterStatusToggle.tsx, MojoRpEditForm.tsx,
+  MojoSidebar.tsx (create-RP handler)
+  Fix: MOJO-7
 
-**Global search** (`app/mojo/search/page.tsx` — replaces stub):
-- Single query input
-- Searches: mojo_characters.name, mojo_faceclaims.name, mojo_threads.title,
-  mojo_resources.title, mojo_rps.name
-- Results grouped by type with type labels
-- Each result links to the relevant page
+TD-2: MojoResourceList double-title in library page
+  Link affordance renders above list, causing titles to appear twice.
+  Fix: MOJO-7 (merge affordance into MojoResourceList rows directly)
 
-**Wanted/Connections board** (per RP):
-- New table: `mojo_wanted` — id, rp_id FK, character_id (nullable FK),
-  title, description, status CHECK ('open','filled')
-- Migration: `mojo_004_wanted.sql`
-- UI: section on RP detail page below thread overview
-- Fields: title (required), description (textarea), character (optional dropdown),
-  status toggle open/filled
-- CRUD inline on RP detail page
+TD-3: RESOLVED in MOJO-4B. MojoAvatar type alias now used.
 
-**Full visual polish pass:**
-- Silver & Onyx specific decorative elements throughout
-- Moon phase markers on section headers
-- Richer card designs with personality
-- Consistent filigree usage across all pages
-- Decorative character sheet header
-- Dashboard ambient treatment
+TD-4: Two pre-existing img ESLint warnings unrelated to mojo.
+  Not errors. Not blocking.
 
-**Technical debt cleanup (TD-1 through TD-4 from §11):**
-- Fix 5 pre-MOJO-3A window.location.href violations
-- Fix MojoResourceList double-title
-- Any remaining Q-item loose ends
+TD-5: Crop tool is mandatory in MojoAvatarUpload.tsx (MOJO-4B built wrong)
+  Must be changed to opt-in. Fix: MOJO-6A.
+
+TD-6: Stack edit mode does not support character/faceclaim reassignment.
+  Fix: MOJO-7.
+
+TD-7: MojoResourceList not yet accepting link affordance inline.
+  Fix: MOJO-7.
 
 ---
 
-## 17. Navigation Structure
+## 17. Server Actions Reference (lib/actions/mojo.ts)
 
-```
-/mojo                    Dashboard
-/mojo/rps/[rpId]         RP detail (notes, characters, threads overview)
-/mojo/rps/[rpId]/edit    Edit RP
-/mojo/characters/[charId] Character sheet (Notes / Threads / Resources / Avatars tabs)
-/mojo/faceclaims         Faceclaim list
-/mojo/faceclaims/[fcId]  Faceclaim detail + quick copy panel + resources
-/mojo/avatars            Global avatar manager
-/mojo/library            Global snippets + global resources
-/mojo/wishlist           RP ideas board
-/mojo/partners           Writing partner notes
-/mojo/search             Global search
-/i/[token]               Image proxy (public, no auth)
-/api/mojo/fetch-image    External image fetch API
-/api/mojo/refresh-thread Thread auto-fetch API (MOJO-5)
-```
+Total as of MOJO-4B: 40 actions (requireSuperAdmin count = 40)
 
-**Sidebar nav order:**
-1. ✦ Dashboard
-2. ✦ Faceclaims
-3. ✦ Library
-4. ✦ Wishlist
-5. ✦ Partners
-6. ✦ Search
-— filigree divider —
-YOUR RPs (RP tree, expandable, characters nested)
-— bottom —
-mojo v1
+Built:
+  RP: createMojoRp, updateMojoRp
+  Character: createMojoCharacter, updateMojoCharacter, updateMojoCharacterStatus
+  Thread: createMojoThread, updateMojoThread, updateMojoThreadStatus, deleteMojoThread
+  Faceclaim: createMojoFaceclaim, updateMojoFaceclaim, deleteMojoFaceclaim,
+    assignFaceclaimToCharacter
+  Resource: createMojoResource, updateMojoResource, deleteMojoResource,
+    registerUploadedImage, linkResourceToCharacter, unlinkResourceFromCharacter
+  Avatar: registerUploadedAvatar, updateMojoAvatar, deleteMojoAvatar
+  Stack: createMojoImageStack, updateMojoImageStack, deleteMojoImageStack,
+    addMemberToStack, removeMemberFromStack, updateStackMember,
+    setCharacterPrimaryStack
+  Snippet: createMojoSnippet, updateMojoSnippet, deleteMojoSnippet
+  Wishlist: createMojoWishlistItem, updateMojoWishlistItem,
+    updateMojoWishlistStatus, deleteMojoWishlistItem
+  Partner: createMojoPartner, updateMojoPartner, deleteMojoPartner
+
+To be built:
+  MOJO-6B (Personal Images): createMojoImageFolder, updateMojoImageFolder,
+    deleteMojoImageFolder, registerUploadedPersonalImage,
+    updateMojoPersonalImage, deleteMojoPersonalImage
+  MOJO-7 (Wanted): createMojoWanted, updateMojoWanted,
+    updateMojoWantedStatus, deleteMojoWanted
 
 ---
 
-## 18. Quality Gates (Every Build)
+## 18. DB Helpers Reference (lib/db/mojo.ts)
 
-Run before every push:
-```bash
-tsc --noEmit        # must pass clean (0 errors)
-npx eslint .        # must pass clean (0 errors; warnings acceptable)
-```
+Built:
+  getMojoRpsWithCharacters, getMojoRp, getMojoRpWithCharactersAndThreads,
+  getMojoCharacter, getMojoCharacterThreads, getMojoThread,
+  getMojoFaceclaims, getMojoFaceclaim, getMojoFaceclaimResources,
+  getMojoFaceclaimWithCharacters, getMojoCharacterResources,
+  getMojoGlobalResources, getMojoSnippets, getMojoWishlist,
+  getMojoPartners, getMojoPartner, getMojoDashboardStats,
+  getMojoImageStacks, getMojoImageStack, getMojoStackMembers,
+  getMojoAvatars, getMojoAvatar
 
-Standard grep verifications for every mojo prompt:
-```bash
-grep -rn "isSuperAdmin()" --include="*.ts" --include="*.tsx" .
-# Expected: 0 (all calls are isSuperAdmin(user.id))
+To be built:
+  MOJO-5: (no new helpers — thread refresh is an API route)
+  MOJO-6B: getMojoImageFolders, getMojoPersonalImages
+  MOJO-7: getMojoWanted
 
-grep -rn "moonstone-dim" --include="*.tsx" --include="*.ts" app/mojo/
-# Expected: 0
+---
 
-grep -rn "f-heading" --include="*.tsx" --include="*.ts" app/mojo/
-# Expected: 0
+## 19. Quality Gates (Every Build)
 
-grep -rn "useTransition" --include="*.tsx" app/mojo/
-# Expected: 0
+  tsc --noEmit   (0 errors required)
+  npx eslint .   (0 errors required; warnings acceptable)
 
-grep -rn "window.location.href" --include="*.tsx" app/mojo/components/
-# Every result must be inside a module-level function
-```
+Standard grep verifications:
+  grep -rn "isSuperAdmin()" --include="*.ts" --include="*.tsx" .
+  # Expected: 0 (all calls are isSuperAdmin(user.id))
+
+  grep -rn "moonstone-dim\|f-heading" --include="*.tsx" --include="*.ts" app/mojo/
+  # Expected: 0
+
+  grep -rn "useTransition" --include="*.tsx" app/mojo/
+  # Expected: 0
+
+  grep -rn "window.location.href" --include="*.tsx" app/mojo/components/
+  # Every result must be inside a module-level function
+
+  grep -rn "createClient\b" --include="*.tsx" --include="*.ts" app/mojo/
+  # Expected: 0 — use createBrowserClient, not createClient
 
 Every prompt ends with:
-```bash
-git add -A
-git commit -m "MOJO-X: descriptive message"
-git push origin main
-```
+  git add -A
+  git commit -m "MOJO-X: descriptive message"
+  git push origin main
 
-Build report required after every push:
-- Commit hash
-- All files created/modified
-- All grep results
-- Q-items (anything noticed but not acted on)
+Build report required with: commit hash, files list, grep results, Q-items.
 
 ---
 
-## 19. Build Status
+## 20. Build Status
 
-| Prompt | Status | Commit | Key deliverables |
-|--------|--------|--------|-----------------|
-| MOJO-1 | ✅ Complete | e618fd9 | Foundation, migration mojo_001, layout, auth gate, dashboard, RP detail |
-| MOJO-2 | ✅ Complete | afeeefa | Character sheet, notes, thread tracker CRUD |
-| MOJO-3A | ✅ Complete | 56da652 | Migration mojo_002, image proxy, faceclaims, resource system |
-| MOJO-3B | ✅ Complete | cd05734 | Silver & Onyx theme, library, wishlist, partners, sidebar, dashboard stats |
-| MOJO-4 | ⬜ Next | — | Migration mojo_003, avatar upload, crop/resize, rotating stacks |
-| MOJO-5 | ⬜ Planned | — | Auto reply tracker, Tumblr API, JCINK scraper, whose_turn |
-| MOJO-6 | ⬜ Planned | — | Global search, visual polish, wanted board, cleanup |
-
----
-
-## 20. Supabase Project Reference
-
-Project ID: `vkhuttcusqubteseifui`
-Project URL: `https://vkhuttcusqubteseifui.supabase.co`
-Storage bucket: `mojo-private` (PRIVATE — files accessed via proxy only)
-
-TypeScript types regeneration command:
-```bash
-npx supabase gen types typescript --project-id vkhuttcusqubteseifui > types/database.ts
-```
-
-Run after every migration. Always verify the new tables appear in
-`types/database.ts` before writing any typed DB code.
+| Prompt  | Status      | Commit  | Key deliverables |
+|---------|-------------|---------|-----------------|
+| MOJO-1  | Complete    | e618fd9 | Foundation, migration mojo_001, layout, auth gate, dashboard, RP detail |
+| MOJO-2  | Complete    | afeeefa | Character sheet, notes, thread tracker CRUD |
+| MOJO-3A | Complete    | 56da652 | Migration mojo_002, image proxy, faceclaims, resource system |
+| MOJO-3B | Complete    | cd05734 | Silver & Onyx theme, library, wishlist, partners, sidebar, dashboard stats |
+| MOJO-4A | Complete    | 2e08a0f | Migration mojo_003, process-image route, proxy stack extension, stacks page |
+| MOJO-4B | Complete    | 9406cff | Migration mojo_004 (storage policy), avatar upload, crop, card grid, drag-to-stack |
+| MOJO-6A | Next        | —       | Rich text editor + retrofit all text fields + crop UX fix — RUN BEFORE MOJO-5 |
+| MOJO-5  | Planned     | —       | Auto reply tracker — TUMBLR_API_KEY now configured |
+| MOJO-6B | Planned     | —       | Dashboard redesign (RP command center) + /mojo/images personal repository |
+| MOJO-7  | Planned     | —       | Global search + visual polish + wanted board + TD cleanup |
 
 ---
 
-*Cross-reference: TWH_BRIEF_v1.md (main project brief) | TWH_PROCESS_v1.md (build governance)*
-*This document must be updated when new decisions are made or new patterns are confirmed.*
+## 21. Supabase Project Reference
+
+Project ID: vkhuttcusqubteseifui
+URL: https://vkhuttcusqubteseifui.supabase.co
+Storage bucket: mojo-private (PRIVATE)
+
+Types regeneration:
+  npx supabase gen types typescript --project-id vkhuttcusqubteseifui > types/database.ts
+
+---
+
+## 22. Environment Variables (Mojo-Specific)
+
+In addition to the six existing TWH env vars:
+
+  TUMBLR_API_KEY — Tumblr OAuth consumer key for thread auto-fetch
+  Status: Set in .env.local and Vercel. Redeployment confirmed.
+
+---
+
+Version history:
+  v1.0 — initial, through MOJO-4A
+  v1.1 — through MOJO-4B: added rich text system, crop UX decision,
+    personal image repository, dashboard redesign plan, Tumblr API
+    setup and key configuration, createBrowserClient correction,
+    updated TD list through TD-7, wanted board schema, full build
+    status table, environment variables section
+
+Cross-reference: TWH_BRIEF_v1.md | TWH_PROCESS_v1.md
+This document must be updated when new decisions are made or patterns confirmed.

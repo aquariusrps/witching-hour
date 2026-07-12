@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateMojoSnippet, deleteMojoSnippet } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 import type { Tables } from '@/types/database'
 
 type MojoSnippet = Tables<'mojo_snippets'>
@@ -112,11 +113,33 @@ export default function MojoSnippetCard({ snippet }: { snippet: MojoSnippet }) {
             </select>
             <input type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="comma-separated tags" style={INPUT_STYLE} />
           </div>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            style={{ ...INPUT_STYLE, minHeight: 140, resize: 'vertical', fontFamily: MONO_TYPES.has(type) ? "'Courier New', monospace" : 'var(--f-body)' }}
-          />
+          {MONO_TYPES.has(type) ? (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              style={{
+                fontFamily: "'Courier New', monospace",
+                fontSize: '13px',
+                color: 'var(--roseash)',
+                background: 'var(--raised)',
+                border: '1px solid var(--elevated)',
+                borderRadius: '2px',
+                padding: '8px 12px',
+                minHeight: '140px',
+                width: '100%',
+                resize: 'vertical',
+                boxSizing: 'border-box',
+              }}
+              placeholder="Paste your code or formatting template..."
+            />
+          ) : (
+            <MojoRichTextEditor
+              content={content}
+              onChange={setContent}
+              minHeight="140px"
+              placeholder="Write your snippet content..."
+            />
+          )}
         </div>
         <div style={{ marginTop: 10 }}>
           <button type="button" onClick={handleSave} disabled={loading} style={{ background: 'var(--ember)', color: 'var(--roseash)', border: 'none', borderRadius: 2, padding: '6px 16px', fontFamily: 'var(--f-ui)', fontSize: '0.75rem', cursor: loading ? 'not-allowed' : 'pointer' }}>
@@ -173,16 +196,22 @@ export default function MojoSnippetCard({ snippet }: { snippet: MojoSnippet }) {
         )}
       </div>
 
-      <pre style={{
-        fontFamily: isMono ? "'Courier New', monospace" : 'var(--f-body)',
-        fontSize: '0.82rem',
-        color: 'var(--mist)',
-        margin: '8px 0 0',
-        whiteSpace: 'pre-wrap',
-        overflowX: 'auto',
-      }}>
-        {expanded ? snippet.content : preview}
-      </pre>
+      {isMono ? (
+        <pre style={{
+          fontFamily: "'Courier New', monospace",
+          fontSize: '0.82rem',
+          color: 'var(--mist)',
+          margin: '8px 0 0',
+          whiteSpace: 'pre-wrap',
+          overflowX: 'auto',
+        }}>
+          {expanded ? snippet.content : preview}
+        </pre>
+      ) : (
+        <div style={{ margin: '8px 0 0', maxHeight: expanded ? 'none' : '4.8em', overflow: 'hidden' }}>
+          <MojoRichTextEditor content={snippet.content} onChange={() => {}} readonly />
+        </div>
+      )}
 
       {isLong && (
         <button

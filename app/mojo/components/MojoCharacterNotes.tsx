@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateMojoCharacter } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 
 const NOTE_TABS = [
   { key: 'plot', label: 'Plot Threads' },
@@ -25,19 +26,6 @@ function FiligreeDivider() {
       <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, var(--ember), var(--gold))' }} />
     </div>
   )
-}
-
-const TEXTAREA_STYLE: React.CSSProperties = {
-  width: '100%',
-  resize: 'vertical',
-  background: 'var(--raised)',
-  color: 'var(--roseash)',
-  border: '1px solid var(--elevated)',
-  borderRadius: 2,
-  padding: 10,
-  fontFamily: 'var(--f-body)',
-  fontSize: '0.875rem',
-  boxSizing: 'border-box',
 }
 
 export default function MojoCharacterNotes({
@@ -154,10 +142,11 @@ export default function MojoCharacterNotes({
 
         {editingBio ? (
           <div>
-            <textarea
-              value={bioDraft}
-              onChange={(e) => setBioDraft(e.target.value)}
-              style={{ ...TEXTAREA_STYLE, minHeight: 120 }}
+            <MojoRichTextEditor
+              content={bioDraft}
+              onChange={setBioDraft}
+              minHeight="120px"
+              autoFocus
             />
             <div style={{ marginTop: 8 }}>
               <button
@@ -196,9 +185,7 @@ export default function MojoCharacterNotes({
             </div>
           </div>
         ) : bio ? (
-          <p style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--f-body)', fontSize: '0.94rem', color: 'var(--roseash)', margin: 0 }}>
-            {bio}
-          </p>
+          <MojoRichTextEditor content={bio} onChange={() => {}} readonly />
         ) : (
           <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.94rem', color: 'var(--faded)', margin: 0 }}>
             No biography yet.
@@ -258,10 +245,11 @@ export default function MojoCharacterNotes({
 
         {editingNotes ? (
           <div>
-            <textarea
-              value={notesDraft}
-              onChange={(e) => setNotesDraft(e.target.value)}
-              style={{ ...TEXTAREA_STYLE, minHeight: 160 }}
+            <MojoRichTextEditor
+              content={notesDraft}
+              onChange={setNotesDraft}
+              minHeight="160px"
+              autoFocus
             />
             <div style={{ marginTop: 8 }}>
               <button
@@ -300,9 +288,7 @@ export default function MojoCharacterNotes({
             </div>
           </div>
         ) : currentNoteValue ? (
-          <p style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--f-body)', fontSize: '0.875rem', color: 'var(--roseash)', margin: 0 }}>
-            {currentNoteValue}
-          </p>
+          <MojoRichTextEditor content={currentNoteValue} onChange={() => {}} readonly />
         ) : (
           <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.875rem', color: 'var(--faded)', margin: 0 }}>
             No notes yet.

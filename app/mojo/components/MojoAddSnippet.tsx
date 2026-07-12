@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createMojoSnippet } from '@/lib/actions/mojo'
+import MojoRichTextEditor from './MojoRichTextEditor'
 
 function navigateToLibrary() {
   window.location.href = '/mojo/library'
@@ -105,17 +106,33 @@ export default function MojoAddSnippet() {
           </div>
           <div>
             <label style={LABEL_STYLE}>Content</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              style={{
-                ...INPUT_STYLE,
-                minHeight: 140,
-                resize: 'vertical',
-                fontFamily: MONO_TYPES.has(type) ? "'Courier New', monospace" : 'var(--f-body)',
-              }}
-            />
+            {MONO_TYPES.has(type) ? (
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                style={{
+                  fontFamily: "'Courier New', monospace",
+                  fontSize: '13px',
+                  color: 'var(--roseash)',
+                  background: 'var(--raised)',
+                  border: '1px solid var(--elevated)',
+                  borderRadius: '2px',
+                  padding: '8px 12px',
+                  minHeight: '140px',
+                  width: '100%',
+                  resize: 'vertical',
+                  boxSizing: 'border-box',
+                }}
+                placeholder="Paste your code or formatting template..."
+              />
+            ) : (
+              <MojoRichTextEditor
+                content={content}
+                onChange={setContent}
+                minHeight="140px"
+                placeholder="Write your snippet content..."
+              />
+            )}
           </div>
           <div>
             <button
