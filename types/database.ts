@@ -644,6 +644,102 @@ export type Database = {
         }
         Relationships: []
       }
+      mojo_avatars: {
+        Row: {
+          character_id: string | null
+          created_at: string
+          expires_at: string | null
+          faceclaim_id: string | null
+          file_size: number | null
+          height: number | null
+          id: string
+          mime_type: string
+          storage_path: string
+          title: string | null
+          token: string
+          width: number | null
+        }
+        Insert: {
+          character_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          faceclaim_id?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          mime_type?: string
+          storage_path: string
+          title?: string | null
+          token: string
+          width?: number | null
+        }
+        Update: {
+          character_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          faceclaim_id?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          title?: string | null
+          token?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_avatars_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_avatars_faceclaim_id_fkey"
+            columns: ["faceclaim_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_faceclaims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mojo_character_resources: {
+        Row: {
+          character_id: string
+          created_at: string
+          id: string
+          resource_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          id?: string
+          resource_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          id?: string
+          resource_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_character_resources_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_character_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mojo_characters: {
         Row: {
           bio: string | null
@@ -719,6 +815,69 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+        }
+        Relationships: []
+      }
+      mojo_image_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          label: string | null
+          mime_type: string
+          storage_path: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          mime_type?: string
+          storage_path: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          mime_type?: string
+          storage_path?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      mojo_partners: {
+        Row: {
+          created_at: string
+          display_order: number
+          handle: string
+          history_notes: string | null
+          id: string
+          pace_notes: string | null
+          sites: string | null
+          style_notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          handle: string
+          history_notes?: string | null
+          id?: string
+          pace_notes?: string | null
+          sites?: string | null
+          style_notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          handle?: string
+          history_notes?: string | null
+          id?: string
+          pace_notes?: string | null
+          sites?: string | null
+          style_notes?: string | null
         }
         Relationships: []
       }
@@ -821,12 +980,46 @@ export type Database = {
         }
         Relationships: []
       }
+      mojo_snippets: {
+        Row: {
+          content: string
+          created_at: string
+          display_order: number
+          id: string
+          tags: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          tags?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          tags?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       mojo_threads: {
         Row: {
           character_id: string
           created_at: string
+          detected_platform: string | null
           display_order: number
+          fetch_status: string | null
           id: string
+          last_checked_at: string | null
+          last_poster: string | null
           partner_names: string | null
           rp_id: string
           status: string
@@ -836,8 +1029,12 @@ export type Database = {
         Insert: {
           character_id: string
           created_at?: string
+          detected_platform?: string | null
           display_order?: number
+          fetch_status?: string | null
           id?: string
+          last_checked_at?: string | null
+          last_poster?: string | null
           partner_names?: string | null
           rp_id: string
           status?: string
@@ -847,8 +1044,12 @@ export type Database = {
         Update: {
           character_id?: string
           created_at?: string
+          detected_platform?: string | null
           display_order?: number
+          fetch_status?: string | null
           id?: string
+          last_checked_at?: string | null
+          last_poster?: string | null
           partner_names?: string | null
           rp_id?: string
           status?: string
@@ -871,6 +1072,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mojo_wishlist: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          notes: string | null
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          notes?: string | null
+          status?: string
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          notes?: string | null
+          status?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {

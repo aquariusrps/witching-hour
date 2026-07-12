@@ -5,6 +5,16 @@ type MojoRp = Tables<'mojo_rps'>
 type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
 type MojoFaceclaim = Tables<'mojo_faceclaims'>
+type MojoResource = Tables<'mojo_resources'>
+type MojoAvatar = Tables<'mojo_avatars'>
+
+function sortResourcesByTypeThenOrder(resources: MojoResource[]): MojoResource[] {
+  return [...resources].sort((a, b) => {
+    if (a.type !== b.type) return a.type.localeCompare(b.type)
+    if (a.display_order !== b.display_order) return a.display_order - b.display_order
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+}
 
 function statusRank(status: string): number {
   return status === 'active' ? 0 : status === 'hiatus' ? 1 : 2
@@ -193,4 +203,116 @@ export async function getMojoThread(threadId: string): Promise<MojoThread | null
     .single()
   if (error || !data) return null
   return data
+}
+
+export async function getMojoFaceclaims(): Promise<
+  Array<MojoFaceclaim & { resource_count: number; character_count: number }>
+> {
+  const admin = getAdminClient()
+
+  const { data: faceclaims, error } = await admin
+    .from('mojo_faceclaims')
+    .select('*')
+    .order('name', { ascending: true })
+  if (error || !faceclaims) return []
+
+  const { data: resourceRows } = await admin
+    .from('mojo_resources')
+    .select('faceclaim_id')
+    .not('faceclaim_id', 'is', null)
+
+  const { data: characterRows } = await admin
+    .from('mojo_characters')
+    .select('faceclaim_id')
+    .not('faceclaim_id', 'is', null)
+
+  const resourceCounts = new Map<string, number>()
+  for (const row of resourceRows ?? []) {
+    if (row.faceclaim_id) {
+      resourceCounts.set(row.faceclaim_id, (resourceCounts.get(row.faceclaim_id) ?? 0) + 1)
+    }
+  }
+
+  const characterCounts = new Map<string, number>()
+  for (const row of characterRows ?? []) {
+    if (row.faceclaim_id) {
+      characterCounts.set(row.faceclaim_id, (characterCounts.get(row.faceclaim_id) ?? 0) + 1)
+    }
+  }
+
+  return faceclaims.map((fc) => ({
+    ...fc,
+    resource_count: resourceCounts.get(fc.id) ?? 0,
+    character_count: characterCounts.get(fc.id) ?? 0,
+  }))
+}
+
+export async function getMojoFaceclaim(fcId: string): Promise<MojoFaceclaim | null> {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_faceclaims')
+    .select('*')
+    .eq('id', fcId)
+    .single()
+  if (error || !data) return null
+  return data
+}
+
+export async function getMojoFaceclaimResources(fcId: string): Promise<MojoResource[]> {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_resources')
+    .select('*')
+    .eq('faceclaim_id', fcId)
+
+  return sortResourcesByTypeThenOrder(data ?? [])
+}
+
+export async function getMojoCharacterResources(charId: string): Promise<MojoResource[]> {
+  const admin = getAdminClient()
+
+  const { data: owned } = await admin
+    .from('mojo_resources')
+    .select('*')
+    .eq('character_id', charId)
+
+  const { data: linkRows } = await admin
+    .from('mojo_character_resources')
+    .select('resource_id')
+    .eq('character_id', charId)
+
+  const linkedIds = (linkRows ?? []).map((r) => r.resource_id)
+  const { data: linked } = linkedIds.length
+    ? await admin.from('mojo_resources').select('*').in('id', linkedIds)
+    : { data: [] as MojoResource[] }
+
+  const byId = new Map<string, MojoResource>()
+  for (const r of owned ?? []) byId.set(r.id, r)
+  for (const r of linked ?? []) byId.set(r.id, r)
+
+  return sortResourcesByTypeThenOrder(Array.from(byId.values()))
+}
+
+export async function getMojoFaceclaimWithCharacters(
+  fcId: string
+): Promise<(MojoFaceclaim & { characters: MojoCharacter[] }) | null> {
+  const admin = getAdminClient()
+
+  const { data: faceclaim, error } = await admin
+    .from('mojo_faceclaims')
+    .select('*')
+    .eq('id', fcId)
+    .single()
+  if (error || !faceclaim) return null
+
+  const { data: characters } = await admin
+    .from('mojo_characters')
+    .select('*')
+    .eq('faceclaim_id', fcId)
+    .order('name', { ascending: true })
+
+  return {
+    ...faceclaim,
+    characters: characters ?? [],
+  }
 }

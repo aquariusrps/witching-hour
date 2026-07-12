@@ -5,10 +5,13 @@ import { getAdminClient } from '@/lib/supabase/adminClient'
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { revalidatePath } from 'next/cache'
 import type { Tables, TablesUpdate } from '@/types/database'
+import { registerImageToken, getProxyUrl } from '@/lib/mojo/proxy'
 
 type MojoRp = Tables<'mojo_rps'>
 type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
+type MojoFaceclaim = Tables<'mojo_faceclaims'>
+type MojoResource = Tables<'mojo_resources'>
 
 type ActionError = { error: string }
 
@@ -300,4 +303,336 @@ export async function deleteMojoThread(
   revalidatePath('/mojo/characters/' + thread.character_id)
   revalidatePath('/mojo/rps/' + thread.rp_id)
   return { success: true as const }
+}
+
+// ─── FACECLAIM ACTIONS ─────────────────────────────────────
+
+export async function createMojoFaceclaim(payload: {
+  name: string
+  notes?: string
+}): Promise<ActionError | { success: true; faceclaim: MojoFaceclaim }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const name = payload.name?.trim()
+  if (!name) return { error: 'Faceclaim name is required' }
+
+  const admin = getAdminClient()
+
+  const { data: existing } = await admin
+    .from('mojo_faceclaims')
+    .select('id')
+    .ilike('name', name)
+    .maybeSingle()
+
+  if (existing) return { error: 'A faceclaim with that name already exists.' }
+
+  const { data, error } = await admin
+    .from('mojo_faceclaims')
+    .insert({ name, notes: payload.notes?.trim() || null })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create faceclaim' }
+
+  revalidatePath('/mojo/faceclaims')
+  return { success: true as const, faceclaim: data }
+}
+
+export async function updateMojoFaceclaim(
+  fcId: string,
+  payload: { name?: string; notes?: string }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  if ('name' in payload) {
+    const name = payload.name?.trim()
+    if (!name) return { error: 'Faceclaim name cannot be empty' }
+
+    const { data: existing } = await admin
+      .from('mojo_faceclaims')
+      .select('id')
+      .ilike('name', name)
+      .neq('id', fcId)
+      .maybeSingle()
+
+    if (existing) return { error: 'A faceclaim with that name already exists.' }
+  }
+
+  const updates: TablesUpdate<'mojo_faceclaims'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_faceclaims')
+    .update(updates)
+    .eq('id', fcId)
+
+  if (error) return { error: 'Failed to update faceclaim' }
+
+  revalidatePath('/mojo/faceclaims')
+  revalidatePath('/mojo/faceclaims/' + fcId)
+  return { success: true as const }
+}
+
+export async function deleteMojoFaceclaim(
+  fcId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  await admin.from('mojo_characters').update({ faceclaim_id: null }).eq('faceclaim_id', fcId)
+  await admin.from('mojo_resources').update({ faceclaim_id: null }).eq('faceclaim_id', fcId)
+
+  const { error } = await admin.from('mojo_faceclaims').delete().eq('id', fcId)
+
+  if (error) return { error: 'Failed to delete faceclaim' }
+
+  revalidatePath('/mojo/faceclaims')
+  return { success: true as const }
+}
+
+export async function assignFaceclaimToCharacter(
+  characterId: string,
+  faceclaimId: string | null
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: character } = await admin
+    .from('mojo_characters')
+    .select('rp_id')
+    .eq('id', characterId)
+    .single()
+
+  if (!character) return { error: 'Character not found' }
+
+  const { error } = await admin
+    .from('mojo_characters')
+    .update({ faceclaim_id: faceclaimId })
+    .eq('id', characterId)
+
+  if (error) return { error: 'Failed to assign faceclaim' }
+
+  revalidatePath('/mojo/characters/' + characterId)
+  revalidatePath('/mojo/rps/' + character.rp_id)
+  return { success: true as const }
+}
+
+// ─── RESOURCE ACTIONS ──────────────────────────────────────
+
+export async function createMojoResource(payload: {
+  faceclaim_id?: string | null
+  character_id?: string | null
+  title: string
+  type: 'text' | 'link' | 'snippet' | 'image' | 'gif'
+  content?: string | null
+  url?: string | null
+  storage_path?: string | null
+  proxy_token?: string | null
+}): Promise<ActionError | { success: true; resource: MojoResource }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const title = payload.title?.trim()
+  if (!title) return { error: 'Title is required' }
+
+  if ((payload.type === 'text' || payload.type === 'snippet') && !payload.content?.trim()) {
+    return { error: 'Content is required' }
+  }
+  if (payload.type === 'link' && !payload.url?.trim()) {
+    return { error: 'URL is required' }
+  }
+  if ((payload.type === 'image' || payload.type === 'gif') && !payload.storage_path?.trim()) {
+    return { error: 'Storage path is required' }
+  }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_resources')
+    .insert({
+      faceclaim_id: payload.faceclaim_id ?? null,
+      character_id: payload.character_id ?? null,
+      title,
+      type: payload.type,
+      content: payload.content?.trim() || null,
+      url: payload.url?.trim() || null,
+      storage_path: payload.storage_path?.trim() || null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create resource' }
+
+  if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
+  if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
+  return { success: true as const, resource: data }
+}
+
+export async function updateMojoResource(
+  resourceId: string,
+  payload: { title?: string; content?: string | null; url?: string | null }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Title cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: resource } = await admin
+    .from('mojo_resources')
+    .select('faceclaim_id, character_id')
+    .eq('id', resourceId)
+    .single()
+
+  if (!resource) return { error: 'Resource not found' }
+
+  const updates: TablesUpdate<'mojo_resources'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_resources')
+    .update(updates)
+    .eq('id', resourceId)
+
+  if (error) return { error: 'Failed to update resource' }
+
+  if (resource.faceclaim_id) revalidatePath('/mojo/faceclaims/' + resource.faceclaim_id)
+  if (resource.character_id) revalidatePath('/mojo/characters/' + resource.character_id)
+  return { success: true as const }
+}
+
+export async function deleteMojoResource(
+  resourceId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: resource } = await admin
+    .from('mojo_resources')
+    .select('faceclaim_id, character_id, storage_path')
+    .eq('id', resourceId)
+    .single()
+
+  if (!resource) return { error: 'Resource not found' }
+
+  if (resource.storage_path) {
+    const { error: storageError } = await admin.storage
+      .from('mojo-private')
+      .remove([resource.storage_path])
+    if (storageError) {
+      console.error('Failed to delete storage object:', storageError)
+    }
+  }
+
+  const { error } = await admin.from('mojo_resources').delete().eq('id', resourceId)
+
+  if (error) return { error: 'Failed to delete resource' }
+
+  if (resource.faceclaim_id) revalidatePath('/mojo/faceclaims/' + resource.faceclaim_id)
+  if (resource.character_id) revalidatePath('/mojo/characters/' + resource.character_id)
+  return { success: true as const }
+}
+
+export async function linkResourceToCharacter(
+  resourceId: string,
+  characterId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { error } = await admin
+    .from('mojo_character_resources')
+    .upsert(
+      { character_id: characterId, resource_id: resourceId },
+      { onConflict: 'character_id,resource_id', ignoreDuplicates: true }
+    )
+
+  if (error) return { error: 'Failed to link resource' }
+
+  revalidatePath('/mojo/characters/' + characterId)
+  return { success: true as const }
+}
+
+export async function unlinkResourceFromCharacter(
+  resourceId: string,
+  characterId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { error } = await admin
+    .from('mojo_character_resources')
+    .delete()
+    .eq('character_id', characterId)
+    .eq('resource_id', resourceId)
+
+  if (error) return { error: 'Failed to unlink resource' }
+
+  revalidatePath('/mojo/characters/' + characterId)
+  return { success: true as const }
+}
+
+export async function registerUploadedImage(payload: {
+  storagePath: string
+  mimeType: string
+  label: string
+  expiresAt: string | null
+  faceclaim_id?: string | null
+  character_id?: string | null
+  title: string
+  type: 'image' | 'gif'
+}): Promise<ActionError | { success: true; proxyUrl: string; resource: MojoResource }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const title = payload.title?.trim()
+  if (!title) return { error: 'Title is required' }
+
+  let token: string
+  try {
+    token = await registerImageToken(
+      payload.storagePath,
+      payload.mimeType,
+      payload.expiresAt ? new Date(payload.expiresAt) : null,
+      payload.label
+    )
+  } catch {
+    return { error: 'Failed to register image token' }
+  }
+
+  const proxyUrl = getProxyUrl(token)
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_resources')
+    .insert({
+      faceclaim_id: payload.faceclaim_id ?? null,
+      character_id: payload.character_id ?? null,
+      title,
+      type: payload.type,
+      storage_path: payload.storagePath,
+      public_url: proxyUrl,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to save resource' }
+
+  if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
+  if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
+  return { success: true as const, proxyUrl, resource: data }
 }

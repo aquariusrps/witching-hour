@@ -1,8 +1,15 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getMojoCharacter, getMojoCharacterThreads } from '@/lib/db/mojo'
+import {
+  getMojoCharacter,
+  getMojoCharacterThreads,
+  getMojoFaceclaims,
+  getMojoCharacterResources,
+  getMojoFaceclaimResources,
+} from '@/lib/db/mojo'
 import MojoCharacterArchiveToggle from '@/app/mojo/components/MojoCharacterArchiveToggle'
 import MojoCharacterTabs from '@/app/mojo/components/MojoCharacterTabs'
+import MojoFaceclaimAssign from '@/app/mojo/components/MojoFaceclaimAssign'
 
 export default async function MojoCharacterPage({
   params,
@@ -14,6 +21,11 @@ export default async function MojoCharacterPage({
   if (!character) notFound()
 
   const threads = await getMojoCharacterThreads(charId)
+  const allFaceclaims = await getMojoFaceclaims()
+  const characterResources = await getMojoCharacterResources(charId)
+  const faceclaimResources = character.faceclaim_id
+    ? await getMojoFaceclaimResources(character.faceclaim_id)
+    : []
   const isArchived = character.status === 'archived'
 
   return (
@@ -44,14 +56,12 @@ export default async function MojoCharacterPage({
         </h1>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {character.faceclaim_name && (
-            <Link
-              href={`/mojo/faceclaims/${character.faceclaim_id}`}
-              style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.875rem', color: 'var(--mist)', textDecoration: 'none' }}
-            >
-              played by {character.faceclaim_name}
-            </Link>
-          )}
+          <MojoFaceclaimAssign
+            characterId={character.id}
+            currentFaceclaimId={character.faceclaim_id}
+            currentFaceclaimName={character.faceclaim_name}
+            allFaceclaims={allFaceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
+          />
           {isArchived && (
             <span style={{
               fontFamily: 'var(--f-ui)',
@@ -74,6 +84,9 @@ export default async function MojoCharacterPage({
         threads={threads}
         charId={character.id}
         rpId={character.rp_id}
+        resources={characterResources}
+        faceclaimResources={faceclaimResources}
+        faceclaimName={character.faceclaim_name}
       />
     </div>
   )

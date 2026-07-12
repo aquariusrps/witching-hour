@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import MojoCharacterNotes from './MojoCharacterNotes'
 import MojoThreadTracker from './MojoThreadTracker'
+import MojoResourcesTab from './MojoResourcesTab'
 import type { Tables } from '@/types/database'
 
 type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
+type MojoResource = Tables<'mojo_resources'>
 
 const TABS = [
   { key: 'notes', label: 'Notes' },
@@ -22,11 +24,17 @@ export default function MojoCharacterTabs({
   threads,
   charId,
   rpId,
+  resources,
+  faceclaimResources,
+  faceclaimName,
 }: {
   character: MojoCharacter
   threads: MojoThread[]
   charId: string
   rpId: string
+  resources: MojoResource[]
+  faceclaimResources: MojoResource[]
+  faceclaimName: string | null
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>('notes')
 
@@ -69,14 +77,14 @@ export default function MojoCharacterTabs({
       )}
 
       {activeTab === 'resources' && (
-        <div>
-          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: '1.5rem', color: 'var(--gold)', margin: '0 0 8px' }}>
-            Resources
-          </h2>
-          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '1rem', color: 'var(--mist)', margin: 0 }}>
-            Character resource library — coming in MOJO-3.
-          </p>
-        </div>
+        <MojoResourcesTab
+          charId={charId}
+          rpId={rpId}
+          faceclaimId={character.faceclaim_id}
+          faceclaimName={faceclaimName}
+          resources={resources}
+          faceclaimResources={faceclaimResources}
+        />
       )}
 
       {activeTab === 'avatars' && (
