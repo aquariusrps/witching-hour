@@ -4,6 +4,7 @@ import type { Tables } from '@/types/database'
 type MojoRp = Tables<'mojo_rps'>
 type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
+type MojoFaceclaim = Tables<'mojo_faceclaims'>
 
 function statusRank(status: string): number {
   return status === 'active' ? 0 : status === 'hiatus' ? 1 : 2
@@ -122,4 +123,74 @@ export async function getMojoRpWithCharactersAndThreads(
       character_name: nameById.get(t.character_id) ?? 'Unknown',
     })),
   }
+}
+
+export async function getMojoCharacter(
+  charId: string
+): Promise<
+  | (MojoCharacter & {
+      rp_name: string
+      rp_color_hex: string
+      faceclaim_name: string | null
+    })
+  | null
+> {
+  const admin = getAdminClient()
+
+  const { data: character, error } = await admin
+    .from('mojo_characters')
+    .select('*')
+    .eq('id', charId)
+    .single()
+  if (error || !character) return null
+
+  let faceclaimName: string | null = null
+  if (character.faceclaim_id) {
+    const { data: faceclaim } = await admin
+      .from('mojo_faceclaims')
+      .select('name')
+      .eq('id', character.faceclaim_id)
+      .single<Pick<MojoFaceclaim, 'name'>>()
+    faceclaimName = faceclaim?.name ?? null
+  }
+
+  const { data: rp } = await admin
+    .from('mojo_rps')
+    .select('name, color_hex')
+    .eq('id', character.rp_id)
+    .single()
+
+  return {
+    ...character,
+    rp_name: rp?.name ?? 'Unknown',
+    rp_color_hex: rp?.color_hex ?? '#c83818',
+    faceclaim_name: faceclaimName,
+  }
+}
+
+export async function getMojoCharacterThreads(charId: string): Promise<MojoThread[]> {
+  const admin = getAdminClient()
+
+  const { data: threads } = await admin
+    .from('mojo_threads')
+    .select('*')
+    .eq('character_id', charId)
+
+  return [...(threads ?? [])].sort((a, b) => {
+    const s = (a.status === 'active' ? 0 : 1) - (b.status === 'active' ? 0 : 1)
+    if (s !== 0) return s
+    if (a.display_order !== b.display_order) return a.display_order - b.display_order
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+}
+
+export async function getMojoThread(threadId: string): Promise<MojoThread | null> {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_threads')
+    .select('*')
+    .eq('id', threadId)
+    .single()
+  if (error || !data) return null
+  return data
 }

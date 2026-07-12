@@ -8,6 +8,7 @@ import type { Tables, TablesUpdate } from '@/types/database'
 
 type MojoRp = Tables<'mojo_rps'>
 type MojoCharacter = Tables<'mojo_characters'>
+type MojoThread = Tables<'mojo_threads'>
 
 type ActionError = { error: string }
 
@@ -132,5 +133,171 @@ export async function updateMojoCharacterStatus(
   if (error) return { error: 'Failed to update character status' }
 
   if (character) revalidatePath('/mojo/rps/' + character.rp_id)
+  return { success: true as const }
+}
+
+export async function updateMojoCharacter(
+  charId: string,
+  payload: {
+    name?: string
+    bio?: string
+    notes_plot?: string
+    notes_partners?: string
+    notes_misc?: string
+  }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('name' in payload && !payload.name?.trim()) {
+    return { error: 'Character name cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: character } = await admin
+    .from('mojo_characters')
+    .select('rp_id')
+    .eq('id', charId)
+    .single()
+
+  if (!character) return { error: 'Character not found' }
+
+  const updates: TablesUpdate<'mojo_characters'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_characters')
+    .update(updates)
+    .eq('id', charId)
+
+  if (error) return { error: 'Failed to update character' }
+
+  revalidatePath('/mojo/characters/' + charId)
+  revalidatePath('/mojo/rps/' + character.rp_id)
+  return { success: true as const }
+}
+
+export async function createMojoThread(payload: {
+  rp_id: string
+  character_id: string
+  title: string
+  url?: string
+  partner_names?: string
+}): Promise<ActionError | { success: true; thread: MojoThread }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const title = payload.title?.trim()
+  if (!title) return { error: 'Thread title is required' }
+  if (!payload.rp_id || !payload.character_id) {
+    return { error: 'RP and character are required' }
+  }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_threads')
+    .insert({
+      rp_id: payload.rp_id,
+      character_id: payload.character_id,
+      title,
+      url: payload.url?.trim() || null,
+      partner_names: payload.partner_names?.trim() || null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create thread' }
+
+  revalidatePath('/mojo/characters/' + payload.character_id)
+  revalidatePath('/mojo/rps/' + payload.rp_id)
+  return { success: true as const, thread: data }
+}
+
+export async function updateMojoThread(
+  threadId: string,
+  payload: { title?: string; url?: string | null; partner_names?: string | null }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Thread title cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: thread } = await admin
+    .from('mojo_threads')
+    .select('character_id, rp_id')
+    .eq('id', threadId)
+    .single()
+
+  if (!thread) return { error: 'Thread not found' }
+
+  const updates: TablesUpdate<'mojo_threads'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_threads')
+    .update(updates)
+    .eq('id', threadId)
+
+  if (error) return { error: 'Failed to update thread' }
+
+  revalidatePath('/mojo/characters/' + thread.character_id)
+  revalidatePath('/mojo/rps/' + thread.rp_id)
+  return { success: true as const }
+}
+
+export async function updateMojoThreadStatus(
+  threadId: string,
+  status: 'active' | 'archived'
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: thread } = await admin
+    .from('mojo_threads')
+    .select('character_id, rp_id')
+    .eq('id', threadId)
+    .single()
+
+  if (!thread) return { error: 'Thread not found' }
+
+  const { error } = await admin
+    .from('mojo_threads')
+    .update({ status })
+    .eq('id', threadId)
+
+  if (error) return { error: 'Failed to update thread status' }
+
+  revalidatePath('/mojo/characters/' + thread.character_id)
+  revalidatePath('/mojo/rps/' + thread.rp_id)
+  return { success: true as const }
+}
+
+export async function deleteMojoThread(
+  threadId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: thread } = await admin
+    .from('mojo_threads')
+    .select('character_id, rp_id')
+    .eq('id', threadId)
+    .single()
+
+  if (!thread) return { error: 'Thread not found' }
+
+  const { error } = await admin.from('mojo_threads').delete().eq('id', threadId)
+
+  if (error) return { error: 'Failed to delete thread' }
+
+  revalidatePath('/mojo/characters/' + thread.character_id)
+  revalidatePath('/mojo/rps/' + thread.rp_id)
   return { success: true as const }
 }
