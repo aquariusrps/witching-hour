@@ -1306,3 +1306,34 @@ export async function deleteMojoAvatar(
   if (avatar.faceclaim_id) revalidatePath('/mojo/faceclaims/' + avatar.faceclaim_id)
   return { success: true as const }
 }
+
+// ─── THREAD MANUAL OVERRIDE ACTION ─────────────────────────
+
+export async function updateMojoThreadWhoseTurn(
+  threadId: string,
+  whoseTurn: 'mine' | 'theirs' | null
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: thread } = await admin
+    .from('mojo_threads')
+    .select('character_id, rp_id')
+    .eq('id', threadId)
+    .single()
+
+  if (!thread) return { error: 'Thread not found' }
+
+  const { error } = await admin
+    .from('mojo_threads')
+    .update({ manual_whose_turn: whoseTurn })
+    .eq('id', threadId)
+
+  if (error) return { error: 'Failed to update whose turn' }
+
+  revalidatePath('/mojo/characters/' + thread.character_id)
+  revalidatePath('/mojo/rps/' + thread.rp_id)
+  return { success: true as const }
+}

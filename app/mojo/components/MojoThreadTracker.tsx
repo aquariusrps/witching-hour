@@ -6,7 +6,9 @@ import {
   updateMojoThread,
   updateMojoThreadStatus,
   deleteMojoThread,
+  updateMojoThreadWhoseTurn,
 } from '@/lib/actions/mojo'
+import { deriveWhoseTurn } from '@/lib/mojo/thread-fetchers'
 import type { Tables } from '@/types/database'
 
 type MojoThread = Tables<'mojo_threads'>
@@ -42,6 +44,12 @@ const ACTION_BTN_STYLE: React.CSSProperties = {
   fontSize: 'inherit',
 }
 
+const PLATFORM_BADGE: Record<string, { label: string; color: string }> = {
+  tumblr: { label: '[T]', color: 'var(--ember)' },
+  jcink: { label: '[J]', color: 'var(--moonstone)' },
+  generic: { label: '[?]', color: 'var(--faded)' },
+}
+
 function FiligreeDividerLight() {
   return (
     <div style={{
@@ -57,15 +65,60 @@ function navigateToCharacter(charId: string) {
   window.location.href = '/mojo/characters/' + charId
 }
 
+function formatRelativeTime(isoString: string): string {
+  const diffMs = Date.now() - new Date(isoString).getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr}h ago`
+  const diffDay = Math.floor(diffHr / 24)
+  if (diffDay < 7) return `${diffDay} days ago`
+  return new Date(isoString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+// Pure URL string logic only — safe for the client bundle. The full
+// detectPlatform in lib/mojo/thread-fetchers.ts is a server module
+// (uses Node/env APIs) and cannot be imported here.
+function detectPlatformClient(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase()
+    if (hostname.includes('tumblr.com')) return 'tumblr'
+    if (hostname.endsWith('.jcink.net') || hostname.endsWith('.jcink.com')) return 'jcink'
+    return 'generic'
+  } catch {
+    return 'unknown'
+  }
+}
+
+type RefreshResponse = {
+  last_poster: string | null
+  fetch_status: string
+  detected_platform: string
+  last_checked_at: string
+}
+
 export default function MojoThreadTracker({
   charId,
   rpId,
+  characterName,
   initialThreads,
 }: {
   charId: string
   rpId: string
+  characterName: string
   initialThreads: MojoThread[]
 }) {
+  const [threads, setThreads] = useState<MojoThread[]>(initialThreads)
+  // Adjust local state during render (React's recommended pattern for
+  // resetting state from props) rather than in an effect — resyncs
+  // after the full-page reloads that follow add/edit/delete/archive.
+  const [prevInitialThreads, setPrevInitialThreads] = useState(initialThreads)
+  if (initialThreads !== prevInitialThreads) {
+    setPrevInitialThreads(initialThreads)
+    setThreads(initialThreads)
+  }
+
   // Add form state
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
@@ -90,8 +143,17 @@ export default function MojoThreadTracker({
   const [showArchived, setShowArchived] = useState(false)
   const [statusLoadingId, setStatusLoadingId] = useState<string | null>(null)
 
-  const activeThreads = initialThreads.filter((t) => t.status === 'active')
-  const archivedThreads = initialThreads.filter((t) => t.status !== 'active')
+  // Refresh state
+  const [refreshingId, setRefreshingId] = useState<string | null>(null)
+  const [refreshingAll, setRefreshingAll] = useState(false)
+  const [refreshProgress, setRefreshProgress] = useState(0)
+
+  // Manual override state
+  const [overrideLoadingId, setOverrideLoadingId] = useState<string | null>(null)
+
+  const activeThreads = threads.filter((t) => t.status === 'active')
+  const archivedThreads = threads.filter((t) => t.status !== 'active')
+  const activeThreadsWithUrls = activeThreads.filter((t) => t.url)
 
   async function handleAddSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -171,10 +233,184 @@ export default function MojoThreadTracker({
     navigateToCharacter(charId)
   }
 
+  async function refreshThread(threadId: string): Promise<void> {
+    try {
+      const response = await fetch('/api/mojo/refresh-thread', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ threadId }),
+      })
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok || !data || data.error) {
+        setRowError({ id: threadId, message: data?.error ?? 'Refresh failed' })
+        return
+      }
+
+      const updated = data as RefreshResponse
+      setThreads((prev) =>
+        prev.map((t) =>
+          t.id === threadId
+            ? {
+                ...t,
+                last_poster: updated.last_poster,
+                fetch_status: updated.fetch_status,
+                detected_platform: updated.detected_platform,
+                last_checked_at: updated.last_checked_at,
+              }
+            : t
+        )
+      )
+    } catch {
+      setRowError({ id: threadId, message: 'Refresh failed' })
+    }
+  }
+
+  async function handleRefreshOne(threadId: string) {
+    setRefreshingId(threadId)
+    setRowError(null)
+    await refreshThread(threadId)
+    setRefreshingId(null)
+  }
+
+  async function handleRefreshAll() {
+    if (activeThreadsWithUrls.length === 0) return
+    setRefreshingAll(true)
+    setRefreshProgress(0)
+    setRowError(null)
+
+    for (const thread of activeThreadsWithUrls) {
+      await refreshThread(thread.id)
+      if (thread.url && detectPlatformClient(thread.url) === 'tumblr') {
+        await new Promise((r) => setTimeout(r, 300))
+      }
+      setRefreshProgress((p) => p + 1)
+    }
+
+    setRefreshingAll(false)
+    setRefreshProgress(0)
+  }
+
+  async function handleSetWhoseTurn(threadId: string, value: 'mine' | 'theirs' | null) {
+    setOverrideLoadingId(threadId)
+    setRowError(null)
+    const result = await updateMojoThreadWhoseTurn(threadId, value)
+    setOverrideLoadingId(null)
+
+    if ('error' in result) {
+      setRowError({ id: threadId, message: result.error })
+      return
+    }
+
+    setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, manual_whose_turn: value } : t)))
+  }
+
+  function renderWhoseTurnBadge(thread: MojoThread) {
+    const whoseTurn = deriveWhoseTurn(thread, characterName)
+    if (whoseTurn === 'unknown') return null
+    const isMine = whoseTurn === 'mine'
+    return (
+      <span style={{
+        display: 'inline-block',
+        background: isMine ? 'rgba(224,176,40,0.12)' : 'rgba(56,120,168,0.10)',
+        border: `1px solid ${isMine ? 'var(--gold-dim)' : 'var(--moon-dim)'}`,
+        color: isMine ? 'var(--gold)' : 'var(--moonstone)',
+        fontFamily: 'var(--f-ui)',
+        fontSize: '0.625rem',
+        padding: '2px 8px',
+        borderRadius: 2,
+      }}>
+        {isMine ? 'Your turn' : 'Their turn'}
+        {thread.manual_whose_turn && (
+          <span style={{ color: 'var(--faded)', fontSize: '0.55rem', marginLeft: 4 }}>(manual)</span>
+        )}
+      </span>
+    )
+  }
+
+  function renderLastPosterLine(thread: MojoThread) {
+    if (!thread.last_poster) return null
+    const isTumblr = thread.detected_platform === 'tumblr'
+    return (
+      <p
+        style={{ fontFamily: 'var(--f-body)', fontSize: '0.6875rem', color: 'var(--mist)', margin: '4px 0 0' }}
+        title={isTumblr ? 'Tumblr shows the blog name, not the character name. Use the manual override buttons to set whose turn it is.' : undefined}
+      >
+        last poster: {thread.last_poster}{isTumblr && ' ⓘ'}
+      </p>
+    )
+  }
+
+  function renderCheckedLine(thread: MojoThread) {
+    if (thread.fetch_status === 'failed') {
+      return (
+        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--ember)', margin: '2px 0 0' }}>
+          ↻ fetch failed
+        </p>
+      )
+    }
+    if (thread.fetch_status === 'uncertain') {
+      return (
+        <p
+          style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--faded)', margin: '2px 0 0' }}
+          title="The last poster could not be verified with confidence. Check manually and use the override buttons if needed."
+        >
+          ↻ unverified ⓘ
+        </p>
+      )
+    }
+    if (thread.last_checked_at) {
+      const badge = thread.detected_platform ? PLATFORM_BADGE[thread.detected_platform] : undefined
+      return (
+        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--faded)', margin: '2px 0 0' }}>
+          {badge && <span style={{ color: badge.color, marginRight: 4 }}>{badge.label}</span>}
+          ↻ checked {formatRelativeTime(thread.last_checked_at)}
+        </p>
+      )
+    }
+    return null
+  }
+
+  function renderOverrideButtons(thread: MojoThread) {
+    const options: Array<{ key: 'auto' | 'mine' | 'theirs'; label: string; value: 'mine' | 'theirs' | null }> = [
+      { key: 'auto', label: 'Auto', value: null },
+      { key: 'mine', label: 'Mine', value: 'mine' },
+      { key: 'theirs', label: 'Theirs', value: 'theirs' },
+    ]
+    return (
+      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+        {options.map((opt) => {
+          const isActive = opt.key === 'auto' ? !thread.manual_whose_turn : thread.manual_whose_turn === opt.value
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              disabled={overrideLoadingId === thread.id}
+              onClick={() => handleSetWhoseTurn(thread.id, opt.value)}
+              style={{
+                fontFamily: 'var(--f-ui)',
+                fontSize: '0.625rem',
+                color: isActive ? 'var(--gold)' : 'var(--faded)',
+                background: isActive ? 'var(--elevated)' : 'var(--raised)',
+                border: `1px solid ${isActive ? 'var(--gold-dim)' : 'var(--elevated)'}`,
+                padding: '2px 8px',
+                borderRadius: 2,
+                cursor: overrideLoadingId === thread.id ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   function renderThreadRow(thread: MojoThread, archived: boolean) {
     const isEditing = editingThreadId === thread.id
     const isConfirmingDelete = confirmingDelete === thread.id
     const rowHasError = rowError?.id === thread.id
+    const isRefreshing = refreshingId === thread.id
 
     if (isEditing) {
       return (
@@ -322,6 +558,16 @@ export default function MojoThreadTracker({
               )}
               <button
                 type="button"
+                onClick={() => handleRefreshOne(thread.id)}
+                disabled={isRefreshing}
+                title="Refresh reply status"
+                style={{ ...ACTION_BTN_STYLE, color: 'var(--gold-dim)' }}
+              >
+                {isRefreshing ? '↻…' : '↻'}
+              </button>
+              <span style={{ color: 'var(--faded)' }}> · </span>
+              <button
+                type="button"
                 onClick={() => { setConfirmingDelete(thread.id); setEditingThreadId(null) }}
                 style={{ ...ACTION_BTN_STYLE, color: 'var(--ember-dim)' }}
               >
@@ -330,13 +576,24 @@ export default function MojoThreadTracker({
             </span>
           )}
         </div>
+
+        <div style={{ marginTop: 6 }}>
+          {renderWhoseTurnBadge(thread)}
+        </div>
+
         {thread.partner_names && (
           <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.8rem', color: 'var(--mist)', margin: '4px 0 0' }}>
             with {thread.partner_names}
           </p>
         )}
+
+        {renderLastPosterLine(thread)}
+        {renderCheckedLine(thread)}
+
+        {!archived && renderOverrideButtons(thread)}
+
         {rowHasError && (
-          <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.78rem', color: 'var(--ember)', margin: '4px 0 0' }}>
+          <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.78rem', color: 'var(--ember)', margin: '6px 0 0' }}>
             {rowError!.message}
           </p>
         )}
@@ -395,12 +652,31 @@ export default function MojoThreadTracker({
       <FiligreeDividerLight />
 
       {/* Active threads */}
-      <h3 style={{ fontFamily: 'var(--f-head)', fontSize: '1rem', color: 'var(--roseash)', margin: '0 0 12px' }}>
-        Active Threads{' '}
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.75rem', color: 'var(--faded)' }}>
-          ({activeThreads.length})
-        </span>
-      </h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <h3 style={{ fontFamily: 'var(--f-head)', fontSize: '1rem', color: 'var(--roseash)', margin: 0 }}>
+          Active Threads{' '}
+          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.75rem', color: 'var(--faded)' }}>
+            ({activeThreads.length})
+          </span>
+        </h3>
+        {activeThreadsWithUrls.length > 0 && (
+          <button
+            type="button"
+            onClick={handleRefreshAll}
+            disabled={refreshingAll}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: refreshingAll ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--f-ui)',
+              fontSize: '0.75rem',
+              color: 'var(--faded)',
+            }}
+          >
+            {refreshingAll ? `Refreshing ${refreshProgress}/${activeThreadsWithUrls.length}…` : '↻ Refresh all'}
+          </button>
+        )}
+      </div>
 
       {activeThreads.length === 0 ? (
         <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)', marginBottom: 24 }}>

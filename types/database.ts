@@ -1129,6 +1129,7 @@ export type Database = {
           id: string
           last_checked_at: string | null
           last_poster: string | null
+          manual_whose_turn: string | null
           partner_names: string | null
           rp_id: string
           status: string
@@ -1144,6 +1145,7 @@ export type Database = {
           id?: string
           last_checked_at?: string | null
           last_poster?: string | null
+          manual_whose_turn?: string | null
           partner_names?: string | null
           rp_id: string
           status?: string
@@ -1159,6 +1161,7 @@ export type Database = {
           id?: string
           last_checked_at?: string | null
           last_poster?: string | null
+          manual_whose_turn?: string | null
           partner_names?: string | null
           rp_id?: string
           status?: string

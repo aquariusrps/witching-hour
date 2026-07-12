@@ -80,7 +80,7 @@ export default function MojoCharacterTabs({
       )}
 
       {activeTab === 'threads' && (
-        <MojoThreadTracker charId={charId} rpId={rpId} initialThreads={threads} />
+        <MojoThreadTracker charId={charId} rpId={rpId} characterName={character.name} initialThreads={threads} />
       )}
 
       {activeTab === 'resources' && (
