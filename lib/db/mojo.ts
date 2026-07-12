@@ -12,6 +12,8 @@ type MojoWishlist = Tables<'mojo_wishlist'>
 type MojoPartner = Tables<'mojo_partners'>
 type MojoImageStack = Tables<'mojo_image_stacks'>
 type MojoImageStackMember = Tables<'mojo_image_stack_members'>
+type MojoImageFolder = Tables<'mojo_image_folders'>
+type MojoPersonalImage = Tables<'mojo_personal_images'>
 
 function sortResourcesByTypeThenOrder(resources: MojoResource[]): MojoResource[] {
   return [...resources].sort((a, b) => {
@@ -697,4 +699,60 @@ export async function getMojoDashboardData(): Promise<{
     .map(buildRp)
 
   return { stats, activeRps, inactiveRps }
+}
+
+// ─── PERSONAL IMAGE REPOSITORY ──────────────────────────────
+
+export async function getMojoImageFolders(): Promise<
+  Array<MojoImageFolder & { image_count: number }>
+> {
+  const admin = getAdminClient()
+
+  const { data: folders, error } = await admin
+    .from('mojo_image_folders')
+    .select('*')
+    .order('display_order', { ascending: true })
+    .order('name', { ascending: true })
+  if (error || !folders) return []
+
+  const { data: imageRows } = await admin
+    .from('mojo_personal_images')
+    .select('folder_id')
+    .not('folder_id', 'is', null)
+
+  const counts = new Map<string, number>()
+  for (const row of imageRows ?? []) {
+    if (row.folder_id) {
+      counts.set(row.folder_id, (counts.get(row.folder_id) ?? 0) + 1)
+    }
+  }
+
+  return folders.map((f) => ({
+    ...f,
+    image_count: counts.get(f.id) ?? 0,
+  }))
+}
+
+export async function getMojoPersonalImages(filter?: {
+  folder_id?: string | null
+  tag?: string
+}): Promise<MojoPersonalImage[]> {
+  const admin = getAdminClient()
+
+  let query = admin.from('mojo_personal_images').select('*').order('created_at', { ascending: false })
+
+  if (filter && 'folder_id' in filter) {
+    if (filter.folder_id === null) {
+      query = query.is('folder_id', null)
+    } else if (filter.folder_id) {
+      query = query.eq('folder_id', filter.folder_id)
+    }
+  }
+
+  if (filter?.tag) {
+    query = query.ilike('tags', `%${filter.tag}%`)
+  }
+
+  const { data } = await query
+  return data ?? []
 }

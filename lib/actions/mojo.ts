@@ -18,6 +18,8 @@ type MojoPartner = Tables<'mojo_partners'>
 type MojoImageStack = Tables<'mojo_image_stacks'>
 type MojoImageStackMember = Tables<'mojo_image_stack_members'>
 type MojoAvatar = Tables<'mojo_avatars'>
+type MojoImageFolder = Tables<'mojo_image_folders'>
+type MojoPersonalImage = Tables<'mojo_personal_images'>
 
 const SNIPPET_TYPES = ['general', 'app_code', 'template', 'formatting', 'other']
 const WISHLIST_TYPES = ['character_concept', 'plot_idea', 'fandom', 'other']
@@ -1335,5 +1337,204 @@ export async function updateMojoThreadWhoseTurn(
 
   revalidatePath('/mojo/characters/' + thread.character_id)
   revalidatePath('/mojo/rps/' + thread.rp_id)
+  return { success: true as const }
+}
+
+// ─── PERSONAL IMAGE REPOSITORY ACTIONS ─────────────────────
+
+export async function createMojoImageFolder(
+  payload: { name: string }
+): Promise<ActionError | { success: true; folder: MojoImageFolder }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const name = payload.name?.trim()
+  if (!name) return { error: 'Folder name is required' }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_image_folders')
+    .insert({ name })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create folder' }
+
+  revalidatePath('/mojo/images')
+  return { success: true as const, folder: data }
+}
+
+export async function updateMojoImageFolder(
+  folderId: string,
+  payload: { name?: string; display_order?: number }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('name' in payload && !payload.name?.trim()) {
+    return { error: 'Folder name cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+  const updates: TablesUpdate<'mojo_image_folders'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_image_folders')
+    .update(updates)
+    .eq('id', folderId)
+
+  if (error) return { error: 'Failed to update folder' }
+
+  revalidatePath('/mojo/images')
+  return { success: true as const }
+}
+
+export async function deleteMojoImageFolder(
+  folderId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+  const { error } = await admin.from('mojo_image_folders').delete().eq('id', folderId)
+
+  if (error) return { error: 'Failed to delete folder' }
+
+  revalidatePath('/mojo/images')
+  return { success: true as const }
+}
+
+export async function registerUploadedPersonalImage(payload: {
+  storage_path: string
+  mime_type: string
+  title: string
+  expires_at: string | null
+  folder_id?: string | null
+  tags?: string | null
+  file_size?: number | null
+}): Promise<ActionError | { success: true; proxyUrl: string; image: MojoPersonalImage }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const storagePath = payload.storage_path?.trim()
+  const title = payload.title?.trim()
+  if (!storagePath || !title) {
+    return { error: 'Storage path and title are required' }
+  }
+
+  let token: string
+  try {
+    token = await registerImageToken(
+      storagePath,
+      payload.mime_type,
+      payload.expires_at ? new Date(payload.expires_at) : null,
+      title
+    )
+  } catch {
+    return { error: 'Failed to register image token' }
+  }
+
+  const proxyUrl = getProxyUrl(token)
+
+  const admin = getAdminClient()
+  const insertPayload: TablesInsert<'mojo_personal_images'> = {
+    folder_id: payload.folder_id ?? null,
+    title,
+    storage_path: storagePath,
+    token,
+    mime_type: payload.mime_type,
+    expires_at: payload.expires_at ?? null,
+    tags: payload.tags ?? null,
+    file_size: payload.file_size ?? null,
+  }
+
+  const { data, error } = await admin
+    .from('mojo_personal_images')
+    .insert(insertPayload)
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to save image' }
+
+  revalidatePath('/mojo/images')
+  return { success: true as const, proxyUrl, image: data }
+}
+
+export async function updateMojoPersonalImage(
+  imageId: string,
+  payload: {
+    title?: string
+    folder_id?: string | null
+    tags?: string | null
+    expires_at?: string | null
+  }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Title cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: image } = await admin
+    .from('mojo_personal_images')
+    .select('token')
+    .eq('id', imageId)
+    .single()
+
+  if (!image) return { error: 'Image not found' }
+
+  const updates: TablesUpdate<'mojo_personal_images'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_personal_images')
+    .update(updates)
+    .eq('id', imageId)
+
+  if (error) return { error: 'Failed to update image' }
+
+  if ('expires_at' in payload) {
+    await admin
+      .from('mojo_image_tokens')
+      .update({ expires_at: payload.expires_at ?? null })
+      .eq('token', image.token)
+  }
+
+  revalidatePath('/mojo/images')
+  return { success: true as const }
+}
+
+export async function deleteMojoPersonalImage(
+  imageId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: image } = await admin
+    .from('mojo_personal_images')
+    .select('storage_path, token')
+    .eq('id', imageId)
+    .single()
+
+  if (!image) return { error: 'Image not found' }
+
+  const { error: storageError } = await admin.storage
+    .from('mojo-private')
+    .remove([image.storage_path])
+  if (storageError) {
+    console.error('Failed to delete storage object:', storageError)
+  }
+
+  await admin.from('mojo_image_tokens').delete().eq('token', image.token)
+
+  const { error } = await admin.from('mojo_personal_images').delete().eq('id', imageId)
+
+  if (error) return { error: 'Failed to delete image' }
+
+  revalidatePath('/mojo/images')
   return { success: true as const }
 }

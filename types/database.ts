@@ -828,6 +828,27 @@ export type Database = {
         }
         Relationships: []
       }
+      mojo_image_folders: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       mojo_image_stack_members: {
         Row: {
           created_at: string
@@ -989,6 +1010,53 @@ export type Database = {
           style_notes?: string | null
         }
         Relationships: []
+      }
+      mojo_personal_images: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          file_size: number | null
+          folder_id: string | null
+          id: string
+          mime_type: string
+          storage_path: string
+          tags: string | null
+          title: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          file_size?: number | null
+          folder_id?: string | null
+          id?: string
+          mime_type?: string
+          storage_path: string
+          tags?: string | null
+          title: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          file_size?: number | null
+          folder_id?: string | null
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          tags?: string | null
+          title?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_personal_images_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_image_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mojo_resources: {
         Row: {

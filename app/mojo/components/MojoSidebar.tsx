@@ -23,6 +23,7 @@ type MojoRpWithCharacters = {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/mojo' },
+  { label: 'Images', href: '/mojo/images' },
   { label: 'Faceclaims', href: '/mojo/faceclaims' },
   { label: 'Library', href: '/mojo/library' },
   { label: 'Wishlist', href: '/mojo/wishlist' },
