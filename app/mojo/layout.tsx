@@ -22,7 +22,7 @@ export default async function MojoLayout({
   const rps = await getMojoRpsWithCharacters()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--char)' }}>
+    <div data-theme="silver-onyx" style={{ display: 'flex', minHeight: '100vh', background: 'var(--char)' }}>
       <MojoSidebar rps={rps} />
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>

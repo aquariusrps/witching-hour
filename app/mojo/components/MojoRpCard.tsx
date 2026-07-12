@@ -4,6 +4,7 @@ export type DashboardRp = {
   id: string
   name: string
   site_name: string
+  site_url: string | null
   color_hex: string
   status: string
   characterCount: number
@@ -41,7 +42,20 @@ export default function MojoRpCard({ rp, mutedBorder }: { rp: DashboardRp; muted
         )}
       </div>
       <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.82rem', color: 'var(--mist)', margin: '4px 0 10px' }}>
-        {rp.site_name}
+        {rp.site_url ? (
+          <a
+            href={rp.site_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--mist)', fontSize: '13px', fontFamily: 'EB Garamond, serif', textDecoration: 'none' }}
+          >
+            {rp.site_name}
+          </a>
+        ) : (
+          <span style={{ color: 'var(--mist)', fontSize: '13px', fontFamily: 'EB Garamond, serif' }}>
+            {rp.site_name}
+          </span>
+        )}
       </p>
       <div style={{ display: 'flex', gap: 14 }}>
         <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', color: 'var(--faded)' }}>

@@ -12,6 +12,12 @@ type MojoCharacter = Tables<'mojo_characters'>
 type MojoThread = Tables<'mojo_threads'>
 type MojoFaceclaim = Tables<'mojo_faceclaims'>
 type MojoResource = Tables<'mojo_resources'>
+type MojoSnippet = Tables<'mojo_snippets'>
+type MojoWishlist = Tables<'mojo_wishlist'>
+type MojoPartner = Tables<'mojo_partners'>
+
+const SNIPPET_TYPES = ['general', 'app_code', 'template', 'formatting', 'other']
+const WISHLIST_TYPES = ['character_concept', 'plot_idea', 'fandom', 'other']
 
 type ActionError = { error: string }
 
@@ -635,4 +641,258 @@ export async function registerUploadedImage(payload: {
   if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
   if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
   return { success: true as const, proxyUrl, resource: data }
+}
+
+// ─── SNIPPET ACTIONS ───────────────────────────────────────
+
+export async function createMojoSnippet(payload: {
+  title: string
+  content: string
+  type: string
+  tags?: string
+}): Promise<ActionError | { success: true; snippet: MojoSnippet }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const title = payload.title?.trim()
+  const content = payload.content?.trim()
+  if (!title) return { error: 'Title is required' }
+  if (!content) return { error: 'Content is required' }
+  if (!SNIPPET_TYPES.includes(payload.type)) return { error: 'Invalid snippet type' }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_snippets')
+    .insert({
+      title,
+      content,
+      type: payload.type,
+      tags: payload.tags?.trim() || null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create snippet' }
+
+  revalidatePath('/mojo/library')
+  return { success: true as const, snippet: data }
+}
+
+export async function updateMojoSnippet(
+  snippetId: string,
+  payload: { title?: string; content?: string; type?: string; tags?: string }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Title cannot be empty' }
+  }
+  if ('content' in payload && !payload.content?.trim()) {
+    return { error: 'Content cannot be empty' }
+  }
+  if (payload.type && !SNIPPET_TYPES.includes(payload.type)) {
+    return { error: 'Invalid snippet type' }
+  }
+
+  const admin = getAdminClient()
+  const updates: TablesUpdate<'mojo_snippets'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_snippets')
+    .update(updates)
+    .eq('id', snippetId)
+
+  if (error) return { error: 'Failed to update snippet' }
+
+  revalidatePath('/mojo/library')
+  return { success: true as const }
+}
+
+export async function deleteMojoSnippet(
+  snippetId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+  const { error } = await admin.from('mojo_snippets').delete().eq('id', snippetId)
+
+  if (error) return { error: 'Failed to delete snippet' }
+
+  revalidatePath('/mojo/library')
+  return { success: true as const }
+}
+
+// ─── WISHLIST ACTIONS ──────────────────────────────────────
+
+export async function createMojoWishlistItem(payload: {
+  title: string
+  notes?: string
+  type: string
+}): Promise<ActionError | { success: true; item: MojoWishlist }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const title = payload.title?.trim()
+  if (!title) return { error: 'Title is required' }
+  if (!WISHLIST_TYPES.includes(payload.type)) return { error: 'Invalid wishlist type' }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_wishlist')
+    .insert({
+      title,
+      notes: payload.notes?.trim() || null,
+      type: payload.type,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create wishlist item' }
+
+  revalidatePath('/mojo/wishlist')
+  return { success: true as const, item: data }
+}
+
+export async function updateMojoWishlistItem(
+  itemId: string,
+  payload: { title?: string; notes?: string; type?: string }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Title cannot be empty' }
+  }
+  if (payload.type && !WISHLIST_TYPES.includes(payload.type)) {
+    return { error: 'Invalid wishlist type' }
+  }
+
+  const admin = getAdminClient()
+  const updates: TablesUpdate<'mojo_wishlist'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_wishlist')
+    .update(updates)
+    .eq('id', itemId)
+
+  if (error) return { error: 'Failed to update wishlist item' }
+
+  revalidatePath('/mojo/wishlist')
+  return { success: true as const }
+}
+
+export async function updateMojoWishlistStatus(
+  itemId: string,
+  status: 'idea' | 'active' | 'shelved'
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+  const { error } = await admin
+    .from('mojo_wishlist')
+    .update({ status })
+    .eq('id', itemId)
+
+  if (error) return { error: 'Failed to update status' }
+
+  revalidatePath('/mojo/wishlist')
+  return { success: true as const }
+}
+
+export async function deleteMojoWishlistItem(
+  itemId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+  const { error } = await admin.from('mojo_wishlist').delete().eq('id', itemId)
+
+  if (error) return { error: 'Failed to delete wishlist item' }
+
+  revalidatePath('/mojo/wishlist')
+  return { success: true as const }
+}
+
+// ─── PARTNER ACTIONS ───────────────────────────────────────
+
+export async function createMojoPartner(payload: {
+  handle: string
+  sites?: string
+  pace_notes?: string
+  style_notes?: string
+  history_notes?: string
+}): Promise<ActionError | { success: true; partner: MojoPartner }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const handle = payload.handle?.trim()
+  if (!handle) return { error: 'Handle is required' }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_partners')
+    .insert({
+      handle,
+      sites: payload.sites?.trim() || null,
+      pace_notes: payload.pace_notes?.trim() || null,
+      style_notes: payload.style_notes?.trim() || null,
+      history_notes: payload.history_notes?.trim() || null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create partner' }
+
+  revalidatePath('/mojo/partners')
+  return { success: true as const, partner: data }
+}
+
+export async function updateMojoPartner(
+  partnerId: string,
+  payload: {
+    handle?: string
+    sites?: string
+    pace_notes?: string
+    style_notes?: string
+    history_notes?: string
+  }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('handle' in payload && !payload.handle?.trim()) {
+    return { error: 'Handle cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+  const updates: TablesUpdate<'mojo_partners'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_partners')
+    .update(updates)
+    .eq('id', partnerId)
+
+  if (error) return { error: 'Failed to update partner' }
+
+  revalidatePath('/mojo/partners')
+  return { success: true as const }
+}
+
+export async function deleteMojoPartner(
+  partnerId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+  const { error } = await admin.from('mojo_partners').delete().eq('id', partnerId)
+
+  if (error) return { error: 'Failed to delete partner' }
+
+  revalidatePath('/mojo/partners')
+  return { success: true as const }
 }

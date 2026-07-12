@@ -1,7 +1,8 @@
 import { getAdminClient } from '@/lib/supabase/adminClient'
-import { getMojoRpsWithCharacters } from '@/lib/db/mojo'
+import { getMojoRpsWithCharacters, getMojoDashboardStats } from '@/lib/db/mojo'
 import MojoArchivedRps from './components/MojoArchivedRps'
 import MojoRpCard, { type DashboardRp } from './components/MojoRpCard'
+import MojoDashboardStatTile from './components/MojoDashboardStatTile'
 
 function FiligreeDivider() {
   return (
@@ -45,15 +46,26 @@ function StatTile({ value, label }: { value: number; label: string }) {
   )
 }
 
+function StatsRowLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{
+      fontFamily: 'var(--f-ui)',
+      fontSize: '0.68rem',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      color: 'var(--faded)',
+      margin: '0 0 8px',
+    }}>
+      {children}
+    </p>
+  )
+}
+
 export default async function MojoDashboardPage() {
   const rps = await getMojoRpsWithCharacters()
+  const stats = await getMojoDashboardStats()
 
   const admin = getAdminClient()
-
-  const { count: activeThreadTotal } = await admin
-    .from('mojo_threads')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
 
   const { data: activeThreadRows } = await admin
     .from('mojo_threads')
@@ -65,13 +77,11 @@ export default async function MojoDashboardPage() {
     activeThreadsByRp.set(row.rp_id, (activeThreadsByRp.get(row.rp_id) ?? 0) + 1)
   }
 
-  const activeRpCount = rps.filter((r) => r.status === 'active').length
-  const totalCharacters = rps.reduce((sum, r) => sum + r.characters.length, 0)
-
   const dashboardRps: DashboardRp[] = rps.map((r) => ({
     id: r.id,
     name: r.name,
     site_name: r.site_name,
+    site_url: r.site_url,
     color_hex: r.color_hex,
     status: r.status,
     characterCount: r.characters.length,
@@ -93,10 +103,22 @@ export default async function MojoDashboardPage() {
         <FiligreeDivider />
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 40 }}>
-        <StatTile value={activeRpCount} label="Active RPs" />
-        <StatTile value={totalCharacters} label="Total Characters" />
-        <StatTile value={activeThreadTotal ?? 0} label="Active Threads" />
+      <div style={{ marginBottom: 20 }}>
+        <StatsRowLabel>Roleplays</StatsRowLabel>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <StatTile value={stats.activeRpCount} label="Active RPs" />
+          <StatTile value={stats.characterCount} label="Total Characters" />
+          <StatTile value={stats.activeThreadCount} label="Active Threads" />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 40 }}>
+        <StatsRowLabel>The Library</StatsRowLabel>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <MojoDashboardStatTile href="/mojo/library" value={stats.snippetCount} label="Snippets" />
+          <MojoDashboardStatTile href="/mojo/wishlist" value={stats.wishlistCount} label="Wishlist Items" />
+          <MojoDashboardStatTile href="/mojo/partners" value={stats.partnerCount} label="Partners" />
+        </div>
       </div>
 
       <section style={{ marginBottom: 32 }}>

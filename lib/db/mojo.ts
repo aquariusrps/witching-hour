@@ -7,6 +7,9 @@ type MojoThread = Tables<'mojo_threads'>
 type MojoFaceclaim = Tables<'mojo_faceclaims'>
 type MojoResource = Tables<'mojo_resources'>
 type MojoAvatar = Tables<'mojo_avatars'>
+type MojoSnippet = Tables<'mojo_snippets'>
+type MojoWishlist = Tables<'mojo_wishlist'>
+type MojoPartner = Tables<'mojo_partners'>
 
 function sortResourcesByTypeThenOrder(resources: MojoResource[]): MojoResource[] {
   return [...resources].sort((a, b) => {
@@ -314,5 +317,98 @@ export async function getMojoFaceclaimWithCharacters(
   return {
     ...faceclaim,
     characters: characters ?? [],
+  }
+}
+
+function wishlistStatusRank(status: string): number {
+  return status === 'idea' ? 0 : status === 'active' ? 1 : 2
+}
+
+export async function getMojoSnippets(): Promise<MojoSnippet[]> {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_snippets')
+    .select('*')
+    .order('type', { ascending: true })
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: false })
+  return data ?? []
+}
+
+export async function getMojoGlobalResources(): Promise<MojoResource[]> {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_resources')
+    .select('*')
+    .is('faceclaim_id', null)
+    .is('character_id', null)
+  return sortResourcesByTypeThenOrder(data ?? [])
+}
+
+export async function getMojoWishlist(): Promise<MojoWishlist[]> {
+  const admin = getAdminClient()
+  const { data } = await admin.from('mojo_wishlist').select('*')
+  return [...(data ?? [])].sort((a, b) => {
+    const s = wishlistStatusRank(a.status) - wishlistStatusRank(b.status)
+    if (s !== 0) return s
+    if (a.display_order !== b.display_order) return a.display_order - b.display_order
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+}
+
+export async function getMojoPartners(): Promise<MojoPartner[]> {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_partners')
+    .select('*')
+    .order('display_order', { ascending: true })
+    .order('handle', { ascending: true })
+  return data ?? []
+}
+
+export async function getMojoPartner(partnerId: string): Promise<MojoPartner | null> {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_partners')
+    .select('*')
+    .eq('id', partnerId)
+    .single()
+  if (error || !data) return null
+  return data
+}
+
+export async function getMojoDashboardStats(): Promise<{
+  activeRpCount: number
+  characterCount: number
+  activeThreadCount: number
+  snippetCount: number
+  wishlistCount: number
+  partnerCount: number
+}> {
+  const admin = getAdminClient()
+
+  const [
+    { count: activeRpCount },
+    { count: characterCount },
+    { count: activeThreadCount },
+    { count: snippetCount },
+    { count: wishlistCount },
+    { count: partnerCount },
+  ] = await Promise.all([
+    admin.from('mojo_rps').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    admin.from('mojo_characters').select('id', { count: 'exact', head: true }),
+    admin.from('mojo_threads').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    admin.from('mojo_snippets').select('id', { count: 'exact', head: true }),
+    admin.from('mojo_wishlist').select('id', { count: 'exact', head: true }),
+    admin.from('mojo_partners').select('id', { count: 'exact', head: true }),
+  ])
+
+  return {
+    activeRpCount: activeRpCount ?? 0,
+    characterCount: characterCount ?? 0,
+    activeThreadCount: activeThreadCount ?? 0,
+    snippetCount: snippetCount ?? 0,
+    wishlistCount: wishlistCount ?? 0,
+    partnerCount: partnerCount ?? 0,
   }
 }
