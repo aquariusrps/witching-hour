@@ -65,7 +65,14 @@ export default function MojoDashboardCharCard({
         opacity: isArchived ? 0.6 : 1,
       }}
     >
-      <div style={{ height: 120, width: '100%', position: 'relative' }}>
+      <div style={{
+        width: '100px',
+        height: '100px',
+        margin: '10px auto 0',
+        borderRadius: '50%',
+        overflow: 'hidden',
+        position: 'relative',
+      }}>
         {avatarSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -79,12 +86,25 @@ export default function MojoDashboardCharCard({
             style={{ width: '100%', height: '100%', background: 'var(--elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={() => navigateToChar(character.id)}
           >
-            <svg viewBox="0 0 60 60" style={{ width: 40, opacity: 0.3 }}>
+            <svg viewBox="0 0 60 60" style={{ width: 40, opacity: 0.3, filter: 'drop-shadow(0 0 8px rgba(96,64,192,0.2))' }}>
               <circle cx="30" cy="22" r="12" fill="var(--mist)" />
               <ellipse cx="30" cy="50" rx="18" ry="12" fill="var(--mist)" />
             </svg>
           </div>
         )}
+
+        {/* Silver ring overlay */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            border: '1px solid rgba(192,192,200,0.20)',
+            boxShadow: 'inset 0 0 12px rgba(0,0,0,0.4)',
+            pointerEvents: 'none',
+          }}
+        />
 
         {myTurnCount > 0 && (
           <span
@@ -93,12 +113,18 @@ export default function MojoDashboardCharCard({
               position: 'absolute',
               top: 4,
               right: 4,
-              background: 'rgba(224,176,40,0.9)',
-              color: '#100808',
-              fontFamily: 'var(--f-ui)',
-              fontSize: '0.625rem',
-              padding: '1px 5px',
-              borderRadius: 2,
+              width: '22px',
+              height: '22px',
+              borderRadius: '50%',
+              background: 'var(--gold)',
+              color: 'white',
+              fontSize: '9px',
+              fontFamily: 'Cinzel, serif',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.15), 0 0 8px rgba(160,40,64,0.4)',
             }}
           >
             {myTurnCount}↻

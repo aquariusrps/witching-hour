@@ -271,3 +271,300 @@ export function SvgFiligreeRule({
     </svg>
   )
 }
+
+// ─── MOJO-7C: The Sanctum additions ─────────────────────────
+
+export function SvgMoon({
+  size = 320,
+  idSuffix = 'main',
+  className = '',
+}: {
+  size?: number
+  idSuffix?: string
+  className?: string
+}) {
+  // The Sanctum centrepiece — a large luminous moon.
+  const r = size / 2
+  const gradId = `moon-radial-${idSuffix}`
+  const glowId = `moon-glow-${idSuffix}`
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        {/* Radial gradient: bright centre fading to silver-grey edge */}
+        <radialGradient id={gradId} cx="38%" cy="35%" r="65%">
+          <stop offset="0%"   stopColor="#f0f0f8" stopOpacity="0.95" />
+          <stop offset="40%"  stopColor="#d0d0e0" stopOpacity="0.90" />
+          <stop offset="75%"  stopColor="#a8a8c0" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#808098" stopOpacity="0.75" />
+        </radialGradient>
+        {/* Outer glow filter */}
+        <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="12" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* Atmosphere halo — outermost ring, very faint violet */}
+      <circle
+        cx={r} cy={r} r={r - 4}
+        stroke="currentColor" strokeWidth="28"
+        strokeOpacity="0.06"
+        fill="none"
+      />
+      {/* Secondary halo — tighter, slightly stronger */}
+      <circle
+        cx={r} cy={r} r={r - 20}
+        stroke="currentColor" strokeWidth="16"
+        strokeOpacity="0.10"
+        fill="none"
+      />
+      {/* Moon body */}
+      <circle
+        cx={r} cy={r} r={r - 36}
+        fill={`url(#${gradId})`}
+      />
+      {/* Surface texture — subtle darker patches suggesting craters */}
+      <circle cx={r * 0.6} cy={r * 0.55} r={r * 0.08}
+        fill="#808098" opacity="0.10" />
+      <circle cx={r * 0.75} cy={r * 0.72} r={r * 0.05}
+        fill="#808098" opacity="0.08" />
+      <circle cx={r * 0.45} cy={r * 0.70} r={r * 0.06}
+        fill="#808098" opacity="0.07" />
+      <circle cx={r * 0.80} cy={r * 0.42} r={r * 0.04}
+        fill="#808098" opacity="0.09" />
+      <circle cx={r * 0.55} cy={r * 0.38} r={r * 0.035}
+        fill="#808098" opacity="0.06" />
+      {/* Highlight catch-light — upper left quadrant */}
+      <ellipse
+        cx={r * 0.68} cy={r * 0.50}
+        rx={r * 0.22} ry={r * 0.14}
+        fill="white" opacity="0.18"
+        transform={`rotate(-20 ${r * 0.68} ${r * 0.50})`}
+      />
+    </svg>
+  )
+}
+
+export function SvgCandle({
+  height = 90,
+  idSuffix = 'left',
+  flameDelay = '0s',
+}: {
+  height?: number
+  idSuffix?: string
+  flameDelay?: string
+}) {
+  // A tall ornate candle with animated flame. Used in pairs.
+  const baseH = height * 0.12   // holder/base
+  const waxH  = height * 0.65   // wax column
+  const waxW  = height * 0.14   // wax column width
+  const flameH = height * 0.20  // flame area
+  const totalW = height * 0.28  // total SVG width including holder
+  const cx = totalW / 2         // center x
+
+  return (
+    <svg
+      width={totalW}
+      height={height}
+      viewBox={`0 0 ${totalW} ${height}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      {/* Candle holder / base */}
+      <ellipse
+        cx={cx} cy={height - baseH * 0.3}
+        rx={totalW * 0.45} ry={baseH * 0.35}
+        fill="currentColor" opacity="0.4"
+      />
+      <rect
+        x={cx - totalW * 0.22}
+        y={height - baseH}
+        width={totalW * 0.44}
+        height={baseH * 0.7}
+        rx="1"
+        fill="currentColor" opacity="0.3"
+      />
+      {/* Wax column */}
+      <rect
+        x={cx - waxW / 2}
+        y={height - baseH - waxH}
+        width={waxW}
+        height={waxH}
+        rx="1.5"
+        fill="currentColor" opacity="0.20"
+      />
+      {/* Wax left edge highlight */}
+      <rect
+        x={cx - waxW / 2}
+        y={height - baseH - waxH}
+        width={waxW * 0.15}
+        height={waxH}
+        rx="1"
+        fill="white" opacity="0.07"
+      />
+      {/* Wax drip 1 */}
+      <path
+        d={`M ${cx - waxW * 0.3} ${height - baseH - waxH + waxH * 0.2}
+            Q ${cx - waxW * 0.55} ${height - baseH - waxH + waxH * 0.35}
+              ${cx - waxW * 0.5} ${height - baseH - waxH + waxH * 0.5}`}
+        stroke="currentColor" strokeWidth={waxW * 0.25}
+        strokeLinecap="round" opacity="0.15"
+      />
+      {/* Wax drip 2 */}
+      <path
+        d={`M ${cx + waxW * 0.15} ${height - baseH - waxH + waxH * 0.1}
+            Q ${cx + waxW * 0.55} ${height - baseH - waxH + waxH * 0.28}
+              ${cx + waxW * 0.45} ${height - baseH - waxH + waxH * 0.42}`}
+        stroke="currentColor" strokeWidth={waxW * 0.2}
+        strokeLinecap="round" opacity="0.12"
+      />
+      {/* Wick */}
+      <line
+        x1={cx} y1={height - baseH - waxH}
+        x2={cx} y2={height - baseH - waxH - flameH * 0.22}
+        stroke="currentColor" strokeWidth="1.2"
+        opacity="0.6"
+        strokeLinecap="round"
+      />
+      {/* Flame — outer layer */}
+      <ellipse
+        cx={cx}
+        cy={height - baseH - waxH - flameH * 0.55}
+        rx={waxW * 0.6}
+        ry={flameH * 0.5}
+        fill="currentColor" opacity="0.35"
+        style={{
+          transformOrigin: `${cx}px ${height - baseH - waxH - flameH * 0.1}px`,
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+      {/* Flame — inner brighter layer */}
+      <ellipse
+        cx={cx}
+        cy={height - baseH - waxH - flameH * 0.45}
+        rx={waxW * 0.35}
+        ry={flameH * 0.35}
+        fill="white" opacity="0.45"
+        style={{
+          transformOrigin: `${cx}px ${height - baseH - waxH - flameH * 0.1}px`,
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+      {/* Flame — smoke wisp above */}
+      <ellipse
+        cx={cx}
+        cy={height - baseH - waxH - flameH * 1.05}
+        rx={waxW * 0.15}
+        ry={flameH * 0.18}
+        fill="currentColor" opacity="0.08"
+        style={{
+          transformOrigin: `${cx}px ${height - baseH - waxH - flameH * 0.8}px`,
+          animationName: 'mojo-flame-smoke',
+          animationDuration: '2.5s',
+          animationTimingFunction: 'ease-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+    </svg>
+  )
+}
+
+export function SvgCornerBracket({
+  size = 16,
+  color = 'currentColor',
+  rotation = 0,
+  style,
+}: {
+  size?: number
+  color?: string
+  rotation?: 0 | 90 | 180 | 270
+  style?: React.CSSProperties
+}) {
+  // An L-shaped corner accent. Render four times per RP panel, rotated.
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      style={{
+        transform: `rotate(${rotation}deg)`,
+        pointerEvents: 'none',
+        ...style,
+      }}
+    >
+      {/* Top-left L bracket */}
+      <path
+        d="M 1 8 L 1 1 L 8 1"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeLinecap="square"
+        opacity="0.65"
+      />
+      {/* Inner pip at corner */}
+      <rect x="3" y="3" width="2" height="2"
+        fill={color} opacity="0.4" />
+    </svg>
+  )
+}
+
+export function SvgPageHeaderRule() {
+  // An elaborate decorative rule for page headings — wider and more
+  // ornate than SvgFiligreeRule.
+  return (
+    <svg
+      width="100%"
+      height="20"
+      viewBox="0 0 400 20"
+      preserveAspectRatio="none"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Left line */}
+      <line x1="0" y1="10" x2="155" y2="10"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+      {/* Left diamond */}
+      <rect x="158" y="7" width="6" height="6"
+        transform="rotate(45 161 10)"
+        fill="currentColor" opacity="0.3" />
+      {/* Left thin line */}
+      <line x1="166" y1="10" x2="176" y2="10"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.2" />
+      {/* Centre crescent */}
+      <text x="183" y="14" fontSize="11"
+        fill="currentColor" opacity="0.55"
+        fontFamily="serif" textAnchor="middle">
+        ☽
+      </text>
+      {/* Right thin line */}
+      <line x1="192" y1="10" x2="234" y2="10"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.2" />
+      {/* Right diamond */}
+      <rect x="236" y="7" width="6" height="6"
+        transform="rotate(45 239 10)"
+        fill="currentColor" opacity="0.3" />
+      {/* Right line */}
+      <line x1="245" y1="10" x2="400" y2="10"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+    </svg>
+  )
+}

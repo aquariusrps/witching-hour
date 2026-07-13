@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { updateMojoRp } from '@/lib/actions/mojo'
 import MojoDashboardNotes from './MojoDashboardNotes'
 import MojoDashboardCharCard from './MojoDashboardCharCard'
+import { SvgCornerBracket } from '@/app/mojo/components/MojoSvgAssets'
 import type { DashboardRp } from '@/lib/db/mojo'
 
 function navigateToDashboard() {
@@ -142,12 +143,32 @@ export default function MojoDashboardRpPanel({
         borderRadius: 4,
         marginBottom: 16,
         overflow: 'hidden',
+        position: 'relative',
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.35)',
       }}
     >
       <style>{`
         .mojo-char-row::-webkit-scrollbar { height: 4px; }
         .mojo-char-row::-webkit-scrollbar-thumb { background: var(--elevated); border-radius: 2px; }
       `}</style>
+
+      {/* Corner brackets — decorative, inset to stay clear of overflow:hidden clipping */}
+      <SvgCornerBracket
+        size={16} color={rp.color_hex} rotation={0}
+        style={{ position: 'absolute', top: 2, left: 2 }}
+      />
+      <SvgCornerBracket
+        size={16} color={rp.color_hex} rotation={90}
+        style={{ position: 'absolute', top: 2, right: 2 }}
+      />
+      <SvgCornerBracket
+        size={16} color={rp.color_hex} rotation={270}
+        style={{ position: 'absolute', bottom: 2, left: 2 }}
+      />
+      <SvgCornerBracket
+        size={16} color={rp.color_hex} rotation={180}
+        style={{ position: 'absolute', bottom: 2, right: 2 }}
+      />
 
       <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
