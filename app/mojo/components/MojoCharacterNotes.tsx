@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { updateMojoCharacter } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
+import { SvgCornerBracket } from './MojoSvgAssets'
 
 const NOTE_TABS = [
   { key: 'plot', label: 'Plot Threads' },
@@ -18,14 +19,47 @@ function buildNotesPayload(tab: NoteTabKey, value: string) {
   return { notes_misc: value }
 }
 
-function FiligreeDivider() {
+// S&O mist — confirmed hex from globals.css [data-theme="silver-onyx"]
+const MIST_HEX = '#9c9ab8'
+
+const JOURNAL_FRAME_STYLE: React.CSSProperties = {
+  position: 'relative',
+  padding: '14px 16px 14px',
+  marginBottom: '12px',
+  background: `
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.008) 0px,
+      rgba(255,255,255,0.008) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    var(--raised)
+  `,
+  border: '1px solid rgba(255,255,255,0.06)',
+}
+
+function JournalCornerBrackets() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '20px 0' }}>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--ember), var(--gold))' }} />
-      <span style={{ color: 'var(--gold)', fontSize: '0.7rem' }}>✦</span>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, var(--ember), var(--gold))' }} />
-    </div>
+    <>
+      <SvgCornerBracket size={14} color={MIST_HEX} rotation={0}
+        style={{ position: 'absolute', top: 0, left: 0, opacity: 0.4 }} />
+      <SvgCornerBracket size={14} color={MIST_HEX} rotation={90}
+        style={{ position: 'absolute', top: 0, right: 0, opacity: 0.4 }} />
+      <SvgCornerBracket size={14} color={MIST_HEX} rotation={270}
+        style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0.4 }} />
+      <SvgCornerBracket size={14} color={MIST_HEX} rotation={180}
+        style={{ position: 'absolute', bottom: 0, right: 0, opacity: 0.4 }} />
+    </>
   )
+}
+
+const SECTION_LABEL_STYLE: React.CSSProperties = {
+  fontFamily: 'Cinzel, serif',
+  fontSize: '10px',
+  letterSpacing: '0.25em',
+  textTransform: 'uppercase',
+  color: 'var(--faded)',
 }
 
 export default function MojoCharacterNotes({
@@ -111,15 +145,10 @@ export default function MojoCharacterNotes({
   return (
     <div>
       {/* Biography */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{
-            fontFamily: 'var(--f-ui)',
-            fontSize: '0.68rem',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--faded)',
-          }}>
+      <div style={JOURNAL_FRAME_STYLE}>
+        <JournalCornerBrackets />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <span style={SECTION_LABEL_STYLE}>
             Biography
           </span>
           {!editingBio && (
@@ -133,6 +162,14 @@ export default function MojoCharacterNotes({
             </button>
           )}
         </div>
+        <div style={{
+          width: '60px',
+          height: '1px',
+          background: 'linear-gradient(90deg, currentColor, transparent)',
+          opacity: 0.3,
+          marginBottom: '10px',
+          color: 'var(--gold)',
+        }} />
 
         {bioError && (
           <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--ember)', margin: '0 0 8px' }}>
@@ -193,10 +230,9 @@ export default function MojoCharacterNotes({
         )}
       </div>
 
-      <FiligreeDivider />
-
       {/* Notes tabs */}
-      <div>
+      <div style={JOURNAL_FRAME_STYLE}>
+        <JournalCornerBrackets />
         <div style={{ display: 'flex', gap: 18, borderBottom: '1px solid var(--elevated)', marginBottom: 14 }}>
           {NOTE_TABS.map((tab) => {
             const isActive = tab.key === activeTab

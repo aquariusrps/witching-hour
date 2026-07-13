@@ -6,6 +6,7 @@ import MojoCharacterNotes from './MojoCharacterNotes'
 import MojoThreadTracker from './MojoThreadTracker'
 import MojoResourcesTab from './MojoResourcesTab'
 import MojoCharacterAvatarTabs from './MojoCharacterAvatarTabs'
+import { SvgNavLibrary, SvgNavSearch, SvgNavStacks, SvgNavImages, SvgFiligreeRule } from './MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoCharacter = Tables<'mojo_characters'>
@@ -15,10 +16,10 @@ type MojoImageStack = Tables<'mojo_image_stacks'>
 type MojoAvatar = Tables<'mojo_avatars'>
 
 const TABS = [
-  { key: 'notes', label: 'Notes' },
-  { key: 'threads', label: 'Threads' },
-  { key: 'resources', label: 'Resources' },
-  { key: 'avatars', label: 'Avatars' },
+  { key: 'notes', label: 'Notes', Icon: SvgNavLibrary },
+  { key: 'threads', label: 'Threads', Icon: SvgNavSearch },
+  { key: 'resources', label: 'Resources', Icon: SvgNavStacks },
+  { key: 'avatars', label: 'Avatars', Icon: SvgNavImages },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -54,63 +55,115 @@ export default function MojoCharacterTabs({
 
   return (
     <div>
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--elevated)', marginBottom: 24 }}>
+      <div style={{
+        display: 'flex',
+        background: 'var(--char)',
+        borderBottom: '1px solid var(--elevated)',
+        position: 'relative',
+        marginBottom: 0,
+      }}>
         {TABS.map((tab) => {
           const isActive = tab.key === activeTab
+          const Icon = tab.Icon
           return (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
               style={{
-                background: 'none',
-                border: 'none',
+                padding: '8px 18px',
                 cursor: 'pointer',
-                padding: '10px 20px',
-                fontFamily: 'var(--f-ui)',
-                fontSize: '0.8rem',
-                color: isActive ? 'var(--gold)' : 'var(--faded)',
-                borderBottom: isActive ? '2px solid var(--ember)' : '2px solid transparent',
-                marginBottom: -1,
+                fontFamily: 'Cinzel, serif',
+                fontSize: '11px',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                transition: 'all 0.15s ease',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                ...(isActive
+                  ? {
+                      color: 'var(--roseash)',
+                      background: 'var(--raised)',
+                      border: 'none',
+                      borderTop: '1.5px solid var(--gold)',
+                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                      borderRight: '1px solid rgba(255,255,255,0.06)',
+                      marginBottom: '-1px',
+                      borderBottom: '1px solid var(--raised)',
+                      zIndex: 1,
+                    }
+                  : {
+                      color: 'var(--faded)',
+                      background: 'transparent',
+                      border: 'none',
+                      borderTop: '1.5px solid transparent',
+                      opacity: 0.7,
+                    }),
               }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--mist)' }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--faded)' }}
+              onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.color = 'var(--mist)'; e.currentTarget.style.opacity = '1' } }}
+              onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.color = 'var(--faded)'; e.currentTarget.style.opacity = '0.7' } }}
             >
+              <Icon active={isActive} />
               {tab.label}
             </button>
           )
         })}
       </div>
 
-      {activeTab === 'notes' && (
-        <MojoCharacterNotes charId={charId} rpId={rpId} character={character} />
-      )}
+      <div style={{
+        background: `
+          repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,0.006) 0px,
+            rgba(255,255,255,0.006) 1px,
+            transparent 1px,
+            transparent 4px
+          ),
+          var(--claret)
+        `,
+        border: '1px solid rgba(255,255,255,0.04)',
+        borderTop: 'none',
+        borderRadius: '0 0 4px 4px',
+        padding: 0,
+      }}>
+        <div style={{ color: 'var(--elevated)', padding: '12px 20px 0', opacity: 0.6 }}>
+          <SvgFiligreeRule />
+        </div>
 
-      {activeTab === 'threads' && (
-        <MojoThreadTracker charId={charId} rpId={rpId} characterName={character.name} initialThreads={threads} />
-      )}
+        <div style={{ padding: '12px 20px 20px' }}>
+          {activeTab === 'notes' && (
+            <MojoCharacterNotes charId={charId} rpId={rpId} character={character} />
+          )}
 
-      {activeTab === 'resources' && (
-        <MojoResourcesTab
-          charId={charId}
-          rpId={rpId}
-          faceclaimId={character.faceclaim_id}
-          faceclaimName={faceclaimName}
-          resources={resources}
-          faceclaimResources={faceclaimResources}
-        />
-      )}
+          {activeTab === 'threads' && (
+            <MojoThreadTracker charId={charId} rpId={rpId} characterName={character.name} initialThreads={threads} />
+          )}
 
-      {activeTab === 'avatars' && (
-        <MojoCharacterAvatarTabs
-          charId={charId}
-          rpId={rpId}
-          characterStacks={characterStacks}
-          primaryStackId={character.primary_stack_id}
-          characterAvatars={characterAvatars}
-          faceclaimId={character.faceclaim_id}
-        />
-      )}
+          {activeTab === 'resources' && (
+            <MojoResourcesTab
+              charId={charId}
+              rpId={rpId}
+              faceclaimId={character.faceclaim_id}
+              faceclaimName={faceclaimName}
+              resources={resources}
+              faceclaimResources={faceclaimResources}
+            />
+          )}
+
+          {activeTab === 'avatars' && (
+            <MojoCharacterAvatarTabs
+              charId={charId}
+              rpId={rpId}
+              characterStacks={characterStacks}
+              primaryStackId={character.primary_stack_id}
+              characterAvatars={characterAvatars}
+              faceclaimId={character.faceclaim_id}
+            />
+          )}
+        </div>
+      </div>
     </div>
   )
 }

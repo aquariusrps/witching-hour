@@ -568,3 +568,189 @@ export function SvgPageHeaderRule() {
     </svg>
   )
 }
+
+// ─── MOJO-7D: The Dossier additions ─────────────────────────
+
+export function SvgIvyTrail({
+  width = 140,
+  height = 80,
+  flip = false,
+}: {
+  width?: number
+  height?: number
+  flip?: boolean   // true = mirror horizontally (right side)
+}) {
+  // A trailing ivy-and-vine design for the character banner margins.
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 140 80"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        transform: flip ? 'scaleX(-1)' : undefined,
+        pointerEvents: 'none',
+      }}
+    >
+      {/* Main vine stem — a gently curving path from bottom-left upward */}
+      <path
+        d="M 8 72 C 20 60, 15 45, 28 38 C 40 31, 35 18, 52 12"
+        stroke="currentColor" strokeWidth="1.2"
+        strokeLinecap="round" opacity="0.35"
+        fill="none"
+      />
+      {/* Secondary vine branch */}
+      <path
+        d="M 28 38 C 45 35, 55 42, 70 36"
+        stroke="currentColor" strokeWidth="0.8"
+        strokeLinecap="round" opacity="0.25"
+        fill="none"
+      />
+      {/* Tertiary tendril */}
+      <path
+        d="M 52 12 C 65 8, 80 14, 90 8"
+        stroke="currentColor" strokeWidth="0.6"
+        strokeLinecap="round" opacity="0.20"
+        fill="none"
+      />
+
+      {/* Leaf 1 — lower, large */}
+      <ellipse cx="18" cy="58" rx="9" ry="5"
+        fill="currentColor" opacity="0.18"
+        transform="rotate(-30 18 58)" />
+      {/* Leaf 1 vein */}
+      <line x1="12" y1="61" x2="24" y2="55"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.15" />
+
+      {/* Leaf 2 — mid-stem */}
+      <ellipse cx="36" cy="32" rx="8" ry="4.5"
+        fill="currentColor" opacity="0.20"
+        transform="rotate(20 36 32)" />
+      <line x1="30" y1="35" x2="42" y2="29"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.15" />
+
+      {/* Leaf 3 — branch leaf */}
+      <ellipse cx="58" cy="40" rx="7" ry="4"
+        fill="currentColor" opacity="0.16"
+        transform="rotate(-15 58 40)" />
+
+      {/* Leaf 4 — upper */}
+      <ellipse cx="62" cy="14" rx="8" ry="4"
+        fill="currentColor" opacity="0.19"
+        transform="rotate(25 62 14)" />
+      <line x1="56" y1="17" x2="68" y2="11"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.14" />
+
+      {/* Leaf 5 — top tendril */}
+      <ellipse cx="88" cy="10" rx="6" ry="3"
+        fill="currentColor" opacity="0.14"
+        transform="rotate(-10 88 10)" />
+
+      {/* Small curl tendrils */}
+      <path
+        d="M 40 26 C 44 20, 48 22, 46 26"
+        stroke="currentColor" strokeWidth="0.5"
+        strokeLinecap="round" opacity="0.15" fill="none"
+      />
+      <path
+        d="M 70 30 C 75 25, 80 27, 78 31"
+        stroke="currentColor" strokeWidth="0.5"
+        strokeLinecap="round" opacity="0.12" fill="none"
+      />
+      <path
+        d="M 55 8 C 58 3, 62 5, 60 9"
+        stroke="currentColor" strokeWidth="0.4"
+        strokeLinecap="round" opacity="0.12" fill="none"
+      />
+
+      {/* Scattered small dots — berries or buds */}
+      <circle cx="24" cy="42" r="1.5" fill="currentColor" opacity="0.15" />
+      <circle cx="46" cy="22" r="1.2" fill="currentColor" opacity="0.12" />
+      <circle cx="78" cy="38" r="1" fill="currentColor" opacity="0.10" />
+    </svg>
+  )
+}
+
+export function SvgMedallion({
+  size = 160,
+  idSuffix = 'char',
+}: {
+  size?: number
+  idSuffix?: string
+}) {
+  // An ornate circular frame for the character avatar portrait.
+  // Pure SVG overlay — the parent renders the avatar clip circle
+  // behind this component and positions this on top.
+  const r = size / 2
+  const outerR = r - 2
+  const innerR = r - 22
+
+  // Tick marks around the outer ring — 24 evenly spaced
+  const ticks = Array.from({ length: 24 }, (_, i) => {
+    const angle = (i * 360) / 24
+    const rad = (angle * Math.PI) / 180
+    const isMajor = i % 6 === 0  // major at N/E/S/W
+    const tickLen = isMajor ? 6 : 3
+    const x1 = r + (outerR - 3) * Math.cos(rad)
+    const y1 = r + (outerR - 3) * Math.sin(rad)
+    const x2 = r + (outerR - 3 - tickLen) * Math.cos(rad)
+    const y2 = r + (outerR - 3 - tickLen) * Math.sin(rad)
+    return { x1, y1, x2, y2, isMajor }
+  })
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+      }}
+    >
+      {/* Outer decorative ring */}
+      <circle cx={r} cy={r} r={outerR}
+        stroke="currentColor" strokeWidth="0.8" opacity="0.30" />
+
+      {/* Tick marks */}
+      {ticks.map((tick, i) => (
+        <line
+          key={i}
+          x1={tick.x1} y1={tick.y1}
+          x2={tick.x2} y2={tick.y2}
+          stroke="currentColor"
+          strokeWidth={tick.isMajor ? 1.2 : 0.6}
+          opacity={tick.isMajor ? 0.45 : 0.20}
+        />
+      ))}
+
+      {/* Diamond pips at N/E/S/W */}
+      {[0, 90, 180, 270].map((angle, i) => {
+        const rad = ((angle - 90) * Math.PI) / 180
+        const px = r + (outerR - 14) * Math.cos(rad)
+        const py = r + (outerR - 14) * Math.sin(rad)
+        return (
+          <rect
+            key={i}
+            x={px - 3} y={py - 3}
+            width="6" height="6"
+            transform={`rotate(45 ${px} ${py})`}
+            fill="currentColor" opacity="0.40"
+          />
+        )
+      })}
+
+      {/* Inner ring — the portrait boundary */}
+      <circle cx={r} cy={r} r={innerR}
+        stroke="currentColor" strokeWidth="1.2" opacity="0.45" />
+
+      {/* Very subtle inner glow ring */}
+      <circle cx={r} cy={r} r={innerR - 3}
+        stroke="currentColor" strokeWidth="0.4" opacity="0.15" />
+    </svg>
+  )
+}
