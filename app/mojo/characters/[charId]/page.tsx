@@ -40,7 +40,7 @@ export default async function MojoCharacterPage({
     ? characterStacks.find((s) => s.id === character.primary_stack_id)
     : undefined
   const avatarToken = primaryStack?.token ?? characterAvatars[0]?.token ?? null
-  const avatarUrl = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL}/i/${avatarToken}` : null
+  const avatarUrl = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL}/i/${avatarToken}.png` : null
 
   return (
     <div style={{ padding: '28px 32px 64px', position: 'relative' }}>

@@ -27,5 +27,5 @@ export async function registerImageToken(
 }
 
 export function getProxyUrl(token: string): string {
-  return process.env.NEXT_PUBLIC_SITE_URL + '/i/' + token
+  return process.env.NEXT_PUBLIC_SITE_URL + '/i/' + token + '.png'
 }

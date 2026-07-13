@@ -793,7 +793,7 @@ export async function getMojoWanted(rpId: string): Promise<
     ...item,
     character_name: item.character_id ? (nameById.get(item.character_id) ?? null) : null,
     proxy_url: item.image_token
-      ? process.env.NEXT_PUBLIC_SITE_URL + '/i/' + item.image_token
+      ? process.env.NEXT_PUBLIC_SITE_URL + '/i/' + item.image_token + '.png'
       : null,
   }))
 }

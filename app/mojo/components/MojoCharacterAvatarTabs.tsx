@@ -44,7 +44,7 @@ function StackRow({
   stack: MojoImageStack & { member_count: number }
   isPrimary: boolean
 }) {
-  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${stack.token}`
+  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${stack.token}.png`
 
   return (
     <div

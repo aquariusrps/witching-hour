@@ -111,7 +111,7 @@ export default function MojoStackCard({
   const [error, setError] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${stack.token}`
+  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${stack.token}.png`
 
   const groupedCharacters = new Map<string, Array<{ id: string; name: string }>>()
   for (const c of characters) {

@@ -82,7 +82,7 @@ export default function MojoPersonalImageCard({
   const [error, setError] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${image.token}`
+  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${image.token}.png`
   const folderName = image.folder_id ? folders.find((f) => f.id === image.folder_id)?.name ?? null : null
   const tagList = (image.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean)
   const visibleTags = tagList.slice(0, 3)

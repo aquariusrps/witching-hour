@@ -76,7 +76,7 @@ function AvatarCard({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${avatar.token}`
+  const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${avatar.token}.png`
   const mimeBadge = avatar.mime_type === 'image/gif' ? 'GIF' : 'PNG'
 
   function startEdit() {

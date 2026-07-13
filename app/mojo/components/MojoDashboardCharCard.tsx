@@ -35,7 +35,7 @@ export default function MojoDashboardCharCard({
   const [isActing, setIsActing] = useState(false)
 
   const avatarToken = character.primary_stack_token ?? character.avatar_token
-  const avatarSrc = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${avatarToken}` : null
+  const avatarSrc = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${avatarToken}.png` : null
   const isArchived = character.status === 'archived'
 
   const myTurnCount = character.active_threads.filter(

@@ -386,7 +386,7 @@ async function SearchResults({ query }: { query: string }) {
               {img.token && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={`${process.env.NEXT_PUBLIC_SITE_URL}/i/${img.token}`}
+                  src={`${process.env.NEXT_PUBLIC_SITE_URL}/i/${img.token}.png`}
                   alt={img.title}
                   style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 0, border: '2px solid rgba(255,255,255,0.15)', outline: 'none', flexShrink: 0 }}
                 />
