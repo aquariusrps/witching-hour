@@ -4,6 +4,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createMojoRp } from '@/lib/actions/mojo'
+import {
+  SvgSidebarOrnamentTop,
+  SvgSidebarOrnamentBottom,
+  SvgFiligreeRule,
+  SvgNavDashboard,
+  SvgNavImages,
+  SvgNavFaceclaims,
+  SvgNavLibrary,
+  SvgNavWishlist,
+  SvgNavPartners,
+  SvgNavStacks,
+  SvgNavSearch,
+} from './MojoSvgAssets'
 
 type MojoCharacter = {
   id: string
@@ -22,15 +35,23 @@ type MojoRpWithCharacters = {
 }
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/mojo' },
-  { label: 'Images', href: '/mojo/images' },
-  { label: 'Faceclaims', href: '/mojo/faceclaims' },
-  { label: 'Library', href: '/mojo/library' },
-  { label: 'Wishlist', href: '/mojo/wishlist' },
-  { label: 'Partners', href: '/mojo/partners' },
-  { label: 'Stacks', href: '/mojo/stacks' },
-  { label: 'Search', href: '/mojo/search' },
+  { label: 'Dashboard', href: '/mojo', Icon: SvgNavDashboard },
+  { label: 'Images', href: '/mojo/images', Icon: SvgNavImages },
+  { label: 'Faceclaims', href: '/mojo/faceclaims', Icon: SvgNavFaceclaims },
+  { label: 'Library', href: '/mojo/library', Icon: SvgNavLibrary },
+  { label: 'Wishlist', href: '/mojo/wishlist', Icon: SvgNavWishlist },
+  { label: 'Partners', href: '/mojo/partners', Icon: SvgNavPartners },
+  { label: 'Stacks', href: '/mojo/stacks', Icon: SvgNavStacks },
+  { label: 'Search', href: '/mojo/search', Icon: SvgNavSearch },
 ]
+
+const SECTION_LABEL_STYLE: React.CSSProperties = {
+  fontFamily: 'Cinzel, serif',
+  fontSize: '9px',
+  letterSpacing: '0.4em',
+  textTransform: 'uppercase',
+  color: 'var(--faded)',
+}
 
 const INPUT_STYLE: React.CSSProperties = {
   padding: '6px 8px',
@@ -104,7 +125,18 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
     <aside style={{
       width: 260,
       flexShrink: 0,
-      background: 'var(--claret)',
+      background: `
+        repeating-linear-gradient(
+          180deg,
+          rgba(255,255,255,0.010) 0px,
+          rgba(255,255,255,0.010) 1px,
+          transparent 1px,
+          transparent 4px
+        ),
+        var(--claret)
+      `,
+      borderRight: '1px solid rgba(255,255,255,0.06)',
+      boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.03), 4px 0 20px rgba(0,0,0,0.4)',
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
@@ -113,14 +145,18 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
       overflow: 'hidden',
     }}>
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 12 }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '20px 0 12px',
+          color: 'var(--mist)',
+        }}>
+          <SvgSidebarOrnamentTop />
+        </div>
+
         <div style={{ padding: '18px 16px 8px' }}>
-          <span style={{
-            fontFamily: 'var(--f-ui)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            color: 'var(--faded)',
-          }}>
+          <span style={SECTION_LABEL_STYLE}>
             The Circle
           </span>
         </div>
@@ -130,37 +166,43 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
         <nav style={{ padding: '0 8px' }}>
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href
+            const Icon = item.Icon
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                className={`mojo-nav-item${isActive ? ' mojo-nav-active' : ''}`}
                 style={{
-                  display: 'block',
-                  padding: '8px 12px',
-                  fontFamily: 'var(--f-body)',
-                  fontSize: '0.85rem',
-                  color: isActive ? 'var(--gold)' : 'var(--roseash)',
-                  textDecoration: 'none',
+                  padding: '7px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  color: isActive ? 'var(--roseash)' : 'var(--mist)',
+                  fontFamily: 'EB Garamond, serif',
+                  fontSize: '14px',
+                  borderLeft: isActive ? '2px solid var(--gold)' : '2px solid transparent',
+                  background: isActive
+                    ? 'linear-gradient(90deg, rgba(224,176,40,0.08) 0%, transparent 100%)'
+                    : 'transparent',
                   borderRadius: 2,
-                  background: isActive ? 'var(--raised)' : 'transparent',
+                  textDecoration: 'none',
                 }}
               >
-                ✦ {item.label}
+                <Icon active={isActive} />
+                {item.label}
               </Link>
             )
           })}
         </nav>
 
-        <Divider />
+        <div style={{ padding: '4px 12px 8px', color: 'var(--faded)' }}>
+          <SvgFiligreeRule />
+        </div>
 
         <div style={{ padding: '0 16px 6px' }}>
-          <span style={{
-            fontFamily: 'var(--f-ui)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            color: 'var(--faded)',
-          }}>
+          <span style={SECTION_LABEL_STYLE}>
             Your RPs
           </span>
         </div>
@@ -220,15 +262,18 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
                       minWidth: 0,
                     }}
                   >
-                    <span style={{
-                      fontFamily: 'var(--f-body)',
-                      fontSize: '0.85rem',
-                      color: 'var(--roseash)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {rp.name}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                      <span className="mojo-rp-ember" style={{ backgroundColor: rp.color_hex }} />
+                      <span style={{
+                        fontFamily: 'var(--f-body)',
+                        fontSize: '0.85rem',
+                        color: 'var(--roseash)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {rp.name}
+                      </span>
                     </span>
                     {rp.status !== 'active' && (
                       <span style={{
@@ -380,13 +425,25 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
         }} />
         <p style={{
           textAlign: 'center',
-          fontFamily: 'var(--f-ui)',
-          fontSize: '0.6rem',
+          fontFamily: 'Cinzel, serif',
+          fontSize: '9px',
+          letterSpacing: '0.3em',
           color: 'var(--faded)',
           margin: 0,
         }}>
           mojo v1
         </p>
+      </div>
+
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        paddingBottom: '12px',
+        color: 'var(--faded)',
+        opacity: 0.4,
+      }}>
+        <SvgSidebarOrnamentBottom />
       </div>
     </aside>
   )

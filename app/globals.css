@@ -402,3 +402,121 @@ body {
   top: 10px;
   left: 12px;
 }
+
+/* ═══════════════════════════════════════
+   MOJO ANIMATION LIBRARY — MOJO-7B
+   Used by visual pass prompts 7C through 7K
+   ═══════════════════════════════════════ */
+
+@keyframes mojo-moon-breathe {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px rgba(192, 192, 200, 0.25))
+            drop-shadow(0 0 30px rgba(90, 74, 122, 0.15));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(192, 192, 200, 0.40))
+            drop-shadow(0 0 50px rgba(90, 74, 122, 0.25));
+    transform: scale(1.015);
+  }
+}
+
+@keyframes mojo-flame-main {
+  0%, 100% { transform: scaleX(1) scaleY(1) rotate(-1deg); opacity: 0.92; }
+  20%       { transform: scaleX(0.92) scaleY(1.06) rotate(1.5deg); opacity: 1; }
+  40%       { transform: scaleX(1.05) scaleY(0.96) rotate(-2deg); opacity: 0.88; }
+  60%       { transform: scaleX(0.96) scaleY(1.04) rotate(1deg); opacity: 0.95; }
+  80%       { transform: scaleX(1.03) scaleY(0.98) rotate(-1.5deg); opacity: 0.9; }
+}
+
+@keyframes mojo-flame-inner {
+  0%, 100% { transform: scaleX(1) scaleY(1) translateY(0); }
+  33%       { transform: scaleX(0.88) scaleY(1.08) translateY(-1px); }
+  66%       { transform: scaleX(1.08) scaleY(0.94) translateY(0.5px); }
+}
+
+@keyframes mojo-flame-smoke {
+  0%   { transform: translateY(0) translateX(0) scaleX(1); opacity: 0.4; }
+  50%  { transform: translateY(-8px) translateX(2px) scaleX(0.8); opacity: 0.2; }
+  100% { transform: translateY(-16px) translateX(-1px) scaleX(0.6); opacity: 0; }
+}
+
+@keyframes mojo-ember-pulse {
+  0%, 100% { box-shadow: 0 0 3px currentColor; opacity: 0.7; }
+  50%       { box-shadow: 0 0 7px currentColor; opacity: 1; }
+}
+
+@keyframes mojo-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes mojo-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes mojo-portal-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(192, 192, 200, 0.3)); }
+  50%       { filter: drop-shadow(0 0 8px rgba(192, 192, 200, 0.6)); }
+}
+
+@keyframes mojo-rune-fade {
+  0%, 100% { opacity: 0.04; }
+  50%       { opacity: 0.08; }
+}
+
+/* Mojo sidebar ember dot — RP color indicator */
+.mojo-rp-ember {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: mojo-ember-pulse 2.5s ease-in-out infinite;
+}
+
+/* Mojo nav item active state */
+.mojo-nav-active {
+  border-left: 2px solid var(--gold);
+  background: linear-gradient(
+    90deg,
+    rgba(224, 176, 40, 0.07) 0%,
+    transparent 100%
+  );
+  color: var(--roseash);
+}
+
+/* Mojo nav item hover state */
+.mojo-nav-item:hover:not(.mojo-nav-active) {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--mist);
+}
+
+/* Mojo filigree rule — decorative horizontal divider */
+.mojo-filigree-rule {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--elevated) 30%,
+    var(--mist) 50%,
+    var(--elevated) 70%,
+    transparent 100%
+  );
+  opacity: 0.5;
+  position: relative;
+}
+
+/* Background tile pattern for the sanctum */
+.mojo-bg-tile {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ctext x='10' y='20' font-size='8' fill='rgba(192,192,200,0.06)' font-family='serif'%3E☽%3C/text%3E%3Ctext x='35' y='45' font-size='6' fill='rgba(192,192,200,0.04)' font-family='serif'%3E✦%3C/text%3E%3Ctext x='5' y='50' font-size='5' fill='rgba(192,192,200,0.03)' font-family='serif'%3E△%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 60px 60px;
+}
+
+/* Mojo portal glow — "back to TWH" link */
+.mojo-portal-glow {
+  animation: mojo-portal-glow 3s ease-in-out infinite;
+}
