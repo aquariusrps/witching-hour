@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { updateMojoCharacterStatus } from '@/lib/actions/mojo'
 
+function navigateToRp(rpId: string) {
+  window.location.href = '/mojo/rps/' + rpId
+}
+
 export default function MojoCharacterStatusToggle({
   characterId,
   rpId,
@@ -27,7 +31,7 @@ export default function MojoCharacterStatusToggle({
       return
     }
 
-    window.location.href = '/mojo/rps/' + rpId
+    navigateToRp(rpId)
   }
 
   return (

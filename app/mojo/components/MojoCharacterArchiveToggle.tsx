@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { updateMojoCharacterStatus } from '@/lib/actions/mojo'
 
+function navigateToCharacter(charId: string) {
+  window.location.href = '/mojo/characters/' + charId
+}
+
 export default function MojoCharacterArchiveToggle({
   charId,
   status,
@@ -25,7 +29,7 @@ export default function MojoCharacterArchiveToggle({
       return
     }
 
-    window.location.href = '/mojo/characters/' + charId
+    navigateToCharacter(charId)
   }
 
   return (

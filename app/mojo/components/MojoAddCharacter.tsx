@@ -16,6 +16,10 @@ const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
 }
 
+function navigateToRp(rpId: string) {
+  window.location.href = '/mojo/rps/' + rpId
+}
+
 export default function MojoAddCharacter({ rpId }: { rpId: string }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -42,7 +46,7 @@ export default function MojoAddCharacter({ rpId }: { rpId: string }) {
       return
     }
 
-    window.location.href = '/mojo/rps/' + rpId
+    navigateToRp(rpId)
   }
 
   return (

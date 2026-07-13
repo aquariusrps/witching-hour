@@ -2492,7 +2492,8 @@ export function SvgScryingBowl({
       {/* ── ATMOSPHERIC HALO (outermost glow) ── */}
       <circle cx={cx} cy={cy} r={rimR + 12}
         stroke="currentColor" strokeWidth="24"
-        strokeOpacity="0.04" fill="none" />
+        strokeOpacity="0.04" fill="none"
+        filter={`url(#${glowId})`} />
       <circle cx={cx} cy={cy} r={rimR + 6}
         stroke="currentColor" strokeWidth="12"
         strokeOpacity="0.06" fill="none" />

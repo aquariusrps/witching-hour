@@ -28,6 +28,10 @@ const INPUT_STYLE: React.CSSProperties = {
   boxSizing: 'border-box',
 }
 
+function navigateToRp(rpId: string) {
+  window.location.href = '/mojo/rps/' + rpId
+}
+
 export default function MojoRpEditForm({
   rpId,
   name,
@@ -62,7 +66,7 @@ export default function MojoRpEditForm({
       return
     }
 
-    window.location.href = '/mojo/rps/' + rpId
+    navigateToRp(rpId)
   }
 
   return (

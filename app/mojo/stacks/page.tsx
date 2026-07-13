@@ -1,11 +1,18 @@
 import { getMojoImageStacks, getMojoRpsWithCharacters, getMojoFaceclaims, getMojoStackMembers } from '@/lib/db/mojo'
+import { getAdminClient } from '@/lib/supabase/adminClient'
 import MojoCreateStack from '@/app/mojo/components/MojoCreateStack'
 import MojoStackCard from '@/app/mojo/components/MojoStackCard'
 import {
   SvgCabinetOfCuriosities, SvgPageHeaderRule, SvgFiligreeRule
 } from '@/app/mojo/components/MojoSvgAssets'
 
-export default async function MojoStacksPage() {
+export default async function MojoStacksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ character_id?: string }>
+}) {
+  const { character_id } = await searchParams
+
   const [stacks, rps, faceclaims] = await Promise.all([
     getMojoImageStacks(),
     getMojoRpsWithCharacters(),
@@ -17,6 +24,26 @@ export default async function MojoStacksPage() {
   )
   const characterById = new Map(characters.map((c) => [c.id, c]))
   const faceclaimNameById = new Map(faceclaims.map((fc) => [fc.id, fc.name]))
+
+  let characterName: string | null = null
+  let characterFaceclaimId: string | null = null
+  if (character_id) {
+    const admin = getAdminClient()
+    const { data: char } = await admin
+      .from('mojo_characters')
+      .select('name, faceclaim_id')
+      .eq('id', character_id)
+      .single()
+    characterName = char?.name ?? null
+    characterFaceclaimId = char?.faceclaim_id ?? null
+  }
+
+  const filteredStacks = character_id
+    ? stacks.filter((s) =>
+        s.character_id === character_id ||
+        (characterFaceclaimId && s.faceclaim_id === characterFaceclaimId)
+      )
+    : stacks
 
   const membersByStack = new Map(
     await Promise.all(
@@ -93,12 +120,69 @@ export default async function MojoStacksPage() {
           faceclaims={faceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
         />
 
+        {character_id && characterName && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '16px',
+            padding: '8px 12px',
+            background: 'var(--raised)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: '2px',
+          }}>
+            <span style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: 'var(--faded)',
+            }}>
+              Filtered by character:
+            </span>
+            <span style={{
+              fontFamily: 'EB Garamond, serif',
+              fontSize: '14px',
+              color: 'var(--roseash)',
+            }}>
+              {characterName}
+            </span>
+            <a
+              href="/mojo/stacks"
+              style={{
+                fontFamily: 'Cinzel, serif',
+                fontSize: '10px',
+                letterSpacing: '0.1em',
+                color: 'var(--faded)',
+                textDecoration: 'none',
+                marginLeft: 'auto',
+                opacity: 0.7,
+              }}
+            >
+              ← Show all
+            </a>
+          </div>
+        )}
+
         {stacks.length === 0 ? (
           <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
             No image stacks yet. Create your first one above.
           </p>
+        ) : filteredStacks.length === 0 && character_id ? (
+          <p style={{
+            fontFamily: 'EB Garamond, serif',
+            fontSize: '14px',
+            fontStyle: 'italic',
+            color: 'var(--faded)',
+          }}>
+            No stacks assigned to {characterName ?? 'this character'}.
+            <a href="/mojo/stacks" style={{ color: 'var(--gold)',
+              marginLeft: 8, textDecoration: 'none' }}>
+              View all stacks →
+            </a>
+          </p>
         ) : (
-          stacks.map((stack) => {
+          filteredStacks.map((stack) => {
             const character = stack.character_id ? characterById.get(stack.character_id) : undefined
             const faceclaimName = stack.faceclaim_id ? faceclaimNameById.get(stack.faceclaim_id) ?? null : null
             return (

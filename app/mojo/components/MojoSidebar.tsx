@@ -75,6 +75,10 @@ function Divider() {
   )
 }
 
+function navigateToDashboard() {
+  window.location.href = '/mojo'
+}
+
 export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
   const pathname = usePathname()
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(rps.map((r) => r.id)))
@@ -118,7 +122,7 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
       return
     }
 
-    window.location.href = '/mojo'
+    navigateToDashboard()
   }
 
   return (
