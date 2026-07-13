@@ -1,7 +1,7 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.1
-### Last updated: July 2026 — through MOJO-4B (commit 9406cff)
+### Created: July 2026 | Current version: v1.2
+### Last updated: July 2026 — through MOJO-6C (commit 3ca7020)
 
 This is the single authoritative document for the Mojo personal RP
 dashboard. It combines project brief, build governance, and roadmap.
@@ -196,7 +196,9 @@ Images MUST NOT pass through Server Actions (4.5MB Vercel limit).
   1. Client processes file (optional crop via MojoAvatarCrop.tsx)
   2. Client sends blob to /api/mojo/process-image → PNG or GIF returned
   3. Client uploads to mojo-private via createBrowserClient()
-  4. Client calls registerUploadedAvatar() with storage path only
+  4. Client calls the appropriate registration action with storage path only:
+       registerUploadedAvatar() for avatar uploads
+       registerUploadedPersonalImage() for personal image uploads
 
 Never pass File, Blob, ArrayBuffer, or base64 through a Server Action.
 
@@ -207,7 +209,34 @@ A Crop button on each queued item opens the crop tool for that
 specific file before it uploads.
 This applies everywhere in the system — avatar upload, image
 repository, everywhere.
-NOTE: MOJO-4B built crop as mandatory. This is TD-5, fixed in MOJO-6A.
+RESOLVED in MOJO-6A (was TD-5). Crop is now opt-in everywhere.
+
+### Tiptap v3 API Corrections (confirmed MOJO-6A Q3/Q4)
+TextStyle has no default export in v3 — use named import:
+  import { TextStyle } from '@tiptap/extension-text-style'
+StarterKit v3 bundles link and underline internally. Prevent collision:
+  StarterKit.configure({ link: false, underline: false })
+Rules of Hooks: useEditor cannot be called conditionally. Split into:
+  MojoRichTextEditor (outer — handles readonly early-return, no hooks)
+  MojoRichTextEditorInner (inner — always calls useEditor, edit mode only)
+Placeholder: do NOT install the Tiptap Placeholder extension. Track
+  editor.isEmpty in React state and toggle a CSS class instead.
+
+### useSearchParams Requires Suspense (confirmed MOJO-6B)
+Any component using useSearchParams() must be wrapped in a Suspense
+boundary. Add <Suspense fallback={null}> around the component in its
+parent page. Confirmed: MojoCharacterTabs.tsx uses useSearchParams —
+Suspense boundary added in app/mojo/characters/[charId]/page.tsx.
+
+### Navigation Alongside State Changes (confirmed MOJO-6C Q2)
+When navigation must accompany a state mutation (e.g. setShowUpload(false)
+then navigate), keep the state call inline but call a module-level
+navigation function from that inline callback:
+  // CORRECT — assignment lives at module level
+  function navigateToImages() { window.location.href = '/mojo/images' }
+  onClick={() => { setShowUpload(false); navigateToImages() }}
+The window.location.href assignment itself must always be in the
+module-level function. Calling it from an inline callback is fine.
 
 ### Rich Text Fields
 All user-facing text inputs use MojoRichTextEditor.tsx (built MOJO-6A)
@@ -215,7 +244,10 @@ EXCEPT: snippet fields where type = app_code or formatting (stay plain
 monospace textarea — raw text preserved).
 
 Rich text output stored as HTML in existing text columns.
-Display: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+Display: use MojoRichTextEditor in readonly mode:
+  <MojoRichTextEditor content={content} onChange={() => {}} readonly />
+This is the single sanitisation path (MOJO-6A Q1 decision).
+Do NOT use dangerouslySetInnerHTML inline — always use readonly mode.
 
 ### mojo_image_tokens + mojo_avatars are paired
 Registering an avatar creates TWO rows:
@@ -246,10 +278,12 @@ Applied migrations:
     primary_stack_id on mojo_characters (circular FK resolved in-migration)
   mojo_004_storage_policy — RLS policies on storage.objects for mojo-private
     (INSERT, SELECT, DELETE for authenticated users)
+  mojo_005a_thread_manual_override — ALTER TABLE mojo_threads adds
+    manual_whose_turn text CHECK (mine/theirs), nullable (MOJO-5)
+  mojo_005_personal_images — mojo_image_folders, mojo_personal_images (MOJO-6C)
 
 Pending migrations:
-  mojo_005_personal_images — mojo_image_folders, mojo_personal_images (MOJO-6B)
-  mojo_006_wanted — mojo_wanted with image_token field (MOJO-7)
+  mojo_006_wanted — mojo_wanted with image_token field (MOJO-7A)
 
 ---
 
@@ -299,7 +333,9 @@ mojo_threads:
   detected_platform text CHECK (tumblr/jcink/generic/unknown),
   last_poster text,
   fetch_status text CHECK (success/failed/unsupported/pending/uncertain),
-  last_checked_at timestamptz
+  last_checked_at timestamptz,
+  -- Manual whose_turn override (added mojo_005a):
+  manual_whose_turn text CHECK (mine/theirs)  -- NULL = use auto-detection
   -- Indexes: rp_id, character_id, status
 
 mojo_avatars:
@@ -363,20 +399,28 @@ mojo_character_resources (junction):
   created_at timestamptz, UNIQUE (character_id, resource_id)
   -- Indexes: character_id, resource_id
 
-mojo_image_folders (NOT YET CREATED — mojo_005, MOJO-6B):
+mojo_image_folders (created mojo_005, MOJO-6C):
   id uuid PK, name text NOT NULL, display_order integer DEFAULT 0,
   created_at timestamptz
   -- Flat folders only, no nesting
 
-mojo_personal_images (NOT YET CREATED — mojo_005, MOJO-6B):
+mojo_personal_images (created mojo_005, MOJO-6C):
   id uuid PK, folder_id uuid FK mojo_image_folders SET NULL,
   title text NOT NULL, storage_path text NOT NULL,
   token text NOT NULL UNIQUE, mime_type text DEFAULT image/png,
   expires_at timestamptz, tags text, file_size integer,
   created_at timestamptz
   -- Indexes: folder_id, token
+  -- Storage path prefix: 'personal/' (avatars use 'avatars/')
 
-mojo_wanted (NOT YET CREATED — mojo_006, MOJO-7):
+Seed data (inserted as one-off SQL, not a migration):
+  One mojo_rps row: "Legacy U" (X-Men roleplay, Remy LeBeau)
+  One mojo_faceclaims row: (operator's chosen FC for Remy)
+  One mojo_characters row: "Remy LeBeau"
+  One mojo_resources row: character bible text resource
+  Fixed UUIDs used — ON CONFLICT DO NOTHING — safe to re-run.
+
+mojo_wanted (NOT YET CREATED — mojo_006, MOJO-7A):
   id uuid PK, rp_id uuid FK mojo_rps CASCADE,
   character_id uuid FK mojo_characters SET NULL,
   title text NOT NULL, description text,  -- HTML (rich text)
@@ -452,7 +496,16 @@ Markdown shortcuts work automatically in Tiptap:
 Output: HTML string stored in existing text columns.
 No schema changes needed.
 
-Display: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+Display: <MojoRichTextEditor content={content} onChange={() => {}} readonly />
+(Centralises sanitisation. Do not use dangerouslySetInnerHTML inline.)
+
+MOJO-6A confirmed corrections (Q3/Q4/Q5):
+- TextStyle: named import { TextStyle } from '@tiptap/extension-text-style'
+- StarterKit.configure({ link: false, underline: false }) prevents collision
+- Component split: outer MojoRichTextEditor (readonly gate, no hooks) +
+  inner MojoRichTextEditorInner (always calls useEditor)
+- Placeholder via editor.isEmpty React state + CSS class, not the extension
+- Styles in globals.css under .mojo-rich-text class
 
 Fields becoming rich text in MOJO-6A retrofit:
   MojoRpNotes.tsx — notes_plot, notes_partners, notes_misc
@@ -467,86 +520,139 @@ Fields staying plain text forever:
 
 ---
 
+## 8b. lib/mojo/utils.ts — Client-Safe Utilities
+
+Created in MOJO-6B. Contains pure utility functions with NO Node.js
+APIs, NO process.env access, NO server-only imports. Safe to import
+in both Server Components and Client Components.
+
+Exports:
+  deriveWhoseTurn(thread, characterName) → 'mine' | 'theirs' | 'unknown'
+    Manual override takes priority over auto-detection.
+    If last_poster equals characterName (case-insensitive): 'theirs'
+    (you were last to post → their turn now).
+    Else: 'mine'. Unknown if fetch_status is uncertain/failed/unsupported.
+    Tumblr limitation: blog name never matches character name → always
+    returns 'mine' unless manual override is set.
+
+  detectPlatformClient(url) → 'tumblr' | 'jcink' | 'generic' | 'unknown'
+    Client-safe URL-based platform detection. Mirrors the server-side
+    detectPlatform() in lib/mojo/thread-fetchers.ts.
+
+  formatRelativeTime(isoString) → string
+    Human-readable relative time: "just now", "3m ago", "2h ago", "3d ago".
+
+Why separate from thread-fetchers.ts:
+  lib/mojo/thread-fetchers.ts uses process.env and Node.js APIs —
+  it is a server-only module. Client Components cannot import it.
+  lib/mojo/utils.ts duplicates the pure functions for client use.
+  Both files are independent sources of truth for their contexts.
+
+IMPORTANT: Always import deriveWhoseTurn from lib/mojo/utils
+(not thread-fetchers) in Client Components.
+
+---
+
 ## 9. File Structure
 
 app/
   mojo/
     layout.tsx
-    page.tsx  (Dashboard / RP Command Center)
+    page.tsx  (Dashboard / RP Command Center — redesigned MOJO-6B)
     components/
-      MojoSidebar.tsx, MojoRpCard.tsx, MojoArchivedRps.tsx
+      -- Navigation & layout
+      MojoSidebar.tsx
+      -- RP management
       MojoRpNotes.tsx, MojoRpEditForm.tsx
+      MojoRpCard.tsx [RETIRED], MojoArchivedRps.tsx [RETIRED]
+      MojoDashboardRpPanel.tsx, MojoDashboardNotes.tsx
+      MojoDashboardCharCard.tsx, MojoCollapsedRps.tsx
+      MojoDashboardStatTile.tsx
+      -- Character management
       MojoAddCharacter.tsx, MojoCharacterStatusToggle.tsx
       MojoCharacterArchiveToggle.tsx, MojoCharacterTabs.tsx
       MojoCharacterNotes.tsx, MojoCharacterAvatarTabs.tsx
+      -- Thread tracker
       MojoThreadTracker.tsx
+      -- Faceclaims
       MojoFaceclaimAssign.tsx, MojoCreateFaceclaim.tsx
       MojoFaceclaimRow.tsx, MojoFaceclaimNameEdit.tsx
       MojoFaceclaimAvatars.tsx, MojoQuickCopyPanel.tsx
+      -- Resources
       MojoAddResource.tsx, MojoResourceList.tsx
       MojoResourcesTab.tsx, MojoLinkToCharacter.tsx
+      -- Library
       MojoAddSnippet.tsx, MojoLibraryTabs.tsx, MojoSnippetCard.tsx
+      -- Wishlist
       MojoWishlistList.tsx, MojoAddWishlistItem.tsx, MojoWishlistItem.tsx
+      -- Partners
       MojoAddPartner.tsx, MojoPartnerList.tsx, MojoPartnerCard.tsx
-      MojoDashboardStatTile.tsx
+      -- Avatars & stacks
       MojoAvatarUpload.tsx, MojoAvatarCrop.tsx, MojoAvatarGrid.tsx
-      MojoAvatarFilter.tsx, MojoAvatarManager.tsx
+      MojoAvatarFilter.tsx, MojoAvatarManager.tsx, MojoFaceclaimAvatars.tsx
       MojoStackCard.tsx, MojoStackMembers.tsx, MojoStackDropZone.tsx
       MojoStackUrlCopy.tsx, MojoCreateStack.tsx
-      MojoRichTextEditor.tsx  (MOJO-6A)
-      MojoImageFolderList.tsx, MojoPersonalImageGrid.tsx,
-      MojoPersonalImageManager.tsx  (MOJO-6B)
+      -- Personal images
+      MojoPersonalImageUpload.tsx, MojoPersonalImageCard.tsx
+      MojoImageFolderList.tsx, MojoPersonalImageManager.tsx
+      -- Rich text
+      MojoRichTextEditor.tsx  (outer) + MojoRichTextEditorInner (inner)
     rps/page.tsx (redirect), rps/[rpId]/page.tsx, rps/[rpId]/edit/page.tsx
-    characters/[charId]/page.tsx
+    characters/[charId]/page.tsx  (has Suspense boundary for useSearchParams)
     faceclaims/page.tsx, faceclaims/[fcId]/page.tsx
     avatars/page.tsx
     stacks/page.tsx
     library/page.tsx
     wishlist/page.tsx
     partners/page.tsx
-    images/page.tsx  (MOJO-6B)
-    search/page.tsx  (stub → MOJO-7)
+    images/page.tsx  (built MOJO-6C)
+    search/page.tsx  (stub → MOJO-7A)
   i/[token]/route.ts  (public, no auth)
   api/mojo/
     fetch-image/route.ts
     process-image/route.ts
-    refresh-thread/route.ts  (MOJO-5)
+    refresh-thread/route.ts  (built MOJO-5)
 
 lib/
-  mojo/proxy.ts
-  actions/mojo.ts  (40 actions as of MOJO-4B)
+  mojo/
+    proxy.ts          -- token registration + proxy URL helpers
+    thread-fetchers.ts -- platform detection + 3 fetch strategies (SERVER ONLY)
+    utils.ts          -- client-safe utilities (see §8b below)
+  actions/mojo.ts  (47 actions as of MOJO-6C)
   db/mojo.ts
 
 ---
 
 ## 10. Navigation
 
-Sidebar nav order (current, after MOJO-4A):
+Current sidebar nav order (as of MOJO-6C):
   1. Dashboard → /mojo
-  2. Faceclaims → /mojo/faceclaims
-  3. Library → /mojo/library
-  4. Wishlist → /mojo/wishlist
-  5. Partners → /mojo/partners
-  6. Stacks → /mojo/stacks
-  7. Search → /mojo/search
-
-Sidebar nav order (after MOJO-6B adds Images):
-  1. Dashboard → /mojo
-  2. Images → /mojo/images  (NEW — second position)
+  2. Images → /mojo/images
   3. Faceclaims → /mojo/faceclaims
   4. Library → /mojo/library
   5. Wishlist → /mojo/wishlist
   6. Partners → /mojo/partners
   7. Stacks → /mojo/stacks
-  8. Search → /mojo/search
+  8. Search → /mojo/search  (stub — wired in MOJO-7A)
 
 ---
 
-## 11. Dashboard / RP Command Center (MOJO-6B redesign)
+## 11. Dashboard / RP Command Center (COMPLETE — MOJO-6B, commit c178766)
 
-The dashboard (/mojo) is completely redesigned in MOJO-6B to serve as
-both the stats overview AND the primary RP management interface.
-The current simple dashboard is retired and replaced.
+The dashboard (/mojo) is the RP command center. The old simple dashboard
+is retired. MojoRpCard.tsx and MojoArchivedRps.tsx are retained as files
+but no longer rendered.
+
+Key implementation details:
+- getMojoDashboardData() in lib/db/mojo.ts — single parallel fetch
+  (7 queries via Promise.all, merged in application code)
+- DashboardRp and DashboardCharacter types exported from lib/db/mojo.ts
+- Character ?tab= deep-linking: MojoCharacterTabs.tsx reads useSearchParams
+  for initial tab; Suspense boundary in characters/[charId]/page.tsx
+- whose_turn count badge: computed client-side via deriveWhoseTurn from
+  lib/mojo/utils.ts (NOT thread-fetchers.ts — client-safe version)
+- Avatar display priority: primary_stack token → most recent avatar token
+  → SVG placeholder silhouette
 
 Structure top to bottom:
 
@@ -572,7 +678,7 @@ No separate /mojo/roleplays route. Dashboard IS the roleplays page.
 
 ---
 
-## 12. Personal Image Repository (MOJO-6B)
+## 12. Personal Image Repository (COMPLETE — MOJO-6C, commit 3ca7020)
 
 Route: /mojo/images
 Sidebar: Second position (between Dashboard and Faceclaims)
@@ -587,7 +693,10 @@ Page structure:
   Tag filter chips above grid
   Cards: image, title, folder badge, tag chips, copy URL, edit, delete
   Proxy system: same mojo_image_tokens + /i/[token]
-  Can be dragged into stacks (same drag-to-stack as avatars)
+  Can be dragged into stacks using the same dataTransfer key as avatars:
+    'application/mojo-avatar' — MojoStackDropZone accepts drops from
+    both MojoAvatarGrid and MojoPersonalImageCard with no changes needed.
+  Storage path prefix for personal images: 'personal/' (avatars: 'avatars/')
 
 Distinct from:
   mojo_avatars — tied to characters and faceclaims
@@ -628,6 +737,16 @@ whose_turn: Derived at render time, NOT a stored column.
 last_checked_at always shown so operator knows data freshness.
 
 Manual override always available regardless of fetch status.
+Stored in mojo_threads.manual_whose_turn (added mojo_005a).
+NULL = use auto-detection. 'mine' / 'theirs' = persistent override.
+Server action: updateMojoThreadWhoseTurn(threadId, 'mine'|'theirs'|null)
+
+node-html-parser package installed for HTML scraping (v9.0.0+).
+
+deriveWhoseTurn() — pure function in lib/mojo/utils.ts (NOT thread-fetchers).
+Tumblr limitation: last_poster is a blog name, not a character name.
+Auto-detection always returns 'mine' for Tumblr threads. Use manual
+override. UI shows tooltip explaining this on Tumblr-detected threads.
 
 API route: app/api/mojo/refresh-thread/route.ts — POST, auth required.
   Body: { threadId: string }
@@ -648,8 +767,12 @@ Proxy lookup order:
 Stack member drag-drop:
   dataTransfer key: 'application/mojo-avatar'
   Payload: { storage_path, mime_type, avatar_id }
-  Key must be identical in MojoAvatarGrid.tsx (setData) and
-  MojoStackDropZone.tsx (getData). Confirmed consistent in MOJO-4B.
+  Key is used by THREE drag sources:
+    MojoAvatarGrid.tsx (setData) — avatar cards
+    MojoPersonalImageCard.tsx (setData) — personal image cards (MOJO-6C)
+    MojoStackDropZone.tsx (getData) — the drop target
+  All three confirmed consistent. avatar_id field is reused for image id
+  in personal image payloads — MojoStackDropZone ignores it.
 
 Primary stack: character can have one primary_stack_id FK.
   Additional freestanding stacks also supported.
@@ -685,20 +808,28 @@ TD-3: RESOLVED in MOJO-4B. MojoAvatar type alias now used.
 TD-4: Two pre-existing img ESLint warnings unrelated to mojo.
   Not errors. Not blocking.
 
-TD-5: Crop tool is mandatory in MojoAvatarUpload.tsx (MOJO-4B built wrong)
-  Must be changed to opt-in. Fix: MOJO-6A.
+TD-5: RESOLVED in MOJO-6A. Crop is now opt-in in MojoAvatarUpload.tsx.
+  MojoPersonalImageUpload.tsx (MOJO-6C) built correctly from the start.
 
 TD-6: Stack edit mode does not support character/faceclaim reassignment.
   Fix: MOJO-7.
 
 TD-7: MojoResourceList not yet accepting link affordance inline.
-  Fix: MOJO-7.
+  Fix: MOJO-7A.
+
+TD-8: RESOLVED in MOJO-6B (Q2). MojoThreadTracker.tsx was importing
+  deriveWhoseTurn from lib/mojo/thread-fetchers.ts (server module).
+  Switched to lib/mojo/utils.ts (client-safe). No functional impact.
+
+TD-9: Table count expectation in MOJO-6C was off by one (Q3).
+  mojo_005a is ALTER TABLE not CREATE TABLE, so it adds a column not
+  a table. Post-mojo_005 table count is 15, not 16. Informational only.
 
 ---
 
 ## 17. Server Actions Reference (lib/actions/mojo.ts)
 
-Total as of MOJO-4B: 40 actions (requireSuperAdmin count = 40)
+Total as of MOJO-6C: 47 actions (requireSuperAdmin count = 47)
 
 Built:
   RP: createMojoRp, updateMojoRp
@@ -716,12 +847,13 @@ Built:
   Wishlist: createMojoWishlistItem, updateMojoWishlistItem,
     updateMojoWishlistStatus, deleteMojoWishlistItem
   Partner: createMojoPartner, updateMojoPartner, deleteMojoPartner
-
-To be built:
-  MOJO-6B (Personal Images): createMojoImageFolder, updateMojoImageFolder,
+  Thread (MOJO-5): updateMojoThreadWhoseTurn
+  Personal Images (MOJO-6C): createMojoImageFolder, updateMojoImageFolder,
     deleteMojoImageFolder, registerUploadedPersonalImage,
     updateMojoPersonalImage, deleteMojoPersonalImage
-  MOJO-7 (Wanted): createMojoWanted, updateMojoWanted,
+
+To be built:
+  MOJO-7A (Wanted): createMojoWanted, updateMojoWanted,
     updateMojoWantedStatus, deleteMojoWanted
 
 ---
@@ -736,12 +868,12 @@ Built:
   getMojoGlobalResources, getMojoSnippets, getMojoWishlist,
   getMojoPartners, getMojoPartner, getMojoDashboardStats,
   getMojoImageStacks, getMojoImageStack, getMojoStackMembers,
-  getMojoAvatars, getMojoAvatar
+  getMojoAvatars, getMojoAvatar,
+  getMojoDashboardData (+ exports: DashboardRp, DashboardCharacter types),
+  getMojoImageFolders, getMojoPersonalImages
 
 To be built:
-  MOJO-5: (no new helpers — thread refresh is an API route)
-  MOJO-6B: getMojoImageFolders, getMojoPersonalImages
-  MOJO-7: getMojoWanted
+  MOJO-7A: getMojoWanted
 
 ---
 
@@ -779,16 +911,18 @@ Build report required with: commit hash, files list, grep results, Q-items.
 
 | Prompt  | Status      | Commit  | Key deliverables |
 |---------|-------------|---------|-----------------|
-| MOJO-1  | Complete    | e618fd9 | Foundation, migration mojo_001, layout, auth gate, dashboard, RP detail |
-| MOJO-2  | Complete    | afeeefa | Character sheet, notes, thread tracker CRUD |
-| MOJO-3A | Complete    | 56da652 | Migration mojo_002, image proxy, faceclaims, resource system |
-| MOJO-3B | Complete    | cd05734 | Silver & Onyx theme, library, wishlist, partners, sidebar, dashboard stats |
-| MOJO-4A | Complete    | 2e08a0f | Migration mojo_003, process-image route, proxy stack extension, stacks page |
-| MOJO-4B | Complete    | 9406cff | Migration mojo_004 (storage policy), avatar upload, crop, card grid, drag-to-stack |
-| MOJO-6A | Next        | —       | Rich text editor + retrofit all text fields + crop UX fix — RUN BEFORE MOJO-5 |
-| MOJO-5  | Planned     | —       | Auto reply tracker — TUMBLR_API_KEY now configured |
-| MOJO-6B | Planned     | —       | Dashboard redesign (RP command center) + /mojo/images personal repository |
-| MOJO-7  | Planned     | —       | Global search + visual polish + wanted board + TD cleanup |
+| MOJO-1  | ✅ Complete | e618fd9 | Foundation, migration mojo_001, layout, auth gate, dashboard, RP detail |
+| MOJO-2  | ✅ Complete | afeeefa | Character sheet, notes, thread tracker CRUD |
+| MOJO-3A | ✅ Complete | 56da652 | Migration mojo_002, image proxy, faceclaims, resource system |
+| MOJO-3B | ✅ Complete | cd05734 | Silver & Onyx theme, library, wishlist, partners, sidebar, dashboard stats |
+| MOJO-4A | ✅ Complete | 2e08a0f | Migration mojo_003, process-image route, proxy stack extension, stacks page |
+| MOJO-4B | ✅ Complete | 9406cff | Migration mojo_004, avatar upload, crop tool, card grid, drag-to-stack |
+| MOJO-6A | ✅ Complete | d591ebc | Rich text editor, field retrofit (8 components), crop UX fix (TD-5) |
+| MOJO-5  | ✅ Complete | 4d329ce | Migration mojo_005a, auto reply tracker, Tumblr API, JCINK scraper, whose_turn |
+| MOJO-6B | ✅ Complete | c178766 | Dashboard RP command center, character cards, whose-turn, lib/mojo/utils.ts |
+| MOJO-6C | ✅ Complete | 3ca7020 | Seed data, migration mojo_005, personal image repository, sidebar Images nav |
+| MOJO-7A | ⬜ Next     | —       | Global search, wanted/connections board, migration mojo_006, TD-2/TD-6/TD-7 |
+| MOJO-7B | ⬜ Planned  | —       | Visual polish pass, TD-1 cleanup, remaining Q-item loose ends |
 
 ---
 
@@ -819,6 +953,14 @@ Version history:
     setup and key configuration, createBrowserClient correction,
     updated TD list through TD-7, wanted board schema, full build
     status table, environment variables section
+  v1.2 — through MOJO-6C: added MOJO-5/6A/6B/6C completions, mojo_005a
+    and mojo_005 migrations, manual_whose_turn column, §8b utils.ts
+    documentation, Tiptap v3 API corrections, useSearchParams Suspense
+    rule, navigation-alongside-state pattern, DashboardRp/DashboardCharacter
+    types, updated file structure with all new components, personal image
+    system complete, drag-to-stack key extended to personal images,
+    TD-5 resolved, TD-8/TD-9 added, server actions updated to 47,
+    build status table updated through MOJO-6C, seed data documented
 
 Cross-reference: TWH_BRIEF_v1.md | TWH_PROCESS_v1.md
 This document must be updated when new decisions are made or patterns confirmed.
