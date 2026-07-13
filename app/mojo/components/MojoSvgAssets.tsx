@@ -2408,3 +2408,170 @@ export function SvgHangingPhotographs({ className = '' }: {
     </svg>
   )
 }
+
+export function SvgScryingBowl({
+  size = 220,
+  idSuffix = 'oracle',
+  className = '',
+}: {
+  size?: number
+  idSuffix?: string
+  className?: string
+}) {
+  const r = size / 2
+  const cx = r
+  const cy = r
+
+  // Ring radii — proportional to size
+  const rimR    = r - 4          // outer rim
+  const innerR  = r - 16         // inner rim edge
+  const bowlR   = r - 26         // bowl interior boundary
+  const waterR  = r - 30         // water surface
+
+  const gradId  = `bowl-water-${idSuffix}`
+  const glowId  = `bowl-glow-${idSuffix}`
+  const clipId  = `bowl-clip-${idSuffix}`
+
+  // Cardinal ornament positions
+  const cardinals = [0, 90, 180, 270].map(deg => {
+    const rad = (deg - 90) * Math.PI / 180
+    return {
+      x: cx + (rimR - 8) * Math.cos(rad),
+      y: cy + (rimR - 8) * Math.sin(rad),
+    }
+  })
+
+  // Intercardinal tick positions (45-degree offsets)
+  const intercardinals = [45, 135, 225, 315].map(deg => {
+    const rad = (deg - 90) * Math.PI / 180
+    return {
+      x1: cx + (rimR - 2) * Math.cos(rad),
+      y1: cy + (rimR - 2) * Math.sin(rad),
+      x2: cx + (rimR - 7) * Math.cos(rad),
+      y2: cy + (rimR - 7) * Math.sin(rad),
+    }
+  })
+
+  // Water surface highlights — faint ellipses at various angles
+  const highlights = [
+    { cx: cx - waterR * 0.2, cy: cy - waterR * 0.15, rx: waterR * 0.28, ry: waterR * 0.08, rot: -20, op: 0.10 },
+    { cx: cx + waterR * 0.1, cy: cy + waterR * 0.12, rx: waterR * 0.20, ry: waterR * 0.06, rot: 35,  op: 0.07 },
+    { cx: cx - waterR * 0.3, cy: cy + waterR * 0.25, rx: waterR * 0.15, ry: waterR * 0.05, rot: -10, op: 0.06 },
+    { cx: cx + waterR * 0.25, cy: cy - waterR * 0.30, rx: waterR * 0.18, ry: waterR * 0.05, rot: 15, op: 0.05 },
+  ]
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        {/* Dark water radial gradient */}
+        <radialGradient id={gradId} cx="45%" cy="40%" r="65%">
+          <stop offset="0%"   stopColor="#0a0a12" stopOpacity="0.98" />
+          <stop offset="50%"  stopColor="#0c0c18" stopOpacity="0.95" />
+          <stop offset="85%"  stopColor="#101018" stopOpacity="0.92" />
+          <stop offset="100%" stopColor="#141420" stopOpacity="0.90" />
+        </radialGradient>
+        {/* Outer atmospheric glow filter */}
+        <filter id={glowId} x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="8" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        {/* Clip path for water surface elements */}
+        <clipPath id={clipId}>
+          <circle cx={cx} cy={cy} r={waterR} />
+        </clipPath>
+      </defs>
+
+      {/* ── ATMOSPHERIC HALO (outermost glow) ── */}
+      <circle cx={cx} cy={cy} r={rimR + 12}
+        stroke="currentColor" strokeWidth="24"
+        strokeOpacity="0.04" fill="none" />
+      <circle cx={cx} cy={cy} r={rimR + 6}
+        stroke="currentColor" strokeWidth="12"
+        strokeOpacity="0.06" fill="none" />
+
+      {/* ── OUTER RIM ── */}
+      <circle cx={cx} cy={cy} r={rimR}
+        stroke="currentColor" strokeWidth="1.2"
+        opacity="0.50" />
+
+      {/* ── CARDINAL ORNAMENTS — four-pointed stars ── */}
+      {cardinals.map((pos, i) => (
+        <g key={i} transform={`translate(${pos.x} ${pos.y})`}>
+          {/* Four-pointed star */}
+          <path
+            d="M 0 -4 L 0.8 -0.8 L 4 0 L 0.8 0.8 L 0 4 L -0.8 0.8 L -4 0 L -0.8 -0.8 Z"
+            fill="currentColor" opacity="0.55"
+          />
+        </g>
+      ))}
+
+      {/* ── INTERCARDINAL TICKS ── */}
+      {intercardinals.map((tick, i) => (
+        <line key={i}
+          x1={tick.x1} y1={tick.y1}
+          x2={tick.x2} y2={tick.y2}
+          stroke="currentColor" strokeWidth="0.6" opacity="0.28" />
+      ))}
+
+      {/* ── INNER RIM RING ── */}
+      <circle cx={cx} cy={cy} r={innerR}
+        stroke="currentColor" strokeWidth="0.6"
+        opacity="0.25" />
+
+      {/* ── BOWL WALL RING ── */}
+      <circle cx={cx} cy={cy} r={bowlR}
+        stroke="currentColor" strokeWidth="0.4"
+        opacity="0.15" />
+
+      {/* ── WATER SURFACE — dark filled circle ── */}
+      <circle cx={cx} cy={cy} r={waterR}
+        fill={`url(#${gradId})`} />
+
+      {/* ── WATER HIGHLIGHTS — light catching the surface ── */}
+      {highlights.map((h, i) => (
+        <ellipse
+          key={i}
+          cx={h.cx} cy={h.cy}
+          rx={h.rx} ry={h.ry}
+          fill="white" opacity={h.op}
+          transform={`rotate(${h.rot} ${h.cx} ${h.cy})`}
+          clipPath={`url(#${clipId})`}
+        />
+      ))}
+
+      {/* ── THE MOON REFLECTION — single bright dot at center ── */}
+      {/* Outer glow of the reflection */}
+      <circle cx={cx - waterR * 0.06} cy={cy - waterR * 0.10} r={5}
+        fill="white" opacity="0.06"
+        clipPath={`url(#${clipId})`} />
+      {/* The reflection itself */}
+      <circle cx={cx - waterR * 0.06} cy={cy - waterR * 0.10} r={2}
+        fill="white" opacity="0.55"
+        clipPath={`url(#${clipId})`} />
+
+      {/* ── WATER SURFACE RING (slight highlight at edge) ── */}
+      <circle cx={cx} cy={cy} r={waterR}
+        stroke="white" strokeWidth="0.4"
+        opacity="0.08" fill="none" />
+
+      {/* ── BOWL DEPTH SUGGESTION — concentric inner rings ── */}
+      <circle cx={cx} cy={cy} r={waterR * 0.72}
+        stroke="currentColor" strokeWidth="0.3"
+        opacity="0.06" fill="none" />
+      <circle cx={cx} cy={cy} r={waterR * 0.44}
+        stroke="currentColor" strokeWidth="0.3"
+        opacity="0.05" fill="none" />
+      <circle cx={cx} cy={cy} r={waterR * 0.20}
+        stroke="currentColor" strokeWidth="0.3"
+        opacity="0.04" fill="none" />
+    </svg>
+  )
+}

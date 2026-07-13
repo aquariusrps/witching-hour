@@ -1,47 +1,28 @@
 import Link from 'next/link'
 import { getAdminClient } from '@/lib/supabase/adminClient'
-
-function FiligreeDivider() {
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      margin: '20px auto 28px',
-      maxWidth: 360,
-    }}>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--ember), var(--gold))' }} />
-      <span style={{ color: 'var(--gold)', fontSize: '0.7rem' }}>✦</span>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, var(--ember), var(--gold))' }} />
-    </div>
-  )
-}
-
-const GROUP_HEADING_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--f-ui)',
-  fontSize: '0.68rem',
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  color: 'var(--faded)',
-  margin: '0 0 8px',
-}
+import {
+  SvgScryingBowl, SvgStarfield, SvgPageHeaderRule,
+  SvgNavDashboard, SvgNavFaceclaims, SvgNavSearch,
+  SvgNavStacks, SvgNavLibrary, SvgNavPartners, SvgNavImages,
+} from '@/app/mojo/components/MojoSvgAssets'
 
 const ROW_STYLE: React.CSSProperties = {
   display: 'block',
-  fontFamily: 'var(--f-body)',
-  fontSize: '0.875rem',
+  fontFamily: 'EB Garamond, serif',
+  fontSize: '15px',
   color: 'var(--roseash)',
   textDecoration: 'none',
-  padding: '6px 0',
-  borderBottom: '1px solid var(--elevated)',
+  padding: '4px 0',
+  borderBottom: '1px solid rgba(255,255,255,0.04)',
 }
 
 const SUBTEXT_STYLE: React.CSSProperties = {
   display: 'block',
-  fontFamily: 'var(--f-body)',
-  fontSize: '0.75rem',
+  fontFamily: 'EB Garamond, serif',
+  fontSize: '12px',
+  fontStyle: 'italic',
   color: 'var(--faded)',
-  marginTop: 2,
+  marginTop: 1,
 }
 
 const BADGE_STYLE: React.CSSProperties = {
@@ -49,6 +30,16 @@ const BADGE_STYLE: React.CSSProperties = {
   fontSize: '0.625rem',
   textTransform: 'uppercase',
   color: 'var(--faded)',
+}
+
+function GroupHeading({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="mojo-oracle-group-heading">
+      {icon}
+      <span>{label}</span>
+      <div className="mojo-oracle-group-line" />
+    </div>
+  )
 }
 
 export default async function MojoSearchPage({
@@ -60,60 +51,106 @@ export default async function MojoSearchPage({
   const query = q?.trim() ?? ''
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: '32px 28px 64px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 8 }}>
-        <h1 style={{ fontFamily: 'var(--f-display)', fontSize: '1.9rem', color: 'var(--gold)', margin: '0 0 6px' }}>
-          Search
-        </h1>
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--mist)', margin: 0 }}>
-          Search across all your RPs, characters, threads, and resources
-        </p>
+    <div style={{ position: 'relative', overflow: 'hidden', minHeight: '80vh' }}>
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          color: 'var(--mist)',
+          opacity: 0.55,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      >
+        <SvgStarfield width={900} height={700} />
       </div>
 
-      <FiligreeDivider />
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        maxWidth: '680px',
+        margin: '0 auto',
+        padding: '24px 16px 48px',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px', width: '100%' }}>
+          <h1 style={{
+            fontFamily: 'Cormorant Upright, serif',
+            fontSize: '40px',
+            fontWeight: 600,
+            color: 'var(--gold)',
+            margin: '0 0 6px',
+            letterSpacing: '0.02em',
+          }}>
+            The Oracle
+          </h1>
+          <p style={{
+            fontFamily: 'EB Garamond, serif',
+            fontSize: '16px',
+            fontStyle: 'italic',
+            color: 'var(--mist)',
+            margin: 0,
+          }}>
+            What do you seek?
+          </p>
+        </div>
 
-      <form action="/mojo/search" method="GET" style={{ display: 'flex', gap: 8 }}>
-        <input
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder="Search characters, threads, faceclaims..."
-          style={{
-            flex: 1,
-            background: 'var(--raised)',
-            color: 'var(--roseash)',
-            border: '1px solid var(--elevated)',
-            fontFamily: 'var(--f-body)',
-            fontSize: '0.875rem',
-            padding: '8px 12px',
-            borderRadius: 2,
-            outline: 'none',
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            background: 'var(--ember)',
-            color: 'var(--roseash)',
-            border: 'none',
-            fontFamily: 'var(--f-ui)',
-            fontSize: '0.8125rem',
-            padding: '8px 20px',
-            borderRadius: 2,
-            cursor: 'pointer',
-          }}
-        >
-          Search
-        </button>
-      </form>
+        {/* Scrying Bowl */}
+        <div style={{
+          marginBottom: query ? '20px' : '28px',
+          color: 'var(--mist)',
+          animation: 'mojo-moon-breathe 5s ease-in-out infinite',
+          filter: 'drop-shadow(0 0 30px rgba(96,64,192,0.15))',
+        }} aria-hidden="true">
+          <SvgScryingBowl
+            size={query ? 140 : 220}
+            idSuffix="main"
+          />
+        </div>
 
-      {!query ? (
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)', marginTop: 28 }}>
-          Enter a search term above to begin.
-        </p>
-      ) : (
-        <SearchResults query={query} />
-      )}
+        <form action="/mojo/search" method="GET" style={{
+          width: '100%',
+          maxWidth: '560px',
+          display: 'flex',
+          alignItems: 'stretch',
+          marginBottom: '20px',
+        }}>
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="Ask the oracle..."
+            className="mojo-oracle-input"
+            style={{ padding: '10px 14px', flexGrow: 1 }}
+            autoComplete="off"
+          />
+          <button type="submit" className="mojo-oracle-submit">
+            <SvgNavSearch active={false} />
+          </button>
+        </form>
+
+        <div style={{ width: '100%', color: 'var(--elevated)', opacity: 0.5 }}>
+          <SvgPageHeaderRule />
+        </div>
+
+        {!query ? (
+          <p style={{
+            fontFamily: 'EB Garamond, serif',
+            fontSize: '16px',
+            fontStyle: 'italic',
+            color: 'var(--faded)',
+            textAlign: 'center',
+            marginTop: '20px',
+          }}>
+            Ask your question above.
+          </p>
+        ) : (
+          <SearchResults query={query} />
+        )}
+      </div>
     </div>
   )
 }
@@ -155,12 +192,36 @@ async function SearchResults({ query }: { query: string }) {
 
   if (total === 0) {
     return (
-      <>
-        <FiligreeDivider />
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
-          No results for &lsquo;{query}&rsquo;.
+      <div style={{ textAlign: 'center', marginTop: '16px', width: '100%' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '16px',
+          color: 'var(--mist)',
+          opacity: 0.7,
+          animation: 'mojo-moon-breathe 5s ease-in-out infinite',
+        }} aria-hidden="true">
+          <SvgScryingBowl size={120} idSuffix="empty" />
+        </div>
+        <p style={{
+          fontFamily: 'EB Garamond, serif',
+          fontSize: '18px',
+          fontStyle: 'italic',
+          color: 'var(--mist)',
+          margin: '0 0 6px',
+        }}>
+          The waters are still.
         </p>
-      </>
+        <p style={{
+          fontFamily: 'EB Garamond, serif',
+          fontSize: '14px',
+          fontStyle: 'italic',
+          color: 'var(--faded)',
+          margin: 0,
+        }}>
+          No visions for &ldquo;{query}&rdquo;.
+        </p>
+      </div>
     )
   }
 
@@ -171,18 +232,30 @@ async function SearchResults({ query }: { query: string }) {
   const rpMap = new Map((charRps ?? []).map((r) => [r.id, r.name]))
 
   return (
-    <>
-      <FiligreeDivider />
-
-      <p style={{ fontFamily: 'var(--f-ui)', fontSize: '0.75rem', color: 'var(--faded)', margin: '0 0 20px' }}>
-        Found {total} result{total === 1 ? '' : 's'} for &lsquo;{query}&rsquo;
+    <div style={{ width: '100%' }}>
+      <p style={{
+        fontFamily: 'Cinzel, serif',
+        fontSize: '11px',
+        letterSpacing: '0.15em',
+        textTransform: 'uppercase',
+        color: 'var(--faded)',
+        textAlign: 'center',
+        marginBottom: '8px',
+        width: '100%',
+      }}>
+        {total} vision{total !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;
       </p>
 
       {rpRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Roleplays</h2>
-          {rpRows.map((rp) => (
-            <Link key={rp.id} href={`/mojo/rps/${rp.id}`} style={ROW_STYLE}>
+          <GroupHeading icon={<SvgNavDashboard active={false} />} label="Roleplays" />
+          {rpRows.map((rp, i) => (
+            <Link
+              key={rp.id}
+              href={`/mojo/rps/${rp.id}`}
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+            >
               {rp.name}
               <span style={SUBTEXT_STYLE}>{rp.site_name} · {rp.status}</span>
             </Link>
@@ -192,9 +265,14 @@ async function SearchResults({ query }: { query: string }) {
 
       {characterRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Characters</h2>
-          {characterRows.map((c) => (
-            <Link key={c.id} href={`/mojo/characters/${c.id}`} style={ROW_STYLE}>
+          <GroupHeading icon={<SvgNavFaceclaims active={false} />} label="Characters" />
+          {characterRows.map((c, i) => (
+            <Link
+              key={c.id}
+              href={`/mojo/characters/${c.id}`}
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+            >
               {c.name}
               <span style={SUBTEXT_STYLE}>
                 in {rpMap.get(c.rp_id) ?? 'Unknown'}
@@ -207,9 +285,14 @@ async function SearchResults({ query }: { query: string }) {
 
       {faceclaimRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Faceclaims</h2>
-          {faceclaimRows.map((fc) => (
-            <Link key={fc.id} href={`/mojo/faceclaims/${fc.id}`} style={ROW_STYLE}>
+          <GroupHeading icon={<SvgNavFaceclaims active={false} />} label="Faceclaims" />
+          {faceclaimRows.map((fc, i) => (
+            <Link
+              key={fc.id}
+              href={`/mojo/faceclaims/${fc.id}`}
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+            >
               {fc.name}
             </Link>
           ))}
@@ -218,9 +301,14 @@ async function SearchResults({ query }: { query: string }) {
 
       {threadRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Threads</h2>
-          {threadRows.map((t) => (
-            <Link key={t.id} href={`/mojo/characters/${t.character_id}?tab=threads`} style={ROW_STYLE}>
+          <GroupHeading icon={<SvgNavSearch active={false} />} label="Threads" />
+          {threadRows.map((t, i) => (
+            <Link
+              key={t.id}
+              href={`/mojo/characters/${t.character_id}?tab=threads`}
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+            >
               {t.title}
               {t.status === 'archived' && <span style={SUBTEXT_STYLE}>archived</span>}
             </Link>
@@ -230,15 +318,20 @@ async function SearchResults({ query }: { query: string }) {
 
       {resourceRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Resources</h2>
-          {resourceRows.map((r) => {
+          <GroupHeading icon={<SvgNavStacks active={false} />} label="Resources" />
+          {resourceRows.map((r, i) => {
             const href = r.character_id
               ? `/mojo/characters/${r.character_id}?tab=resources`
               : r.faceclaim_id
                 ? `/mojo/faceclaims/${r.faceclaim_id}`
                 : '/mojo/library'
             return (
-              <Link key={r.id} href={href} style={ROW_STYLE}>
+              <Link
+                key={r.id}
+                href={href}
+                className="mojo-oracle-result"
+                style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+              >
                 {r.title}
                 <span style={{ ...SUBTEXT_STYLE, ...BADGE_STYLE }}>{r.type}</span>
               </Link>
@@ -249,9 +342,14 @@ async function SearchResults({ query }: { query: string }) {
 
       {snippetRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Snippets</h2>
-          {snippetRows.map((s) => (
-            <Link key={s.id} href="/mojo/library" style={ROW_STYLE}>
+          <GroupHeading icon={<SvgNavLibrary active={false} />} label="Snippets" />
+          {snippetRows.map((s, i) => (
+            <Link
+              key={s.id}
+              href="/mojo/library"
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+            >
               {s.title}
               <span style={{ ...SUBTEXT_STYLE, ...BADGE_STYLE }}>{s.type}</span>
             </Link>
@@ -261,9 +359,14 @@ async function SearchResults({ query }: { query: string }) {
 
       {partnerRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Partners</h2>
-          {partnerRows.map((p) => (
-            <Link key={p.id} href="/mojo/partners" style={ROW_STYLE}>
+          <GroupHeading icon={<SvgNavPartners active={false} />} label="Partners" />
+          {partnerRows.map((p, i) => (
+            <Link
+              key={p.id}
+              href="/mojo/partners"
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, animationDelay: `${i * 0.05}s` }}
+            >
               {p.handle}
             </Link>
           ))}
@@ -272,15 +375,20 @@ async function SearchResults({ query }: { query: string }) {
 
       {imageRows.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <h2 style={GROUP_HEADING_STYLE}>Images</h2>
-          {imageRows.map((img) => (
-            <Link key={img.id} href="/mojo/images" style={{ ...ROW_STYLE, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <GroupHeading icon={<SvgNavImages active={false} />} label="Images" />
+          {imageRows.map((img, i) => (
+            <Link
+              key={img.id}
+              href="/mojo/images"
+              className="mojo-oracle-result"
+              style={{ ...ROW_STYLE, display: 'flex', alignItems: 'center', gap: 10, animationDelay: `${i * 0.05}s` }}
+            >
               {img.token && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={`${process.env.NEXT_PUBLIC_SITE_URL}/i/${img.token}`}
                   alt={img.title}
-                  style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }}
+                  style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 0, border: '2px solid rgba(255,255,255,0.15)', outline: 'none', flexShrink: 0 }}
                 />
               )}
               {img.title}
@@ -288,6 +396,6 @@ async function SearchResults({ query }: { query: string }) {
           ))}
         </div>
       )}
-    </>
+    </div>
   )
 }

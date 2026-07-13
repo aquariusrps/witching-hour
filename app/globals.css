@@ -826,3 +826,88 @@ body {
   animation: mojo-tray-ripple 3.5s ease-out infinite;
   pointer-events: none;
 }
+
+/* ═══════════════════════════════════════
+   MOJO ORACLE (SEARCH) — MOJO-7K
+   ═══════════════════════════════════════ */
+
+/* Result row surface animation — visions rising from the water */
+@keyframes mojo-oracle-surface {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Oracle result row */
+.mojo-oracle-result {
+  animation: mojo-oracle-surface 0.35s ease-out both;
+}
+
+/* Oracle input — altar field */
+.mojo-oracle-input {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--gold);
+  border-radius: 0;
+  font-family: 'EB Garamond', serif;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  color: var(--roseash);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mojo-oracle-input:focus {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom-color: var(--moonstone);
+}
+
+.mojo-oracle-input::placeholder {
+  color: var(--faded);
+  font-style: italic;
+}
+
+/* Oracle submit button */
+.mojo-oracle-submit {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--gold);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 14px;
+  cursor: pointer;
+  color: var(--faded);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.mojo-oracle-submit:hover {
+  color: var(--moonstone);
+}
+
+/* Result group heading */
+.mojo-oracle-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faded);
+  margin-bottom: 8px;
+  margin-top: 24px;
+}
+
+.mojo-oracle-group-line {
+  flex: 1;
+  height: 1px;
+  background: var(--elevated);
+  opacity: 0.4;
+}
