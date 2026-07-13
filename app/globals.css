@@ -1192,3 +1192,115 @@ body {
     transparent 60%
   );
 }
+
+/* ═══════════════════════════════════════
+   MOJO RP DETAIL PAGE — MOJO-FIX-007
+   ═══════════════════════════════════════ */
+
+/* RP header banner with color_hex accent */
+.mojo-rp-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.mojo-rp-banner-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  /* background set inline via rp.color_hex */
+}
+
+/* Character portrait spread */
+.mojo-character-spread {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 8px 4px 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--elevated) transparent;
+}
+
+/* Two-column layout: threads | notes */
+.mojo-rp-columns {
+  display: grid;
+  grid-template-columns: 65fr 35fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .mojo-rp-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Thread card */
+.mojo-thread-card {
+  position: relative;
+  background: var(--raised);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 3px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.mojo-thread-card:hover {
+  box-shadow: 0 3px 16px rgba(0,0,0,0.35);
+}
+
+/* Whose-turn badge on thread cards */
+.mojo-thread-turn-mine {
+  background: var(--gold);
+  color: rgba(255,255,255,0.95);
+}
+
+.mojo-thread-turn-theirs {
+  background: var(--moonstone);
+  color: rgba(255,255,255,0.95);
+}
+
+.mojo-thread-turn-unknown {
+  background: var(--elevated);
+  color: var(--faded);
+}
+
+/* Right panel: notes + partner + wanted */
+.mojo-rp-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Journal/notes panel */
+.mojo-journal-panel {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 23px,
+    rgba(255,255,255,0.04) 23px,
+    rgba(255,255,255,0.04) 24px
+  ), var(--raised);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid rgba(160,40,64,0.35);
+  border-radius: 2px;
+  padding: 14px 16px;
+}
+
+/* Section heading with candles */
+.mojo-candle-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.mojo-candle-heading h2 {
+  flex: 1;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--roseash);
+  margin: 0;
+}

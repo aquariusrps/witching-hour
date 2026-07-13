@@ -5,17 +5,25 @@ import MojoRpNotes from '@/app/mojo/components/MojoRpNotes'
 import MojoAddCharacter from '@/app/mojo/components/MojoAddCharacter'
 import MojoCharacterStatusToggle from '@/app/mojo/components/MojoCharacterStatusToggle'
 import MojoWantedBoard from '@/app/mojo/components/MojoWantedBoard'
-
-function FiligreeDivider() {
-  return (
-    <div style={{ height: 1, margin: '28px 0', background: 'linear-gradient(to right, var(--ember), var(--gold))', opacity: 0.4 }} />
-  )
-}
+import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
+import {
+  SvgCandleRealistic, SvgParchmentEdge, SvgWaxSeal,
+  SvgPageHeaderRule, SvgFiligreeRule, SvgCornerBracket,
+} from '@/app/mojo/components/MojoSvgAssets'
+import { deriveWhoseTurn } from '@/lib/mojo/utils'
 
 const STATUS_COLOR: Record<string, string> = {
   active: 'var(--moonstone)',
   hiatus: 'var(--gold-dim)',
   ended: 'var(--faded)',
+}
+
+const SECTION_LABEL_STYLE: React.CSSProperties = {
+  fontFamily: 'Cinzel, serif',
+  fontSize: '10px',
+  letterSpacing: '0.25em',
+  textTransform: 'uppercase',
+  color: 'var(--faded)',
 }
 
 export default async function MojoRpDetailPage({
@@ -38,188 +46,309 @@ export default async function MojoRpDetailPage({
   const orderedThreads = [...activeThreads, ...archivedThreads]
 
   return (
-    <div style={{ padding: '28px 32px 64px' }}>
-      {/* Header */}
-      <div style={{
-        borderLeft: `4px solid ${rp.color_hex}`,
-        paddingLeft: 16,
-        marginBottom: 28,
-        position: 'relative',
-      }}>
-        <Link
-          href={`/mojo/rps/${rp.id}/edit`}
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            fontFamily: 'var(--f-body)',
-            fontSize: '0.8rem',
-            color: 'var(--faded)',
-            textDecoration: 'none',
-          }}
-        >
-          Edit RP →
-        </Link>
-        <h1 style={{ fontFamily: 'var(--f-display)', fontSize: '1.75rem', color: 'var(--gold)', margin: '0 0 6px' }}>
+    <div style={{ padding: '28px 32px 64px', position: 'relative', zIndex: 1 }}>
+
+      {/* ════ ZONE 1: RP HEADER ════ */}
+      <div
+        className="mojo-rp-banner"
+        style={{
+          marginBottom: '24px',
+          padding: '20px 24px 16px',
+          background: `
+            linear-gradient(180deg,
+              rgba(0,0,0,0.0) 0%,
+              rgba(0,0,0,0.4) 100%),
+            var(--raised)
+          `,
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '4px',
+        }}
+      >
+        {/* Color accent bar at top using rp.color_hex */}
+        <div
+          className="mojo-rp-banner-bar"
+          style={{ background: rp.color_hex }}
+          aria-hidden="true"
+        />
+
+        {/* Corner brackets in rp.color_hex */}
+        <SvgCornerBracket size={16} color={rp.color_hex} rotation={0}
+          style={{ position: 'absolute', top: 3, left: 0, opacity: 0.7, pointerEvents: 'none' }} />
+        <SvgCornerBracket size={16} color={rp.color_hex} rotation={90}
+          style={{ position: 'absolute', top: 3, right: 0, opacity: 0.7, pointerEvents: 'none' }} />
+        <SvgCornerBracket size={16} color={rp.color_hex} rotation={270}
+          style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0.7, pointerEvents: 'none' }} />
+        <SvgCornerBracket size={16} color={rp.color_hex} rotation={180}
+          style={{ position: 'absolute', bottom: 0, right: 0, opacity: 0.7, pointerEvents: 'none' }} />
+
+        <h1 style={{
+          fontFamily: 'Cormorant Upright, serif',
+          fontSize: '36px',
+          fontWeight: 600,
+          color: 'var(--gold)',
+          margin: '0 0 4px',
+          letterSpacing: '0.02em',
+        }}>
           {rp.name}
         </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.88rem', color: 'var(--mist)', margin: 0 }}>
-            {rp.site_url ? (
-              <a href={rp.site_url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
-                {rp.site_name}
-              </a>
-            ) : (
-              rp.site_name
-            )}
-          </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+          {rp.site_name && (
+            <span style={{ fontFamily: 'EB Garamond, serif', fontSize: '14px', fontStyle: 'italic', color: 'var(--mist)' }}>
+              {rp.site_url ? (
+                <a href={rp.site_url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
+                  {rp.site_name}
+                </a>
+              ) : (
+                rp.site_name
+              )}
+            </span>
+          )}
           <span style={{
-            fontFamily: 'var(--f-ui)',
-            fontSize: '0.62rem',
-            letterSpacing: '0.08em',
+            fontFamily: 'Cinzel, serif',
+            fontSize: '10px',
+            letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: STATUS_COLOR[rp.status] ?? 'var(--faded)',
+            border: '1px solid var(--elevated)',
+            padding: '1px 8px',
+            borderRadius: '2px',
           }}>
             {rp.status}
           </span>
+          <Link
+            href={`/mojo/rps/${rp.id}/edit`}
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+              letterSpacing: '0.12em',
+              color: 'var(--faded)',
+              textDecoration: 'none',
+              marginLeft: 'auto',
+            }}
+          >
+            Edit →
+          </Link>
+        </div>
+
+        <div style={{ color: 'var(--elevated)' }}>
+          <SvgPageHeaderRule />
         </div>
       </div>
 
-      {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '45% 1fr', gap: 24, alignItems: 'start' }}>
-        {/* Left: Notes */}
-        <MojoRpNotes
-          rpId={rp.id}
-          initialPlot={rp.notes_plot}
-          initialPartners={rp.notes_partners}
-          initialMisc={rp.notes_misc}
-        />
+      {/* ════ ZONE 2: CHARACTER PORTRAIT SPREAD ════ */}
+      <div style={{ marginBottom: '32px' }}>
+        <MojoAddCharacter rpId={rp.id} />
 
-        {/* Right: Characters + Threads */}
-        <div>
-          <MojoAddCharacter rpId={rp.id} />
-
-          {orderedCharacters.length === 0 ? (
-            <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)', margin: '0 0 28px' }}>
-              No characters yet. Add one above.
-            </p>
-          ) : (
-            <div style={{ marginBottom: 28 }}>
-              {orderedCharacters.map((char, i) => {
-                const isArchived = char.status === 'archived'
-                const textColor = isArchived ? 'var(--faded)' : 'var(--roseash)'
-                return (
-                  <div
-                    key={char.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 0',
-                      borderBottom: i < orderedCharacters.length - 1 ? '1px solid var(--elevated)' : undefined,
-                    }}
-                  >
-                    <Link
-                      href={`/mojo/characters/${char.id}`}
-                      style={{ fontFamily: 'var(--f-head)', fontSize: '0.9rem', color: textColor, textDecoration: 'none' }}
-                    >
-                      · {char.name}
-                      {isArchived && (
-                        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.62rem', color: 'var(--faded)', marginLeft: 6 }}>
-                          [archived]
-                        </span>
-                      )}
-                    </Link>
-                    <MojoCharacterStatusToggle
-                      characterId={char.id}
-                      rpId={rp.id}
-                      status={char.status === 'archived' ? 'archived' : 'active'}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Threads */}
-          <h3 style={{ fontFamily: 'var(--f-head)', fontSize: '1rem', color: 'var(--roseash)', margin: '0 0 4px' }}>
-            All Threads in this RP
-          </h3>
-          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.82rem', color: 'var(--faded)', margin: '0 0 12px' }}>
-            Across all characters — manage threads from each character&rsquo;s page.
+        {orderedCharacters.length === 0 ? (
+          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
+            No characters yet. Add one above.
           </p>
-
-          {orderedThreads.length === 0 ? (
-            <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
-              No threads yet. Add threads from each character&rsquo;s page.
-            </p>
-          ) : (
-            <div>
-              {orderedThreads.map((thread, i) => (
-                <div
-                  key={thread.id}
-                  style={{
-                    padding: '8px 0',
-                    borderBottom: i < orderedThreads.length - 1 ? '1px solid var(--elevated)' : undefined,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
-                      <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.62rem', color: 'var(--gold-dim)', flexShrink: 0 }}>
-                        as {thread.character_name}
-                      </span>
-                      {thread.url ? (
-                        <a
-                          href={thread.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            fontFamily: 'var(--f-body)',
-                            fontSize: '0.88rem',
-                            color: 'var(--roseash)',
-                            textDecoration: 'none',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {thread.title}
-                        </a>
-                      ) : (
-                        <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.88rem', color: 'var(--roseash)' }}>
-                          {thread.title}
-                        </span>
-                      )}
-                    </div>
+        ) : (
+          <>
+            <div className="mojo-character-spread">
+              {orderedCharacters.map((char) => (
+                <div key={char.id} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  flexShrink: 0,
+                }}>
+                  <Link href={`/mojo/characters/${char.id}`} style={{ textDecoration: 'none' }}>
+                    <MojoPortraitCard
+                      token={char.avatar_token}
+                      alt={char.name}
+                      size="sm"
+                      idSuffix={`rp-char-${char.id}`}
+                    />
+                  </Link>
+                  <span style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '10px',
+                    letterSpacing: '0.08em',
+                    color: char.status === 'archived' ? 'var(--faded)' : 'var(--roseash)',
+                    textAlign: 'center',
+                    maxWidth: '110px',
+                  }}>
+                    {char.name}
+                  </span>
+                  {char.status === 'archived' && (
                     <span style={{
-                      fontFamily: 'var(--f-ui)',
-                      fontSize: '0.6rem',
-                      letterSpacing: '0.06em',
-                      color: thread.status === 'active' ? 'var(--moonstone)' : 'var(--faded)',
-                      flexShrink: 0,
+                      fontFamily: 'Cinzel, serif',
+                      fontSize: '8px',
+                      letterSpacing: '0.12em',
+                      color: 'var(--faded)',
+                      border: '1px solid var(--elevated)',
+                      padding: '0px 5px',
+                      borderRadius: '1px',
                     }}>
-                      {thread.status === 'active' ? 'ACTIVE' : 'ARCHIVED'}
+                      ARCHIVED
                     </span>
-                  </div>
-                  {thread.partner_names && (
-                    <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--mist)', margin: '2px 0 0' }}>
-                      with {thread.partner_names}
-                    </p>
                   )}
+                  <MojoCharacterStatusToggle
+                    characterId={char.id}
+                    rpId={rp.id}
+                    status={char.status === 'archived' ? 'archived' : 'active'}
+                  />
                 </div>
               ))}
             </div>
-          )}
+            <div style={{ color: 'var(--elevated)', marginTop: '8px', opacity: 0.5 }}>
+              <SvgFiligreeRule />
+            </div>
+          </>
+        )}
+      </div>
 
-          <FiligreeDivider />
+      {/* ════ ZONE 3: TWO-COLUMN ════ */}
+      <div className="mojo-rp-columns" style={{ marginBottom: '32px' }}>
 
-          <MojoWantedBoard
-            rpId={rp.id}
-            initialItems={wanted}
-            characters={rp.characters.map((c) => ({ id: c.id, name: c.name, status: c.status }))}
-          />
+        {/* LEFT: Threads */}
+        <div>
+          <div className="mojo-candle-heading" aria-labelledby="threads-heading">
+            <div aria-hidden="true">
+              <SvgCandleRealistic height={80} idSuffix="thread-left" flameDelay="0s" />
+            </div>
+            <h2 id="threads-heading">Correspondence</h2>
+            <div aria-hidden="true">
+              <SvgCandleRealistic height={80} idSuffix="thread-right" flameDelay="0.35s" />
+            </div>
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <SvgParchmentEdge />
+
+            {orderedThreads.length === 0 ? (
+              <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
+                No threads yet. Add threads from each character&rsquo;s page.
+              </p>
+            ) : (
+              orderedThreads.map((thread) => {
+                const whoseTurn = deriveWhoseTurn(thread, thread.character_name)
+                const turnClass =
+                  whoseTurn === 'mine' ? 'mojo-thread-turn-mine'
+                    : whoseTurn === 'theirs' ? 'mojo-thread-turn-theirs'
+                      : 'mojo-thread-turn-unknown'
+                return (
+                  <div key={thread.id} className="mojo-thread-card" style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.62rem', color: 'var(--gold-dim)', flexShrink: 0 }}>
+                          as {thread.character_name}
+                        </span>
+                        {thread.url ? (
+                          <a
+                            href={thread.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontFamily: 'var(--f-body)',
+                              fontSize: '0.88rem',
+                              color: 'var(--roseash)',
+                              textDecoration: 'none',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {thread.title}
+                          </a>
+                        ) : (
+                          <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.88rem', color: 'var(--roseash)' }}>
+                            {thread.title}
+                          </span>
+                        )}
+                      </div>
+                      <span style={{
+                        fontFamily: 'var(--f-ui)',
+                        fontSize: '0.6rem',
+                        letterSpacing: '0.06em',
+                        color: thread.status === 'active' ? 'var(--moonstone)' : 'var(--faded)',
+                        flexShrink: 0,
+                      }}>
+                        {thread.status === 'active' ? 'ACTIVE' : 'ARCHIVED'}
+                      </span>
+                    </div>
+
+                    {whoseTurn !== 'unknown' && (
+                      <span className={turnClass} style={{
+                        display: 'inline-block',
+                        fontFamily: 'var(--f-ui)',
+                        fontSize: '0.6rem',
+                        letterSpacing: '0.04em',
+                        padding: '2px 8px',
+                        borderRadius: 2,
+                        marginTop: 6,
+                      }}>
+                        {whoseTurn === 'mine' ? 'Your turn' : 'Their turn'}
+                      </span>
+                    )}
+
+                    {thread.partner_names && (
+                      <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--mist)', margin: '4px 0 0' }}>
+                        with {thread.partner_names}
+                      </p>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: Notes */}
+        <div className="mojo-rp-side-panel">
+          <div>
+            <div style={{ ...SECTION_LABEL_STYLE, marginBottom: '8px' }}>
+              Plot Notes
+            </div>
+            <div className="mojo-journal-panel">
+              <MojoRpNotes
+                rpId={rp.id}
+                initialPlot={rp.notes_plot}
+                initialPartners={rp.notes_partners}
+                initialMisc={rp.notes_misc}
+              />
+            </div>
+          </div>
+
+          {/* Wax seal divider */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '12px',
+            opacity: 0.75,
+          }} aria-hidden="true">
+            <div style={{
+              flex: 1, height: '1px',
+              background: 'linear-gradient(90deg, transparent, var(--elevated))',
+            }} />
+            <SvgWaxSeal size={32} idSuffix="notes-divider" />
+            <div style={{
+              flex: 1, height: '1px',
+              background: 'linear-gradient(90deg, var(--elevated), transparent)',
+            }} />
+          </div>
         </div>
       </div>
+
+      {/* ════ ZONE 4: WANTED / CONNECTIONS BOARD ════ */}
+      <div style={{ marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div style={SECTION_LABEL_STYLE}>
+            Connections
+          </div>
+          <div style={{ flex: 1, height: '1px', background: 'var(--elevated)', opacity: 0.5 }} />
+        </div>
+        <MojoWantedBoard
+          rpId={rp.id}
+          initialItems={wanted}
+          characters={rp.characters.map((c) => ({ id: c.id, name: c.name, status: c.status }))}
+        />
+      </div>
+
     </div>
   )
 }

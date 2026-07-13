@@ -37,7 +37,7 @@ function sortRps(rps: MojoRp[]): MojoRp[] {
   })
 }
 
-function sortCharactersByOrderThenName(characters: MojoCharacter[]): MojoCharacter[] {
+function sortCharactersByOrderThenName<T extends MojoCharacter>(characters: T[]): T[] {
   return [...characters].sort((a, b) => {
     if (a.display_order !== b.display_order) return a.display_order - b.display_order
     return a.name.localeCompare(b.name)
@@ -94,7 +94,7 @@ export async function getMojoRpWithCharactersAndThreads(
   rpId: string
 ): Promise<
   | (MojoRp & {
-      characters: MojoCharacter[]
+      characters: Array<MojoCharacter & { avatar_token: string | null }>
       threads: Array<MojoThread & { character_name: string }>
     })
   | null
@@ -133,9 +133,46 @@ export async function getMojoRpWithCharactersAndThreads(
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
+  // Avatar priority: primary_stack token → most recent avatar token → null.
+  // Same pattern as getMojoDashboardData().
+  const rpCharacterIds = (characters ?? []).map((c) => c.id)
+  const primaryStackIds = (characters ?? [])
+    .map((c) => c.primary_stack_id)
+    .filter((id): id is string => id !== null)
+
+  const [stacksResult, avatarsResult] = await Promise.all([
+    primaryStackIds.length
+      ? admin.from('mojo_image_stacks').select('id, token').in('id', primaryStackIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; token: string }> }),
+    rpCharacterIds.length
+      ? admin
+          .from('mojo_avatars')
+          .select('character_id, token')
+          .in('character_id', rpCharacterIds)
+          .not('character_id', 'is', null)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as Array<{ character_id: string | null; token: string }> }),
+  ])
+
+  const stackTokenById = new Map((stacksResult.data ?? []).map((s) => [s.id, s.token]))
+  const avatarByCharacter = new Map<string, string>()
+  for (const av of avatarsResult.data ?? []) {
+    if (av.character_id && !avatarByCharacter.has(av.character_id)) {
+      avatarByCharacter.set(av.character_id, av.token)
+    }
+  }
+
+  const charactersWithAvatars = (characters ?? []).map((c) => ({
+    ...c,
+    avatar_token:
+      (c.primary_stack_id ? stackTokenById.get(c.primary_stack_id) : undefined) ??
+      avatarByCharacter.get(c.id) ??
+      null,
+  }))
+
   return {
     ...rp,
-    characters: sortCharactersByOrderThenName(characters ?? []),
+    characters: sortCharactersByOrderThenName(charactersWithAvatars),
     threads: sortedThreads.map((t) => ({
       ...t,
       character_name: nameById.get(t.character_id) ?? 'Unknown',

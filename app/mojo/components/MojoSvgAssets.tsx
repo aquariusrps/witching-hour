@@ -2709,3 +2709,371 @@ export function SvgLargeCrescent({
     </svg>
   )
 }
+
+// ── RP Detail Page SVGs (MOJO-FIX-007) ───────────────────
+
+export function SvgCandleRealistic({
+  height = 100,
+  idSuffix = 'left',
+  flameDelay = '0s',
+}: {
+  height?: number
+  idSuffix?: string
+  flameDelay?: string
+}) {
+  // Proportions derived from height
+  const totalW  = height * 0.30
+  const cx      = totalW / 2
+  const baseH   = height * 0.13
+  const waxH    = height * 0.62
+  const waxW    = height * 0.16
+  const flameH  = height * 0.22
+  const waxTop  = height - baseH - waxH
+  const gradId  = `wax-grad-${idSuffix}`
+  const glowId  = `flame-glow-${idSuffix}`
+  const baseGId = `base-grad-${idSuffix}`
+
+  return (
+    <svg
+      width={totalW}
+      height={height}
+      viewBox={`0 0 ${totalW} ${height}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Wax gradient — warm ivory at top (near flame), cooler at base */}
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#f5f0e8" />
+          <stop offset="35%"  stopColor="#ede4d0" />
+          <stop offset="100%" stopColor="#e0d4b8" />
+        </linearGradient>
+        {/* Candleholder base gradient — dark pewter */}
+        <linearGradient id={baseGId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stopColor="#2a2018" />
+          <stop offset="40%" stopColor="#4a3a28" />
+          <stop offset="100%" stopColor="#2a2018" />
+        </linearGradient>
+        {/* Flame glow — warm amber light on the air */}
+        <radialGradient id={glowId} cx="50%" cy="80%" r="60%">
+          <stop offset="0%"   stopColor="#e8820c" stopOpacity="0.35" />
+          <stop offset="60%"  stopColor="#e8820c" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#e8820c" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* ── CANDLEHOLDER BASE ── */}
+      {/* Base plate */}
+      <ellipse
+        cx={cx} cy={height - baseH * 0.25}
+        rx={totalW * 0.46} ry={baseH * 0.28}
+        fill={`url(#${baseGId})`}
+      />
+      {/* Base rim */}
+      <rect
+        x={cx - totalW * 0.40}
+        y={height - baseH}
+        width={totalW * 0.80}
+        height={baseH * 0.75}
+        rx="1.5"
+        fill={`url(#${baseGId})`}
+      />
+      {/* Base rim highlight */}
+      <rect
+        x={cx - totalW * 0.40}
+        y={height - baseH}
+        width={totalW * 0.80}
+        height="1.5"
+        rx="0.5"
+        fill="rgba(255,255,255,0.12)"
+      />
+
+      {/* ── WAX COLUMN ── */}
+      <rect
+        x={cx - waxW / 2}
+        y={waxTop}
+        width={waxW}
+        height={waxH}
+        rx="1.5"
+        fill={`url(#${gradId})`}
+      />
+      {/* Left highlight — light catching the candle */}
+      <rect
+        x={cx - waxW / 2}
+        y={waxTop}
+        width={waxW * 0.18}
+        height={waxH}
+        rx="1"
+        fill="rgba(255,255,255,0.22)"
+      />
+      {/* Right shadow — depth */}
+      <rect
+        x={cx + waxW / 2 - waxW * 0.12}
+        y={waxTop}
+        width={waxW * 0.12}
+        height={waxH}
+        rx="0"
+        fill="rgba(0,0,0,0.10)"
+      />
+
+      {/* ── WAX DRIPS ── */}
+      {/* Drip 1 — left side */}
+      <path
+        d={`M ${cx - waxW * 0.28} ${waxTop + waxH * 0.08}
+            C ${cx - waxW * 0.52} ${waxTop + waxH * 0.22}
+              ${cx - waxW * 0.48} ${waxTop + waxH * 0.38}
+              ${cx - waxW * 0.44} ${waxTop + waxH * 0.48}`}
+        stroke="#ddd0a8" strokeWidth={waxW * 0.22}
+        strokeLinecap="round" fill="none"
+      />
+      {/* Drip 2 — right side, shorter */}
+      <path
+        d={`M ${cx + waxW * 0.20} ${waxTop + waxH * 0.05}
+            C ${cx + waxW * 0.48} ${waxTop + waxH * 0.16}
+              ${cx + waxW * 0.44} ${waxTop + waxH * 0.28}
+              ${cx + waxW * 0.40} ${waxTop + waxH * 0.36}`}
+        stroke="#ddd0a8" strokeWidth={waxW * 0.18}
+        strokeLinecap="round" fill="none"
+      />
+
+      {/* ── WICK ── */}
+      {/* Wick body */}
+      <path
+        d={`M ${cx} ${waxTop}
+            Q ${cx + 1.5} ${waxTop - flameH * 0.15}
+              ${cx + 1} ${waxTop - flameH * 0.22}`}
+        stroke="#1a1008" strokeWidth="1.4"
+        strokeLinecap="round" fill="none"
+      />
+      {/* Wick glow — tiny amber dot at base of flame */}
+      <circle
+        cx={cx + 1} cy={waxTop - flameH * 0.18}
+        r="1.8"
+        fill="#e8820c" opacity="0.8"
+      />
+
+      {/* ── FLAME AMBIENT GLOW ── */}
+      <ellipse
+        cx={cx} cy={waxTop - flameH * 0.5}
+        rx={totalW * 0.8} ry={flameH * 0.9}
+        fill={`url(#${glowId})`}
+      />
+
+      {/* ── OUTER FLAME — amber/orange ── */}
+      <ellipse
+        cx={cx} cy={waxTop - flameH * 0.52}
+        rx={waxW * 0.65} ry={flameH * 0.52}
+        fill="#e8820c"
+        opacity="0.90"
+        style={{
+          transformOrigin: `${cx}px ${waxTop - flameH * 0.05}px`,
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+
+      {/* ── MIDDLE FLAME — bright gold-orange ── */}
+      <ellipse
+        cx={cx} cy={waxTop - flameH * 0.46}
+        rx={waxW * 0.42} ry={flameH * 0.38}
+        fill="#f5a623"
+        opacity="0.95"
+        style={{
+          transformOrigin: `${cx}px ${waxTop - flameH * 0.05}px`,
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+
+      {/* ── INNER CORE — near-white hot center ── */}
+      <ellipse
+        cx={cx} cy={waxTop - flameH * 0.38}
+        rx={waxW * 0.20} ry={flameH * 0.22}
+        fill="#fff4e0"
+        opacity="0.95"
+        style={{
+          transformOrigin: `${cx}px ${waxTop - flameH * 0.05}px`,
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+
+      {/* ── SMOKE WISP ── */}
+      <ellipse
+        cx={cx} cy={waxTop - flameH * 1.08}
+        rx={waxW * 0.18} ry={flameH * 0.20}
+        fill="rgba(200,190,175,0.25)"
+        style={{
+          transformOrigin: `${cx}px ${waxTop - flameH * 0.85}px`,
+          animationName: 'mojo-flame-smoke',
+          animationDuration: '2.5s',
+          animationTimingFunction: 'ease-out',
+          animationIterationCount: 'infinite',
+          animationDelay: flameDelay,
+        }}
+      />
+    </svg>
+  )
+}
+
+export function SvgParchmentEdge({
+  width = 400,
+}: { width?: number }) {
+  // Generate a slightly irregular top edge suggesting torn paper
+  // The path creates a gently undulating line across the full width
+  const h = 14
+
+  return (
+    <svg
+      width="100%"
+      height={h}
+      viewBox={`0 0 ${width} ${h}`}
+      preserveAspectRatio="none"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ display: 'block', pointerEvents: 'none' }}
+    >
+      {/* Main parchment fill — warm cream */}
+      <path
+        d={`M 0 ${h}
+            L 0 5
+            C 40 3, 80 6, 120 4
+            C 160 2, 200 5, 240 3
+            C 280 1, 320 5, 360 3
+            C 380 2, 390 4, ${width} 4
+            L ${width} ${h}
+            Z`}
+        fill="#f0e6c8"
+        opacity="0.90"
+      />
+      {/* Slightly darker underside — the paper has thickness */}
+      <path
+        d={`M 0 5
+            C 40 3, 80 6, 120 4
+            C 160 2, 200 5, 240 3
+            C 280 1, 320 5, 360 3
+            C 380 2, 390 4, ${width} 4`}
+        stroke="#c8b078"
+        strokeWidth="0.8"
+        opacity="0.60"
+        fill="none"
+      />
+      {/* Gradient fade — parchment becoming transparent toward content */}
+      <defs>
+        <linearGradient id={`parch-fade-${width}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#f0e6c8" stopOpacity="0.20" />
+          <stop offset="50%" stopColor="#f0e6c8" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#f0e6c8" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="5" width={width} height={h - 5}
+        fill={`url(#parch-fade-${width})`}
+      />
+      {/* Foxing/age spot — just one subtle mark */}
+      <circle cx={width * 0.72} cy="7" r="2.5"
+        fill="#8b6914" opacity="0.06" />
+    </svg>
+  )
+}
+
+export function SvgWaxSeal({
+  size = 48,
+  idSuffix = 'seal',
+}: { size?: number; idSuffix?: string }) {
+  const r = size / 2
+  const cx = r
+  const cy = r
+  const radId   = `wax-rad-${idSuffix}`
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        {/* Wax radial — darker at edges (cools first), brighter center */}
+        <radialGradient id={radId} cx="42%" cy="38%" r="65%">
+          <stop offset="0%"   stopColor="#c42020" />
+          <stop offset="50%"  stopColor="#a01818" />
+          <stop offset="100%" stopColor="#6b0f0f" />
+        </radialGradient>
+      </defs>
+
+      {/* Wax blob — slightly irregular outer edge (splattered wax) */}
+      <path
+        d={`M ${cx} ${cy - r + 3}
+            C ${cx + r * 0.6} ${cy - r + 1},
+              ${cx + r - 1} ${cy - r * 0.5},
+              ${cx + r - 2} ${cy + 2}
+            C ${cx + r} ${cy + r * 0.6},
+              ${cx + r * 0.5} ${cy + r - 2},
+              ${cx + 1} ${cy + r - 2}
+            C ${cx - r * 0.5} ${cy + r},
+              ${cx - r + 2} ${cy + r * 0.5},
+              ${cx - r + 1} ${cy - 1}
+            C ${cx - r + 2} ${cy - r * 0.6},
+              ${cx - r * 0.5} ${cy - r + 2},
+              ${cx} ${cy - r + 3}
+            Z`}
+        fill={`url(#${radId})`}
+      />
+
+      {/* Surface sheen — light catching raised center */}
+      <ellipse
+        cx={cx - r * 0.15} cy={cy - r * 0.18}
+        rx={r * 0.32} ry={r * 0.20}
+        fill="rgba(255,255,255,0.10)"
+        transform={`rotate(-25 ${cx - r * 0.15} ${cy - r * 0.18})`}
+      />
+
+      {/* Wax flow texture marks — subtle streaks */}
+      {[30, 90, 160, 220].map((angle, i) => {
+        const rad = angle * Math.PI / 180
+        const x1 = cx + r * 0.15 * Math.cos(rad)
+        const y1 = cy + r * 0.15 * Math.sin(rad)
+        const x2 = cx + r * 0.52 * Math.cos(rad)
+        const y2 = cy + r * 0.52 * Math.sin(rad)
+        return (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="1.5" strokeLinecap="round" />
+        )
+      })}
+
+      {/* Star impression — 5 pointed, the stamp in the wax */}
+      <path
+        d={[
+          ...Array.from({ length: 5 }, (_, i) => {
+            const outerR = r * 0.48
+            const innerR = r * 0.20
+            const angle = (i * 72 - 90) * Math.PI / 180
+            const nextAngle = (i * 72 - 90 + 36) * Math.PI / 180
+            const ox = cx + outerR * Math.cos(angle)
+            const oy = cy + outerR * Math.sin(angle)
+            const ix = cx + innerR * Math.cos(nextAngle)
+            const iy = cy + innerR * Math.sin(nextAngle)
+            return `${i === 0 ? 'M' : 'L'} ${ox.toFixed(2)} ${oy.toFixed(2)} L ${ix.toFixed(2)} ${iy.toFixed(2)}`
+          })
+        ].join(' ') + ' Z'}
+        stroke="rgba(255,255,255,0.22)"
+        strokeWidth="0.8"
+        fill="rgba(0,0,0,0.12)"
+        strokeLinejoin="miter"
+      />
+    </svg>
+  )
+}
