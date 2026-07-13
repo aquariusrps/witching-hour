@@ -1,22 +1,9 @@
 import { getMojoImageStacks, getMojoRpsWithCharacters, getMojoFaceclaims, getMojoStackMembers } from '@/lib/db/mojo'
 import MojoCreateStack from '@/app/mojo/components/MojoCreateStack'
 import MojoStackCard from '@/app/mojo/components/MojoStackCard'
-
-function FiligreeDivider() {
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      margin: '20px auto 28px',
-      maxWidth: 360,
-    }}>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--ember), var(--gold))' }} />
-      <span style={{ color: 'var(--gold)', fontSize: '0.7rem' }}>✦</span>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, var(--ember), var(--gold))' }} />
-    </div>
-  )
-}
+import {
+  SvgCabinetOfCuriosities, SvgPageHeaderRule, SvgFiligreeRule
+} from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoStacksPage() {
   const [stacks, rps, faceclaims] = await Promise.all([
@@ -38,45 +25,97 @@ export default async function MojoStacksPage() {
   )
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: '32px 28px 64px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 8 }}>
-        <h1 style={{ fontFamily: 'var(--f-display)', fontSize: '1.9rem', color: 'var(--gold)', margin: '0 0 6px' }}>
-          Image Stacks
-        </h1>
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--mist)', margin: 0 }}>
-          Rotating image pools — one URL, infinite variation
-        </p>
-      </div>
+    <div style={{ maxWidth: 820, margin: '0 auto', padding: '32px 28px 64px', position: 'relative' }}>
 
-      <FiligreeDivider />
-
-      <MojoCreateStack
-        characters={characters}
-        faceclaims={faceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '300px',
+          background: 'radial-gradient(ellipse at 50% 30%, rgba(96,64,192,0.06) 0%, transparent 60%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
       />
 
-      {stacks.length === 0 ? (
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
-          No image stacks yet. Create your first one above.
+      <div style={{ position: 'relative', zIndex: 1, marginBottom: '8px' }}>
+        <h1 style={{
+          fontFamily: 'Cormorant Upright, serif',
+          fontSize: '36px',
+          fontWeight: 600,
+          color: 'var(--gold)',
+          margin: '0 0 4px',
+          letterSpacing: '0.02em',
+        }}>
+          The Reliquary
+        </h1>
+        <p style={{
+          fontFamily: 'EB Garamond, serif',
+          fontSize: '15px',
+          fontStyle: 'italic',
+          color: 'var(--mist)',
+          margin: '0 0 14px',
+        }}>
+          Every token. Every face. Sealed in amber.
         </p>
-      ) : (
-        stacks.map((stack) => {
-          const character = stack.character_id ? characterById.get(stack.character_id) : undefined
-          const faceclaimName = stack.faceclaim_id ? faceclaimNameById.get(stack.faceclaim_id) ?? null : null
-          return (
-            <MojoStackCard
-              key={stack.id}
-              stack={stack}
-              characterName={character?.name ?? null}
-              rpName={character?.rp_name ?? null}
-              faceclaimName={faceclaimName}
-              members={membersByStack.get(stack.id) ?? []}
-              characters={characters}
-              faceclaims={faceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
-            />
-          )
-        })
-      )}
+        <div style={{ color: 'var(--elevated)' }}>
+          <SvgPageHeaderRule />
+        </div>
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          color: 'var(--mist)',
+          marginBottom: '4px',
+        }}
+      >
+        <SvgCabinetOfCuriosities />
+      </div>
+
+      <div style={{
+        color: 'var(--elevated)',
+        marginBottom: '20px',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <SvgFiligreeRule />
+      </div>
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <MojoCreateStack
+          characters={characters}
+          faceclaims={faceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
+        />
+
+        {stacks.length === 0 ? (
+          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
+            No image stacks yet. Create your first one above.
+          </p>
+        ) : (
+          stacks.map((stack) => {
+            const character = stack.character_id ? characterById.get(stack.character_id) : undefined
+            const faceclaimName = stack.faceclaim_id ? faceclaimNameById.get(stack.faceclaim_id) ?? null : null
+            return (
+              <MojoStackCard
+                key={stack.id}
+                stack={stack}
+                characterName={character?.name ?? null}
+                rpName={character?.rp_name ?? null}
+                faceclaimName={faceclaimName}
+                members={membersByStack.get(stack.id) ?? []}
+                characters={characters}
+                faceclaims={faceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
+              />
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }

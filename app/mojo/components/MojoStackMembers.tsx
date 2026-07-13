@@ -39,7 +39,7 @@ const LABEL_STYLE: React.CSSProperties = {
   marginBottom: 4,
 }
 
-function MemberRow({ member, rotationMode }: { member: MojoImageStackMember; rotationMode: string }) {
+function MemberRow({ member, rotationMode, index = 0 }: { member: MojoImageStackMember; rotationMode: string; index?: number }) {
   const [weight, setWeight] = useState(member.weight)
   const [confirmingRemove, setConfirmingRemove] = useState(false)
   const [removing, setRemoving] = useState(false)
@@ -72,6 +72,16 @@ function MemberRow({ member, rotationMode }: { member: MojoImageStackMember; rot
         marginBottom: 4,
       }}
     >
+      <span style={{
+        fontFamily: 'Cinzel, serif',
+        fontSize: '9px',
+        color: 'var(--faded)',
+        opacity: 0.5,
+        minWidth: '24px',
+        flexShrink: 0,
+      }}>
+        {(index + 1).toString().padStart(2, '0')}
+      </span>
       <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.62rem', color: 'var(--faded)', flexShrink: 0 }}>
         {member.mime_type}
       </span>
@@ -171,6 +181,17 @@ export default function MojoStackMembers({
 
   return (
     <div style={{ padding: '4px 16px 16px' }}>
+      <div style={{
+        fontFamily: 'Cinzel, serif',
+        fontSize: '10px',
+        letterSpacing: '0.20em',
+        textTransform: 'uppercase',
+        color: 'var(--faded)',
+        marginBottom: '10px',
+      }}>
+        Specimen Tray
+      </div>
+
       <div style={{ marginBottom: 16 }}>
         <h4 style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faded)', margin: '0 0 8px' }}>
           Drag from character avatars
@@ -178,6 +199,17 @@ export default function MojoStackMembers({
         {dropError && (
           <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.78rem', color: 'var(--ember)', margin: '0 0 8px' }}>{dropError}</p>
         )}
+        <div style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '9px',
+          letterSpacing: '0.20em',
+          textTransform: 'uppercase',
+          color: 'var(--faded)',
+          marginBottom: '6px',
+          opacity: 0.7,
+        }}>
+          Staging Area
+        </div>
         <MojoStackDropZone
           stackId={stackId}
           stackLabel={stackLabel}
@@ -259,8 +291,8 @@ export default function MojoStackMembers({
         </p>
       ) : (
         <div>
-          {members.map((m) => (
-            <MemberRow key={m.id} member={m} rotationMode={rotationMode} />
+          {members.map((m, index) => (
+            <MemberRow key={m.id} member={m} rotationMode={rotationMode} index={index} />
           ))}
         </div>
       )}

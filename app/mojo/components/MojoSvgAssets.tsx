@@ -1834,3 +1834,284 @@ export function SvgPageCornerFold({
     </svg>
   )
 }
+
+export function SvgCabinetOfCuriosities({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="100%"
+      height="160"
+      viewBox="0 0 900 160"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* ── PEDIMENT (top) ── */}
+      {/* Triangular gable above the cabinet */}
+      <path d="M 180 20 L 450 2 L 720 20"
+        stroke="currentColor" strokeWidth="1.2" opacity="0.30" />
+      {/* Finial at apex */}
+      <circle cx="450" cy="2" r="3"
+        fill="currentColor" opacity="0.25" />
+      <line x1="450" y1="5" x2="450" y2="18"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.20" />
+      {/* Pediment horizontal cornice */}
+      <line x1="170" y1="26" x2="730" y2="26"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.22" />
+      {/* Cornice shadow */}
+      <line x1="170" y1="28" x2="730" y2="28"
+        stroke="currentColor" strokeWidth="0.3" opacity="0.10" />
+
+      {/* ── CABINET FRAME ── */}
+      {/* Outer frame */}
+      <rect x="170" y="26" width="560" height="118" rx="1"
+        stroke="currentColor" strokeWidth="1.0" opacity="0.22"
+        fill="none" />
+      {/* Inner shadow line */}
+      <rect x="174" y="30" width="552" height="110" rx="0.5"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.10"
+        fill="none" />
+
+      {/* ── TRIPTYCH DIVIDERS ── */}
+      {/* Left pilaster (between left and centre door) */}
+      <rect x="356" y="26" width="12" height="118"
+        fill="currentColor" opacity="0.12" />
+      {/* Pilaster capital top */}
+      <rect x="352" y="26" width="20" height="5"
+        fill="currentColor" opacity="0.18" />
+      <rect x="352" y="139" width="20" height="5"
+        fill="currentColor" opacity="0.18" />
+
+      {/* Right pilaster (between centre and right door) */}
+      <rect x="532" y="26" width="12" height="118"
+        fill="currentColor" opacity="0.12" />
+      <rect x="528" y="26" width="20" height="5"
+        fill="currentColor" opacity="0.18" />
+      <rect x="528" y="139" width="20" height="5"
+        fill="currentColor" opacity="0.18" />
+
+      {/* Outer left pilaster */}
+      <rect x="170" y="26" width="8" height="118"
+        fill="currentColor" opacity="0.10" />
+      {/* Outer right pilaster */}
+      <rect x="722" y="26" width="8" height="118"
+        fill="currentColor" opacity="0.10" />
+
+      {/* ── LEFT DOOR (arched) ── */}
+      {/* Arch */}
+      <path d="M 178 80 Q 178 36, 263 36 Q 348 36, 348 80"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.20"
+        fill="none" />
+      {/* Left door rectangle below arch */}
+      <rect x="178" y="80" width="170" height="64"
+        stroke="currentColor" strokeWidth="0.6" opacity="0.16"
+        fill="none" />
+      {/* Keystone */}
+      <path d="M 258 36 L 263 30 L 268 36 Z"
+        fill="currentColor" opacity="0.18" />
+
+      {/* ── CENTRE DOOR (wider, arched) ── */}
+      <path d="M 368 75 Q 368 30, 450 30 Q 532 30, 532 75"
+        stroke="currentColor" strokeWidth="1.0" opacity="0.25"
+        fill="none" />
+      <rect x="368" y="75" width="164" height="69"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.20"
+        fill="none" />
+      {/* Centre keystone */}
+      <path d="M 445 30 L 450 23 L 455 30 Z"
+        fill="currentColor" opacity="0.22" />
+      {/* Centre door muntin bars (crossbars) */}
+      <line x1="368" y1="110" x2="532" y2="110"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.12" />
+      <line x1="450" y1="75" x2="450" y2="144"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.12" />
+
+      {/* ── RIGHT DOOR (arched, mirrors left) ── */}
+      <path d="M 544 80 Q 544 36, 629 36 Q 714 36, 714 80"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.20"
+        fill="none" />
+      <rect x="544" y="80" width="170" height="64"
+        stroke="currentColor" strokeWidth="0.6" opacity="0.16"
+        fill="none" />
+      <path d="M 624 36 L 629 30 L 634 36 Z"
+        fill="currentColor" opacity="0.18" />
+
+      {/* ── SPECIMENS VISIBLE INSIDE CABINET ── */}
+      {/* Left door specimens */}
+      {[
+        [200,100,12,20],[220,85,10,15],[240,105,8,12],
+        [260,90,14,18],[290,100,10,16],[310,88,8,14],
+      ].map(([x,y,w,h],i) => (
+        <rect key={`ls${i}`} x={x} y={y} width={w} height={h}
+          fill="currentColor" opacity={0.06 + (i%3)*0.02} rx="0.5" />
+      ))}
+      {/* Centre door specimens */}
+      {[
+        [385,105,16,22],[410,88,12,18],[432,108,10,14],
+        [460,92,14,20],[485,106,12,16],[508,90,10,18],
+      ].map(([x,y,w,h],i) => (
+        <rect key={`cs${i}`} x={x} y={y} width={w} height={h}
+          fill="currentColor" opacity={0.08 + (i%3)*0.02} rx="0.5" />
+      ))}
+      {/* Right door specimens */}
+      {[
+        [558,100,12,20],[578,85,10,15],[598,105,8,12],
+        [620,90,14,18],[648,100,10,16],[670,88,8,14],
+      ].map(([x,y,w,h],i) => (
+        <rect key={`rs${i}`} x={x} y={y} width={w} height={h}
+          fill="currentColor" opacity={0.06 + (i%3)*0.02} rx="0.5" />
+      ))}
+      {/* Shelf lines inside doors */}
+      <line x1="178" y1="118" x2="348" y2="118"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.10" />
+      <line x1="368" y1="120" x2="532" y2="120"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+      <line x1="544" y1="118" x2="714" y2="118"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.10" />
+
+      {/* ── CABINET BASE / LEGS ── */}
+      <line x1="170" y1="144" x2="730" y2="144"
+        stroke="currentColor" strokeWidth="1.0" opacity="0.20" />
+      {/* Left leg */}
+      <path d="M 210 144 L 200 158 L 220 158"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.16"
+        fill="none" />
+      {/* Right leg */}
+      <path d="M 690 144 L 680 158 L 700 158"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.16"
+        fill="none" />
+      {/* Centre support */}
+      <path d="M 445 144 L 440 155 L 450 158 L 460 155 L 455 144"
+        stroke="currentColor" strokeWidth="0.6" opacity="0.12"
+        fill="none" />
+    </svg>
+  )
+}
+
+export function SvgRotationRandom({
+  size = 16,
+  active = false,
+}: { size?: number; active?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      {/* Cube — three visible faces */}
+      {/* Top face */}
+      <path d="M 8 1 L 14 4 L 8 7 L 2 4 Z"
+        fill="currentColor"
+        opacity={active ? 0.55 : 0.28} />
+      {/* Right face */}
+      <path d="M 14 4 L 14 11 L 8 14 L 8 7 Z"
+        fill="currentColor"
+        opacity={active ? 0.35 : 0.18} />
+      {/* Left face */}
+      <path d="M 2 4 L 8 7 L 8 14 L 2 11 Z"
+        fill="currentColor"
+        opacity={active ? 0.45 : 0.22} />
+      {/* Dots on top face */}
+      <circle cx="6" cy="3.5" r="0.8"
+        fill="currentColor" opacity={active ? 0.9 : 0.5} />
+      <circle cx="10" cy="4.5" r="0.8"
+        fill="currentColor" opacity={active ? 0.9 : 0.5} />
+      <circle cx="8" cy="5.5" r="0.8"
+        fill="currentColor" opacity={active ? 0.9 : 0.5} />
+    </svg>
+  )
+}
+
+export function SvgRotationWeighted({
+  size = 16,
+  active = false,
+}: { size?: number; active?: boolean }) {
+  const op = active ? 0.70 : 0.38
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      {/* Central beam */}
+      <line x1="2" y1="6" x2="14" y2="6"
+        stroke="currentColor" strokeWidth="1.0" opacity={op} />
+      {/* Central pole */}
+      <line x1="8" y1="2" x2="8" y2="14"
+        stroke="currentColor" strokeWidth="0.7" opacity={op * 0.7} />
+      {/* Pivot */}
+      <circle cx="8" cy="6" r="1.2"
+        fill="currentColor" opacity={op} />
+      {/* Left pan string (beam slightly tilted — left is heavier) */}
+      <line x1="3" y1="6" x2="3" y2="10"
+        stroke="currentColor" strokeWidth="0.6" opacity={op} />
+      {/* Left pan — lower (heavier) */}
+      <path d="M 1 10 Q 3 12.5 5 10"
+        stroke="currentColor" strokeWidth="0.8" opacity={op}
+        fill="none" />
+      {/* Right pan string */}
+      <line x1="13" y1="6" x2="13" y2="8"
+        stroke="currentColor" strokeWidth="0.6" opacity={op} />
+      {/* Right pan — higher (lighter) */}
+      <path d="M 11 8 Q 13 10.5 15 8"
+        stroke="currentColor" strokeWidth="0.8" opacity={op}
+        fill="none" />
+    </svg>
+  )
+}
+
+export function SvgRotationSequential({
+  size = 16,
+  active = false,
+}: { size?: number; active?: boolean }) {
+  const op = active ? 0.75 : 0.40
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      {/* Logarithmic spiral approximated with arc paths */}
+      <path
+        d={`M 8 8
+            C 8 6, 10 5, 11 7
+            C 12 9, 10 12, 7 12
+            C 4 12, 2 9, 3 6
+            C 4 3, 8 2, 11 4`}
+        stroke="currentColor"
+        strokeWidth="1.0"
+        strokeLinecap="round"
+        opacity={op}
+        fill="none"
+      />
+      {/* Arrow at the end of the spiral */}
+      <path d="M 11 4 L 13 3 L 12 5"
+        stroke="currentColor" strokeWidth="0.8"
+        strokeLinecap="round" opacity={op}
+        fill="none" />
+    </svg>
+  )
+}
+
+export function SvgRotationNoRepeat({
+  size = 16,
+  active = false,
+}: { size?: number; active?: boolean }) {
+  const op = active ? 0.75 : 0.40
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      {/* Arrow 1: top-left to bottom-right */}
+      <path d="M 3 3 L 13 13"
+        stroke="currentColor" strokeWidth="1.0"
+        strokeLinecap="round" opacity={op} />
+      {/* Arrow 1 head (bottom-right) */}
+      <path d="M 13 13 L 10 12 L 12 10"
+        stroke="currentColor" strokeWidth="0.8"
+        strokeLinecap="round" opacity={op} fill="none" />
+
+      {/* Arrow 2: bottom-left to top-right */}
+      <path d="M 3 13 L 13 3"
+        stroke="currentColor" strokeWidth="1.0"
+        strokeLinecap="round" opacity={op} />
+      {/* Arrow 2 head (top-right) */}
+      <path d="M 13 3 L 10 4 L 12 6"
+        stroke="currentColor" strokeWidth="0.8"
+        strokeLinecap="round" opacity={op} fill="none" />
+
+      {/* Small gap at crossing point */}
+      <circle cx="8" cy="8" r="2"
+        fill="var(--raised)" />
+    </svg>
+  )
+}

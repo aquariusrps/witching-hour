@@ -4,6 +4,11 @@ import { useState } from 'react'
 import { updateMojoImageStack, deleteMojoImageStack } from '@/lib/actions/mojo'
 import MojoStackUrlCopy from './MojoStackUrlCopy'
 import MojoStackMembers from './MojoStackMembers'
+import {
+  SvgRotationRandom, SvgRotationWeighted,
+  SvgRotationSequential, SvgRotationNoRepeat,
+  SvgCornerBracket,
+} from './MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoImageStack = Tables<'mojo_image_stacks'>
@@ -23,18 +28,31 @@ const ROTATION_HELP: Record<RotationMode, string> = {
   no_repeat: 'Random, but never shows the same image twice in a row',
 }
 
-const ROTATION_BADGE_COLOR: Record<string, string> = {
-  truly_random: 'var(--moonstone)',
-  weighted: 'var(--gold)',
-  sequential: 'var(--ember)',
-  no_repeat: 'var(--mist)',
+function getSpecimenNumber(createdAt: string): string {
+  // Use last 3 digits of the timestamp for a human-readable ID
+  const ts = new Date(createdAt).getTime()
+  const suffix = (ts % 1000).toString().padStart(3, '0')
+  return `SP-${suffix}`
 }
 
-const ROTATION_LABEL: Record<string, string> = {
-  truly_random: 'Truly Random',
-  weighted: 'Weighted',
-  sequential: 'Sequential',
-  no_repeat: 'No Repeat',
+function getModeColor(mode: string): string {
+  switch (mode) {
+    case 'truly_random': return 'var(--moonstone)'
+    case 'weighted':     return 'var(--gold)'
+    case 'sequential':   return 'var(--roseash)'
+    case 'no_repeat':    return 'var(--mist)'
+    default:             return 'var(--faded)'
+  }
+}
+
+function getModeLabel(mode: string): string {
+  switch (mode) {
+    case 'truly_random': return 'Random'
+    case 'weighted':     return 'Weighted'
+    case 'sequential':   return 'Sequential'
+    case 'no_repeat':    return 'No Repeat'
+    default:             return mode
+  }
 }
 
 const INPUT_STYLE: React.CSSProperties = {
@@ -238,29 +256,97 @@ export default function MojoStackCard({
   }
 
   return (
-    <div style={{ background: 'var(--claret)', border: '1px solid var(--elevated)', borderRadius: 4, marginBottom: 16 }}>
-      {/* Card header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, padding: '14px 16px' }}>
-        <div style={{ minWidth: 0 }}>
+    <div
+      className="mojo-specimen-card"
+      style={{
+        position: 'relative',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '2px',
+        marginBottom: '16px',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Corner brackets */}
+      <SvgCornerBracket size={14}
+        color="#9c9ab8"
+        rotation={0}
+        style={{ position: 'absolute', top: 0, left: 0, opacity: 0.25,
+                 pointerEvents: 'none' }} />
+      <SvgCornerBracket size={14}
+        color="#9c9ab8"
+        rotation={90}
+        style={{ position: 'absolute', top: 0, right: 0, opacity: 0.25,
+                 pointerEvents: 'none' }} />
+      <SvgCornerBracket size={14}
+        color="#9c9ab8"
+        rotation={270}
+        style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0.25,
+                 pointerEvents: 'none' }} />
+      <SvgCornerBracket size={14}
+        color="#9c9ab8"
+        rotation={180}
+        style={{ position: 'absolute', bottom: 0, right: 0, opacity: 0.25,
+                 pointerEvents: 'none' }} />
+
+      {/* Card header — specimen header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 10,
+        padding: '14px 16px 10px',
+        background: 'rgba(0,0,0,0.15)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        position: 'relative',
+      }}>
+        <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span style={{ fontFamily: 'var(--f-head)', fontSize: '1rem', color: 'var(--roseash)' }}>
             {stack.label}
           </span>
-          <span
-            style={{
-              fontFamily: 'var(--f-ui)',
-              fontSize: '0.625rem',
-              textTransform: 'uppercase',
-              background: 'var(--raised)',
-              color: ROTATION_BADGE_COLOR[stack.rotation_mode] ?? 'var(--faded)',
-              padding: '2px 8px',
-              borderRadius: 2,
-              marginLeft: 8,
-            }}
-          >
-            {ROTATION_LABEL[stack.rotation_mode] ?? stack.rotation_mode}
+          <span style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '9px',
+            letterSpacing: '0.15em',
+            color: 'var(--faded)',
+            opacity: 0.6,
+            flexShrink: 0,
+          }}>
+            {getSpecimenNumber(stack.created_at)}
           </span>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: 'var(--elevated)',
+            padding: '2px 8px 2px 6px',
+            borderRadius: '2px',
+          }}>
+            <span style={{ color: getModeColor(stack.rotation_mode), display: 'inline-flex' }}>
+              {stack.rotation_mode === 'truly_random' && (
+                <SvgRotationRandom size={13} active={true} />
+              )}
+              {stack.rotation_mode === 'weighted' && (
+                <SvgRotationWeighted size={13} active={true} />
+              )}
+              {stack.rotation_mode === 'sequential' && (
+                <SvgRotationSequential size={13} active={true} />
+              )}
+              {stack.rotation_mode === 'no_repeat' && (
+                <SvgRotationNoRepeat size={13} active={true} />
+              )}
+            </span>
+            <span style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: getModeColor(stack.rotation_mode),
+            }}>
+              {getModeLabel(stack.rotation_mode)}
+            </span>
+          </div>
           {(characterName || faceclaimName) && (
-            <span style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.8125rem', color: 'var(--faded)', marginLeft: 8 }}>
+            <span style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.8125rem', color: 'var(--faded)' }}>
               {characterName ? `→ ${characterName}${rpName ? ` in ${rpName}` : ''}` : `→ ${faceclaimName}`}
             </span>
           )}
@@ -303,16 +389,33 @@ export default function MojoStackCard({
       {/* Live preview */}
       <div style={{ padding: '0 16px 14px' }}>
         <p style={{ margin: '0 0 8px' }}>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.625rem', color: 'var(--faded)' }}>Live preview — </span>
-          <span style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.72rem', color: 'var(--faded)' }}>refreshes on each page load</span>
+          <span style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '9px',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: 'var(--faded)',
+          }}>
+            Live Specimen
+          </span>{' '}
+          <span style={{
+            fontFamily: 'EB Garamond, serif',
+            fontSize: '11px',
+            fontStyle: 'italic',
+            color: 'var(--faded)',
+          }}>
+            · refreshes on view
+          </span>
         </p>
         {stack.member_count > 0 ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={proxyUrl}
-            alt={stack.label}
-            style={{ maxHeight: 120, maxWidth: 200, objectFit: 'contain', border: '1px solid var(--elevated)', borderRadius: 2 }}
-          />
+          <div className="mojo-vitrine-preview" style={{ display: 'inline-block' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={proxyUrl}
+              alt={stack.label}
+              style={{ maxHeight: 120, maxWidth: 200, objectFit: 'contain', display: 'block' }}
+            />
+          </div>
         ) : (
           <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)', margin: 0 }}>
             No images in this stack yet.
@@ -320,10 +423,22 @@ export default function MojoStackCard({
         )}
       </div>
 
-      {/* Proxy URL row */}
-      <div style={{ padding: '0 16px 14px', borderTop: '1px solid var(--elevated)', paddingTop: 12 }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.625rem', color: 'var(--faded)', display: 'block', marginBottom: 6 }}>
-          Stack URL
+      {/* Proxy URL row — catalog entry */}
+      <div style={{
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        background: 'var(--char)',
+        padding: '8px 16px',
+      }}>
+        <span style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '9px',
+          letterSpacing: '0.20em',
+          textTransform: 'uppercase',
+          color: 'var(--faded)',
+          display: 'block',
+          marginBottom: 6,
+        }}>
+          Catalog Entry
         </span>
         <MojoStackUrlCopy url={proxyUrl} />
       </div>
