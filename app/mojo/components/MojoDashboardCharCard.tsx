@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { updateMojoCharacterStatus } from '@/lib/actions/mojo'
 import { deriveWhoseTurn } from '@/lib/mojo/utils'
 import type { DashboardCharacter } from '@/lib/db/mojo'
+import MojoPortraitCard from './MojoPortraitCard'
 
 function navigateToDashboard() {
   window.location.href = '/mojo'
@@ -35,7 +36,6 @@ export default function MojoDashboardCharCard({
   const [isActing, setIsActing] = useState(false)
 
   const avatarToken = character.primary_stack_token ?? character.avatar_token
-  const avatarSrc = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${avatarToken}.png` : null
   const isArchived = character.status === 'archived'
 
   const myTurnCount = character.active_threads.filter(
@@ -65,45 +65,20 @@ export default function MojoDashboardCharCard({
         opacity: isArchived ? 0.6 : 1,
       }}
     >
-      <div style={{
-        width: '100px',
-        height: '100px',
-        margin: '10px auto 0',
-        borderRadius: '50%',
-        overflow: 'hidden',
-        position: 'relative',
-      }}>
-        {avatarSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={avatarSrc}
-            alt={character.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onClick={() => navigateToChar(character.id)}
-          />
-        ) : (
-          <div
-            style={{ width: '100%', height: '100%', background: 'var(--elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            onClick={() => navigateToChar(character.id)}
-          >
-            <svg viewBox="0 0 60 60" style={{ width: 40, opacity: 0.3, filter: 'drop-shadow(0 0 8px rgba(96,64,192,0.2))' }}>
-              <circle cx="30" cy="22" r="12" fill="var(--mist)" />
-              <ellipse cx="30" cy="50" rx="18" ry="12" fill="var(--mist)" />
-            </svg>
-          </div>
-        )}
-
-        {/* Silver ring overlay */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '50%',
-            border: '1px solid rgba(192,192,200,0.20)',
-            boxShadow: 'inset 0 0 12px rgba(0,0,0,0.4)',
-            pointerEvents: 'none',
-          }}
+      <div
+        style={{
+          width: '110px',
+          margin: '10px auto 0',
+          position: 'relative',
+          cursor: 'pointer',
+        }}
+        onClick={() => navigateToChar(character.id)}
+      >
+        <MojoPortraitCard
+          token={avatarToken}
+          alt={character.name}
+          size="sm"
+          idSuffix={`dash-char-${character.id}`}
         />
 
         {myTurnCount > 0 && (

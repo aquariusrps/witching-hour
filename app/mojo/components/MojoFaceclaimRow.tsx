@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { deleteMojoFaceclaim } from '@/lib/actions/mojo'
-import { SvgPortraitFrame, SvgCandleFlame } from '@/app/mojo/components/MojoSvgAssets'
+import { SvgCandleFlame } from '@/app/mojo/components/MojoSvgAssets'
+import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
 
 function navigateToFaceclaims() {
   window.location.href = '/mojo/faceclaims'
@@ -19,8 +20,6 @@ export default function MojoFaceclaimRow({
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const avatarSrc = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${avatarToken}.png` : null
 
   async function handleDelete() {
     setLoading(true)
@@ -50,67 +49,27 @@ export default function MojoFaceclaimRow({
         flexDirection: 'column',
       }}
     >
-      <Link href={`/mojo/faceclaims/${fc.id}`} style={{ display: 'block' }}>
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          aspectRatio: '4 / 5',
-          overflow: 'hidden',
-          background: 'var(--raised)',
-          flexShrink: 0,
-        }}>
-          {avatarSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarSrc}
-              alt={fc.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            /* Silhouette placeholder — no avatar data available for this faceclaim */
-            <div style={{
-              width: '100%', height: '100%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: `
-                radial-gradient(ellipse at 50% 40%,
-                  rgba(255,255,255,0.04) 0%, transparent 60%),
-                var(--raised)
-              `,
-            }}>
-              <svg viewBox="0 0 60 80" style={{ width: '50px', opacity: 0.15 }}>
-                <circle cx="30" cy="22" r="14" fill="currentColor" />
-                <ellipse cx="30" cy="64" rx="22" ry="18" fill="currentColor" />
-              </svg>
-            </div>
-          )}
+      <Link href={`/mojo/faceclaims/${fc.id}`} style={{ display: 'block', position: 'relative' }}>
+        <MojoPortraitCard
+          token={avatarToken}
+          alt={fc.name}
+          idSuffix={fc.id}
+          className="mojo-portrait-card"
+        />
 
-          {/* Portrait frame SVG overlay */}
-          <div style={{
+        {/* Candle flame hover effect */}
+        <div
+          aria-hidden="true"
+          className="mojo-portrait-flame"
+          style={{
             position: 'absolute',
-            inset: 0,
-            color: 'var(--mist)',
-          }}>
-            <SvgPortraitFrame
-              width={200} height={250}
-              color="#9c9ab8" /* Silver & Onyx --mist */
-              idSuffix={fc.id}
-            />
-          </div>
-
-          {/* Candle flame hover effect */}
-          <div
-            aria-hidden="true"
-            className="mojo-portrait-flame"
-            style={{
-              position: 'absolute',
-              top: '6px',
-              right: '10px',
-              color: 'var(--roseash)',
-              pointerEvents: 'none',
-            }}
-          >
-            <SvgCandleFlame size={14} delay="0s" />
-          </div>
+            top: '6px',
+            right: '10px',
+            color: 'var(--roseash)',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgCandleFlame size={14} delay="0s" />
         </div>
       </Link>
 

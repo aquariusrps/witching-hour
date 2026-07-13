@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateMojoAvatar } from '@/lib/actions/mojo'
+import MojoPortraitCard from './MojoPortraitCard'
 import type { Tables } from '@/types/database'
 
 type MojoAvatar = Tables<'mojo_avatars'>
@@ -155,12 +156,14 @@ function AvatarCard({
         </span>
       )}
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={proxyUrl}
-        alt={avatar.title ?? 'Avatar'}
-        style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', display: 'block' }}
-      />
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <MojoPortraitCard
+          token={avatar.token}
+          alt={avatar.title ?? 'Avatar'}
+          size="sm"
+          idSuffix={`avatar-grid-${avatar.id}`}
+        />
+      </div>
 
       {editing ? (
         <div style={{ padding: 10, background: 'var(--raised)', borderTop: '1px solid var(--elevated)' }}>

@@ -1130,3 +1130,65 @@ body {
     transition: none !important;
   }
 }
+
+/* ═══════════════════════════════════════
+   MOJO PORTRAIT CARD SYSTEM — MOJO-FIX-004
+   ═══════════════════════════════════════ */
+
+/* Portrait card sizes */
+.mojo-portrait-sm {
+  width: 110px;
+  /* height is set by aspect-ratio */
+}
+.mojo-portrait-md {
+  width: 180px;
+}
+.mojo-portrait-lg {
+  width: 280px;
+  max-width: 100%;
+}
+
+/* Tarot card aspect ratio — 3:5 (portrait/vertical) */
+.mojo-portrait-frame {
+  aspect-ratio: 3 / 5;
+  max-height: 500px;
+  max-width: 500px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 3px;
+  background: var(--raised);
+  flex-shrink: 0;
+}
+
+/* Portrait card image */
+.mojo-portrait-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* Portrait card hover lift */
+.mojo-portrait-card-wrap {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.mojo-portrait-card-wrap:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+}
+
+/* Portrait card placeholder */
+.mojo-portrait-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(255,255,255,0.04) 0%,
+    transparent 60%
+  );
+}

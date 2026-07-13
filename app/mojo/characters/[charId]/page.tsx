@@ -13,7 +13,8 @@ import {
 import MojoCharacterArchiveToggle from '@/app/mojo/components/MojoCharacterArchiveToggle'
 import MojoCharacterTabs from '@/app/mojo/components/MojoCharacterTabs'
 import MojoFaceclaimAssign from '@/app/mojo/components/MojoFaceclaimAssign'
-import { SvgIvyTrail, SvgMedallion, SvgCrescent, SvgPageHeaderRule } from '@/app/mojo/components/MojoSvgAssets'
+import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
+import { SvgIvyTrail, SvgCrescent, SvgPageHeaderRule } from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoCharacterPage({
   params,
@@ -34,13 +35,12 @@ export default async function MojoCharacterPage({
   const characterAvatars = await getMojoAvatars({ character_id: charId })
   const isArchived = character.status === 'archived'
 
-  // Medallion avatar: primary stack token → most recent avatar token →
+  // Portrait avatar: primary stack token → most recent avatar token →
   // placeholder, mirroring the priority established in getMojoDashboardData().
   const primaryStack = character.primary_stack_id
     ? characterStacks.find((s) => s.id === character.primary_stack_id)
     : undefined
   const avatarToken = primaryStack?.token ?? characterAvatars[0]?.token ?? null
-  const avatarUrl = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL}/i/${avatarToken}.png` : null
 
   return (
     <div style={{ padding: '28px 32px 64px', position: 'relative' }}>
@@ -213,47 +213,13 @@ export default async function MojoCharacterPage({
         zIndex: 1,
       }}>
 
-        {/* Medallion avatar */}
-        <div style={{
-          position: 'relative',
-          width: '140px',
-          height: '140px',
-          flexShrink: 0,
-          color: 'var(--mist)',
-          animation: 'mojo-float 5s ease-in-out infinite',
-        }}>
-          {/* Avatar clip circle — sits behind the SVG medallion overlay */}
-          <div style={{
-            position: 'absolute',
-            top: '11px', left: '11px',
-            width: '118px', height: '118px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            background: 'var(--elevated)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatarUrl}
-                alt={character.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <svg viewBox="0 0 60 60" style={{
-                width: '40px', opacity: 0.25,
-                filter: 'drop-shadow(0 0 8px rgba(96,64,192,0.2))',
-              }}>
-                <circle cx="30" cy="22" r="12" fill="currentColor" />
-                <ellipse cx="30" cy="50" rx="18" ry="12" fill="currentColor" />
-              </svg>
-            )}
-          </div>
-          {/* SVG medallion frame overlay */}
-          <SvgMedallion size={140} idSuffix="char-sheet" />
-        </div>
+        {/* Portrait avatar */}
+        <MojoPortraitCard
+          token={avatarToken}
+          alt={character.name}
+          size="md"
+          idSuffix={`char-sheet-${character.id}`}
+        />
 
         {/* Character metadata — right of medallion */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
