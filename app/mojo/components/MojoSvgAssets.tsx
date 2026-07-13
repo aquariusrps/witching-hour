@@ -2577,3 +2577,135 @@ export function SvgScryingBowl({
     </svg>
   )
 }
+
+export function SvgLargeCrescent({
+  size = 260,
+  idSuffix = 'sanctum',
+  className = '',
+}: {
+  size?: number
+  idSuffix?: string
+  className?: string
+}) {
+  const r = size / 2
+  const cx = r
+  const cy = r
+  const gradId   = `crescent-grad-${idSuffix}`
+  const glowId   = `crescent-glow-${idSuffix}`
+  const clipId   = `crescent-clip-${idSuffix}`
+  const moonR    = r - 8   // outer radius of the moon disc
+  const cutR     = moonR * 0.82  // radius of the cut circle (creates crescent)
+  const cutOffset = moonR * 0.38 // how far the cut circle shifts (deeper = thinner crescent)
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Crescent lit-face gradient — bright at inner edge, fading out */}
+        <radialGradient id={gradId} cx="35%" cy="30%" r="70%">
+          <stop offset="0%"   stopColor="#f0f0f8" stopOpacity="0.95" />
+          <stop offset="45%"  stopColor="#d0d0e0" stopOpacity="0.88" />
+          <stop offset="80%"  stopColor="#9898b8" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#606080" stopOpacity="0.55" />
+        </radialGradient>
+
+        {/* Glow filter — same pattern as SvgMoon and SvgScryingBowl */}
+        <filter id={glowId} x="-35%" y="-35%" width="170%" height="170%">
+          <feGaussianBlur stdDeviation="14" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+
+        {/* Clip path — the moon disc, used to contain the crescent fill */}
+        <clipPath id={clipId}>
+          <circle cx={cx} cy={cy} r={moonR} />
+        </clipPath>
+      </defs>
+
+      {/* ── ATMOSPHERIC HALOS ── */}
+      {/* Outermost halo — very faint violet glow */}
+      <circle
+        cx={cx} cy={cy} r={r - 2}
+        stroke="currentColor" strokeWidth="32"
+        strokeOpacity="0.05" fill="none"
+        filter={`url(#${glowId})`}
+      />
+      {/* Second halo */}
+      <circle
+        cx={cx} cy={cy} r={r - 20}
+        stroke="currentColor" strokeWidth="18"
+        strokeOpacity="0.08" fill="none"
+      />
+      {/* Inner halo — tighter glow ring */}
+      <circle
+        cx={cx} cy={cy} r={moonR + 8}
+        stroke="currentColor" strokeWidth="8"
+        strokeOpacity="0.12" fill="none"
+      />
+
+      {/* ── CRESCENT BODY ── */}
+      {/* The moon disc, filled with the lit gradient */}
+      <circle
+        cx={cx} cy={cy} r={moonR}
+        fill={`url(#${gradId})`}
+      />
+
+      {/* The dark cut — positioned to the upper-right of centre,
+          this removes a circle from the moon disc leaving a crescent.
+          The crescent opens to the LEFT (classic waxing crescent facing right) */}
+      <circle
+        cx={cx + cutOffset} cy={cy - cutOffset * 0.3}
+        r={cutR}
+        fill="#0c0c14"
+        clipPath={`url(#${clipId})`}
+      />
+      {/* NOTE: #0c0c14 is the confirmed --char value (Silver & Onyx background).
+          This "erases" the overlapping area, leaving only the crescent visible.
+          The color must match the page background exactly. */}
+
+      {/* ── CRESCENT SURFACE DETAILS ── */}
+      {/* Subtle crater marks visible on the lit face */}
+      {/* These are positioned on the crescent arc itself */}
+      <circle cx={cx - moonR * 0.28} cy={cy - moonR * 0.15} r={moonR * 0.06}
+        fill="#9898b8" opacity="0.10"
+        clipPath={`url(#${clipId})`} />
+      <circle cx={cx - moonR * 0.42} cy={cy + moonR * 0.20} r={moonR * 0.04}
+        fill="#9898b8" opacity="0.08"
+        clipPath={`url(#${clipId})`} />
+      <circle cx={cx - moonR * 0.18} cy={cy + moonR * 0.38} r={moonR * 0.05}
+        fill="#9898b8" opacity="0.07"
+        clipPath={`url(#${clipId})`} />
+
+      {/* ── CRESCENT EDGE HIGHLIGHT ── */}
+      {/* A thin bright arc along the inner (lit) edge of the crescent */}
+      <circle
+        cx={cx} cy={cy} r={moonR * 0.97}
+        stroke="white" strokeWidth="1.2"
+        strokeOpacity="0.12" fill="none"
+        clipPath={`url(#${clipId})`}
+      />
+
+      {/* ── SMALL STARS near the crescent ── */}
+      {/* A few scattered stars in the crescent's embrace */}
+      <circle cx={cx + moonR * 0.62} cy={cy - moonR * 0.55} r="2"
+        fill="currentColor" opacity="0.35" />
+      <circle cx={cx + moonR * 0.80} cy={cy - moonR * 0.20} r="1.2"
+        fill="currentColor" opacity="0.25" />
+      <circle cx={cx + moonR * 0.70} cy={cy + moonR * 0.40} r="1.5"
+        fill="currentColor" opacity="0.20" />
+      <circle cx={cx + moonR * 0.45} cy={cy - moonR * 0.72} r="1"
+        fill="currentColor" opacity="0.28" />
+      {/* Crosshair on brightest star */}
+      <line x1={cx + moonR*0.60} y1={cy - moonR*0.57} x2={cx + moonR*0.64} y2={cy - moonR*0.53}
+        stroke="currentColor" strokeWidth="0.5" opacity="0.20" />
+      <line x1={cx + moonR*0.60} y1={cy - moonR*0.53} x2={cx + moonR*0.64} y2={cy - moonR*0.57}
+        stroke="currentColor" strokeWidth="0.5" opacity="0.20" />
+    </svg>
+  )
+}

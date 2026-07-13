@@ -2,7 +2,7 @@ import { getMojoDashboardData } from '@/lib/db/mojo'
 import MojoDashboardStatTile from './components/MojoDashboardStatTile'
 import MojoDashboardRpPanel from './components/MojoDashboardRpPanel'
 import MojoCollapsedRps from './components/MojoCollapsedRps'
-import { SvgMoon, SvgCandle, SvgPageHeaderRule, SvgFiligreeRule } from '@/app/mojo/components/MojoSvgAssets'
+import { SvgLargeCrescent, SvgCandle, SvgPageHeaderRule, SvgFiligreeRule } from '@/app/mojo/components/MojoSvgAssets'
 import MojoMoonPhases from '@/app/mojo/components/MojoMoonPhases'
 
 export default async function MojoDashboardPage() {
@@ -24,7 +24,7 @@ export default async function MojoDashboardPage() {
           animation: 'mojo-moon-breathe 5s ease-in-out infinite',
         }}
       >
-        <SvgMoon size={320} idSuffix="sanctum" />
+        <SvgLargeCrescent size={260} idSuffix="sanctum" />
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, marginBottom: '20px' }}>
