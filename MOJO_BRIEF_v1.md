@@ -1,7 +1,7 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.4
-### Last updated: July 2026 — through MOJO-7O (commit ef2a26c)
+### Created: July 2026 | Current version: v1.4.1
+### Last updated: July 2026 — through MOJO-FIX-001 (commit 9bf30fb)
 ### BUILD STATUS: COMPLETE
 
 This is the single authoritative document for the Mojo personal RP
@@ -321,6 +321,12 @@ maximum-scale=1 prevents iOS Safari from auto-zooming on form field
 focus, which causes jarring layout jumps in mobile web apps.
 Confirmed missing and added in MOJO-7O.
 
+### next.config.ts (not .js)
+This project uses next.config.ts — the TypeScript config convention.
+next.config.js does not exist. Always reference next.config.ts when
+adding rewrites, redirects, or other Next.js configuration.
+Confirmed: MOJO-FIX-001 Q2.
+
 ### No New npm Packages in Visual Passes
 All visual work in 7B–7K uses: CSS, inline SVG in JSX, canvas.
 No additional npm packages in any visual pass prompt.
@@ -537,9 +543,43 @@ Route: app/i/[token]/route.ts
 Helpers: lib/mojo/proxy.ts
   generateProxyToken() → crypto.randomUUID()
   registerImageToken(storagePath, mimeType, expiresAt, label) → token
-  getProxyUrl(token) → NEXT_PUBLIC_SITE_URL + '/i/' + token
+  getProxyUrl(token) → NEXT_PUBLIC_SITE_URL + '/i/' + token + '.png'
 Response: Content-Type, Cache-Control: public max-age=31536000 immutable,
   X-Robots-Tag: noindex
+
+### Proxy URL Extension Convention (MOJO-FIX-001)
+All proxy URLs end in .png for third-party site compatibility:
+  https://atwitchinghour.com/i/[token].png
+
+Many platforms (JCINK, Tumblr, Discord, forum software) check the URL
+string for a recognised image file extension rather than reading the
+Content-Type header. A clean token URL with no extension is rejected.
+
+Implementation:
+- next.config.ts rewrites() strips the extension before routing:
+    source:      '/i/:token.:ext(png|jpg|jpeg|gif|webp)'
+    destination: '/i/:token'
+  The route handler receives the clean token — it has no extension
+  awareness and does not need to change.
+- getProxyUrl() appends .png to all generated URLs (confirmed fix).
+- The actual Content-Type served is always correct (image/png or
+  image/gif) based on the stored mime_type — the .png in the URL
+  is a convention only.
+- Clean URLs without extension (/i/token) still work — the rewrite
+  source requires a literal dot + extension to match, so legacy URLs
+  and direct token access are unaffected.
+
+Files updated in MOJO-FIX-001 (commit 9bf30fb):
+  next.config.ts — rewrite rule
+  lib/mojo/proxy.ts — getProxyUrl() appends .png
+  lib/db/mojo.ts — getMojoWanted() proxy_url construction
+  app/mojo/search/page.tsx — image thumbnail src
+  app/mojo/components/MojoPersonalImageCard.tsx
+  app/mojo/components/MojoAvatarGrid.tsx
+  app/mojo/components/MojoCharacterAvatarTabs.tsx
+  app/mojo/components/MojoStackCard.tsx
+  app/mojo/components/MojoDashboardCharCard.tsx
+  app/mojo/characters/[charId]/page.tsx
 
 ### Rotating Stack Proxy
 Tables: mojo_image_stacks + mojo_image_stack_members
@@ -1136,6 +1176,7 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-7O | ✅ Complete | ef2a26c | Mobile optimization — drawer nav, responsive layout, touch targets |
 | MOJO-BRIEF v1.3 | ✅ Complete | 9672fa2 | Brief updated through MOJO-7D |
 | MOJO-BRIEF v1.4 | ✅ Complete | a694004 | Brief updated through MOJO-7O — BUILD COMPLETE |
+| MOJO-FIX-001    | ✅ Complete | 9bf30fb | Proxy URL .png extension — third-party site compatibility |
 
 ---
 
@@ -1190,6 +1231,10 @@ Version history:
     search complete, TD-2/TD-6/TD-7 resolved, TD-10/TD-11 added,
     server actions updated to 52, getMojoWanted added, build status
     expanded through MOJO-7L, file structure updated with new components
+  v1.4.1 — patch — MOJO-FIX-001: proxy URL .png extension convention
+    documented in §7, next.config.ts filename corrected in §4,
+    build status table updated, 10 files confirmed updated.
+
   v1.4 — FINAL — through MOJO-7O: completed visual redesign system
     (7E-7K all passing), mobile optimization (7O — MojoMobileNav,
     responsive CSS, viewport meta), comprehensive audit (7M — 54 checks,
