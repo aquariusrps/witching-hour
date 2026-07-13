@@ -2115,3 +2115,296 @@ export function SvgRotationNoRepeat({
     </svg>
   )
 }
+
+export function SvgDarkroomHeader({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="100%"
+      height="50"
+      viewBox="0 0 800 50"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* ── ENLARGER (left third) ── */}
+      {/* Column/stand */}
+      <rect x="80" y="5" width="3" height="44"
+        fill="currentColor" opacity="0.14" />
+      {/* Enlarger head */}
+      <rect x="60" y="5" width="44" height="16" rx="2"
+        fill="currentColor" opacity="0.12" />
+      {/* Lens cone below head */}
+      <path d="M 68 21 L 74 34 L 90 34 L 96 21 Z"
+        fill="currentColor" opacity="0.10" />
+      {/* Lens circle */}
+      <circle cx="82" cy="28" r="5"
+        fill="currentColor" opacity="0.08" />
+      {/* Base plate */}
+      <rect x="50" y="46" width="64" height="3" rx="1"
+        fill="currentColor" opacity="0.12" />
+
+      {/* ── DEVELOPING TRAYS (centre) ── */}
+      {/* Tray 1 */}
+      <rect x="290" y="34" width="80" height="14" rx="1"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.14"
+        fill="currentColor" fillOpacity="0.04" />
+      {/* Tray 2 (behind/offset) */}
+      <rect x="382" y="36" width="75" height="12" rx="1"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.10"
+        fill="currentColor" fillOpacity="0.03" />
+      {/* Tray 3 */}
+      <rect x="468" y="34" width="70" height="14" rx="1"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.08"
+        fill="none" />
+      {/* Small labels on trays */}
+      <rect x="295" y="38" width="14" height="2"
+        fill="currentColor" opacity="0.06" />
+      <rect x="387" y="40" width="12" height="2"
+        fill="currentColor" opacity="0.05" />
+
+      {/* ── HANGING PHOTOS — thin line + rectangles ── */}
+      {/* The clothesline string */}
+      <line x1="560" y1="10" x2="790" y2="10"
+        stroke="currentColor" strokeWidth="0.6" opacity="0.16" />
+      {/* Photo 1 */}
+      <rect x="568" y="10" width="28" height="36" rx="0.5"
+        fill="currentColor" opacity="0.08"
+        stroke="currentColor" strokeWidth="0.5" />
+      {/* Photo 1 white border suggestion */}
+      <rect x="571" y="13" width="22" height="28"
+        fill="white" opacity="0.03" />
+      {/* Clothespin 1 */}
+      <rect x="578" y="7" width="8" height="5" rx="1"
+        fill="currentColor" opacity="0.14" />
+
+      {/* Photo 2 */}
+      <rect x="614" y="10" width="34" height="30" rx="0.5"
+        fill="currentColor" opacity="0.07"
+        stroke="currentColor" strokeWidth="0.5" />
+      <rect x="617" y="13" width="28" height="22"
+        fill="white" opacity="0.025" />
+      {/* Clothespin 2 */}
+      <rect x="625" y="7" width="8" height="5" rx="1"
+        fill="currentColor" opacity="0.12" />
+
+      {/* Photo 3 */}
+      <rect x="660" y="10" width="26" height="38" rx="0.5"
+        fill="currentColor" opacity="0.09"
+        stroke="currentColor" strokeWidth="0.5" />
+      <rect x="663" y="13" width="20" height="30"
+        fill="white" opacity="0.03" />
+      {/* Clothespin 3 */}
+      <rect x="669" y="7" width="8" height="5" rx="1"
+        fill="currentColor" opacity="0.13" />
+
+      {/* Photo 4 */}
+      <rect x="704" y="10" width="30" height="32" rx="0.5"
+        fill="currentColor" opacity="0.07"
+        stroke="currentColor" strokeWidth="0.5" />
+      {/* Clothespin 4 */}
+      <rect x="714" y="7" width="8" height="5" rx="1"
+        fill="currentColor" opacity="0.11" />
+
+      {/* Photo 5 — partial, near right edge */}
+      <rect x="750" y="10" width="28" height="34" rx="0.5"
+        fill="currentColor" opacity="0.06"
+        stroke="currentColor" strokeWidth="0.5" />
+      {/* Clothespin 5 */}
+      <rect x="759" y="7" width="8" height="5" rx="1"
+        fill="currentColor" opacity="0.10" />
+    </svg>
+  )
+}
+
+export function SvgFolderTab({
+  size = 14,
+  active = false,
+}: { size?: number; active?: boolean }) {
+  const h = size
+  const w = size * 1.1
+  return (
+    <svg
+      width={w}
+      height={h}
+      viewBox="0 0 16 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none', flexShrink: 0 }}
+    >
+      {/* Folder tab (top-left small rectangle) */}
+      <rect x="1" y="3" width="6" height="2.5" rx="0.5"
+        fill="currentColor"
+        opacity={active ? 0.65 : 0.35}
+      />
+      {/* Folder body */}
+      <path d="M 1 5 L 1 13 L 15 13 L 15 5 L 7 5 L 6 3 Z"
+        fill="currentColor"
+        opacity={active ? 0.28 : 0.14}
+        stroke="currentColor"
+        strokeWidth={active ? 0.8 : 0.5}
+        strokeOpacity={active ? 0.60 : 0.30}
+      />
+    </svg>
+  )
+}
+
+export function SvgDevelopingTray({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="200"
+      height="55"
+      viewBox="0 0 200 55"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Tray outer body — slight perspective */}
+      <path d="M 10 8 L 190 8 L 182 46 L 18 46 Z"
+        stroke="currentColor" strokeWidth="1.0"
+        opacity="0.30" fill="currentColor" fillOpacity="0.04" />
+
+      {/* Tray inner floor */}
+      <path d="M 24 14 L 176 14 L 170 40 L 30 40 Z"
+        stroke="currentColor" strokeWidth="0.5"
+        opacity="0.15" fill="currentColor" fillOpacity="0.03" />
+
+      {/* Liquid surface suggestion — horizontal ripple lines */}
+      <line x1="34" y1="22" x2="166" y2="22"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.12" />
+      <line x1="38" y1="28" x2="162" y2="28"
+        stroke="currentColor" strokeWidth="0.4" opacity="0.10" />
+      <line x1="42" y1="34" x2="158" y2="34"
+        stroke="currentColor" strokeWidth="0.3" opacity="0.08" />
+
+      {/* Tray handles — small rectangles at each short end */}
+      <rect x="2" y="12" width="8" height="20" rx="2"
+        fill="currentColor" opacity="0.18" />
+      <rect x="190" y="12" width="8" height="20" rx="2"
+        fill="currentColor" opacity="0.18" />
+
+      {/* Tray top rim */}
+      <path d="M 10 8 L 190 8"
+        stroke="currentColor" strokeWidth="1.2" opacity="0.25" />
+
+      {/* Corner dots — rivet suggestion */}
+      <circle cx="12" cy="10" r="2"
+        fill="currentColor" opacity="0.20" />
+      <circle cx="188" cy="10" r="2"
+        fill="currentColor" opacity="0.20" />
+      <circle cx="20" cy="44" r="2"
+        fill="currentColor" opacity="0.16" />
+      <circle cx="180" cy="44" r="2"
+        fill="currentColor" opacity="0.16" />
+    </svg>
+  )
+}
+
+export function SvgHangingPhotographs({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="100%"
+      height="60"
+      viewBox="0 0 700 60"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Clothesline string */}
+      <path d="M 0 14 Q 175 16, 350 14 Q 525 12, 700 14"
+        stroke="currentColor" strokeWidth="0.8" opacity="0.22"
+        fill="none" />
+
+      {/* Photo 1 — portrait orientation */}
+      <rect x="52" y="14" width="36" height="44" rx="0.5"
+        fill="white" fillOpacity="0.06"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.25" />
+      {/* Photo 1 border (inner white mat) */}
+      <rect x="56" y="18" width="28" height="35"
+        fill="white" fillOpacity="0.04" />
+      {/* Clothespin */}
+      <rect x="63" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.30" />
+      <line x1="68" y1="10" x2="68" y2="14"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.20" />
+
+      {/* Photo 2 — landscape orientation */}
+      <rect x="128" y="14" width="52" height="38" rx="0.5"
+        fill="white" fillOpacity="0.05"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.22" />
+      <rect x="132" y="18" width="44" height="28"
+        fill="white" fillOpacity="0.03" />
+      {/* Clothespin */}
+      <rect x="148" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.28" />
+      <line x1="153" y1="10" x2="153" y2="14"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.18" />
+
+      {/* Photo 3 — portrait, slightly tilted via transform */}
+      <g transform="rotate(-2 250 36)">
+        <rect x="222" y="14" width="32" height="46" rx="0.5"
+          fill="white" fillOpacity="0.06"
+          stroke="currentColor" strokeWidth="0.7" opacity="0.24" />
+        <rect x="226" y="18" width="24" height="37"
+          fill="white" fillOpacity="0.04" />
+        <rect x="230" y="10" width="10" height="6" rx="1.5"
+          fill="currentColor" opacity="0.28" />
+      </g>
+
+      {/* Photo 4 — square */}
+      <rect x="298" y="14" width="42" height="42" rx="0.5"
+        fill="white" fillOpacity="0.05"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.20" />
+      <rect x="302" y="18" width="34" height="33"
+        fill="white" fillOpacity="0.03" />
+      <rect x="311" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.26" />
+
+      {/* Photo 5 — portrait */}
+      <rect x="388" y="14" width="34" height="44" rx="0.5"
+        fill="white" fillOpacity="0.05"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.22" />
+      <rect x="392" y="18" width="26" height="35"
+        fill="white" fillOpacity="0.03" />
+      <rect x="397" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.27" />
+      <line x1="402" y1="10" x2="402" y2="14"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.17" />
+
+      {/* Photo 6 — landscape */}
+      <rect x="462" y="14" width="48" height="36" rx="0.5"
+        fill="white" fillOpacity="0.04"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.19" />
+      <rect x="466" y="18" width="40" height="27"
+        fill="white" fillOpacity="0.025" />
+      <rect x="479" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.25" />
+
+      {/* Photo 7 — portrait, partial */}
+      <rect x="558" y="14" width="30" height="44" rx="0.5"
+        fill="white" fillOpacity="0.05"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.20" />
+      <rect x="561" y="18" width="23" height="35"
+        fill="white" fillOpacity="0.03" />
+      <rect x="564" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.24" />
+
+      {/* Photo 8 — smaller, far right */}
+      <rect x="626" y="14" width="28" height="38" rx="0.5"
+        fill="white" fillOpacity="0.04"
+        stroke="currentColor" strokeWidth="0.7" opacity="0.17" />
+      <rect x="630" y="10" width="10" height="6" rx="1.5"
+        fill="currentColor" opacity="0.22" />
+    </svg>
+  )
+}

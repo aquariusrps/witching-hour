@@ -2,28 +2,13 @@
 
 import { useState } from 'react'
 import { createMojoImageFolder, updateMojoImageFolder, deleteMojoImageFolder } from '@/lib/actions/mojo'
+import { SvgFolderTab, SvgLeatherTexture, SvgNavImages } from '@/app/mojo/components/MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoImageFolder = Tables<'mojo_image_folders'>
 
 function navigateToImages() {
   window.location.href = '/mojo/images'
-}
-
-function itemStyle(isActive: boolean): React.CSSProperties {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 6,
-    padding: '6px 16px',
-    cursor: 'pointer',
-    fontFamily: 'var(--f-body)',
-    fontSize: '0.875rem',
-    color: isActive ? 'var(--roseash)' : 'var(--mist)',
-    background: isActive ? 'var(--elevated)' : 'transparent',
-    borderRight: isActive ? '2px solid var(--ember)' : '2px solid transparent',
-  }
 }
 
 function FolderRow({
@@ -94,12 +79,35 @@ function FolderRow({
 
   return (
     <div
-      style={itemStyle(isActive)}
+      className={['mojo-folder-tab', isActive ? 'mojo-folder-tab-active' : ''].join(' ').trim()}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '7px 12px',
+        cursor: 'pointer',
+        fontFamily: 'EB Garamond, serif',
+        fontSize: 13,
+        justifyContent: 'space-between',
+      }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <span onClick={onSelect} style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        📁 {folder.name} ({folder.image_count})
+      <span
+        onClick={onSelect}
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          overflow: 'hidden',
+          color: isActive ? 'var(--roseash)' : 'var(--mist)',
+        }}
+      >
+        <SvgFolderTab active={isActive} />
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {folder.name} ({folder.image_count})
+        </span>
       </span>
       {hover && (
         <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -154,55 +162,131 @@ export default function MojoImageFolderList({
   }
 
   return (
-    <div style={{ width: 220, flexShrink: 0, background: 'var(--raised)', borderRight: '1px solid var(--elevated)', padding: '16px 0', overflowY: 'auto' }}>
-      <div style={itemStyle(activeFolder === 'all')} onClick={() => onSelectFolder('all')}>
-        <span>All Images ({totalCount})</span>
+    <div
+      className="mojo-cabinet-panel"
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        width: 220,
+        flexShrink: 0,
+        padding: '16px 0',
+        overflowY: 'auto',
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          color: 'var(--mist)',
+          opacity: 0.4,
+          pointerEvents: 'none',
+        }}
+      >
+        <SvgLeatherTexture />
       </div>
-      {untaggedCount > 0 && (
-        <div style={itemStyle(activeFolder === 'untagged')} onClick={() => onSelectFolder('untagged')}>
-          <span>Untagged ({untaggedCount})</span>
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '10px 12px 8px',
+          color: 'var(--faded)',
+        }}>
+          <SvgNavImages active={false} />
+          <span style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '9px',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+          }}>
+            Files
+          </span>
         </div>
-      )}
 
-      <div style={{ height: 1, background: 'var(--elevated)', margin: '8px 16px' }} />
-
-      <p style={{ fontFamily: 'var(--f-ui)', fontSize: '0.625rem', textTransform: 'uppercase', color: 'var(--faded)', padding: '4px 16px', margin: 0 }}>
-        Folders
-      </p>
-
-      {folders.map((folder) => (
-        <FolderRow
-          key={folder.id}
-          folder={folder}
-          isActive={activeFolder === folder.id}
-          onSelect={() => onSelectFolder(folder.id)}
-        />
-      ))}
-
-      <div style={{ padding: '10px 16px 0', display: 'flex', gap: 6 }}>
-        <input
-          type="text"
-          value={newFolderName}
-          onChange={(e) => setNewFolderName(e.target.value)}
-          placeholder="New folder name..."
-          onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
+        <div
           style={{
-            flex: 1, padding: '5px 8px', background: 'var(--char)', color: 'var(--roseash)',
-            border: '1px solid var(--elevated)', borderRadius: 2, fontFamily: 'var(--f-body)', fontSize: '0.78rem',
-            outline: 'none', minWidth: 0,
+            fontFamily: 'Cinzel, serif',
+            fontSize: '11px',
+            letterSpacing: '0.08em',
+            color: activeFolder === 'all' ? 'var(--roseash)' : 'var(--faded)',
+            padding: '8px 12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
-        />
-        <button
-          type="button"
-          onClick={handleCreate}
-          disabled={creating}
-          style={{
-            background: 'var(--ember)', color: 'var(--roseash)', border: 'none', borderRadius: 2,
-            padding: '5px 10px', fontFamily: 'var(--f-ui)', fontSize: '0.78rem', cursor: creating ? 'not-allowed' : 'pointer',
-          }}
+          onClick={() => onSelectFolder('all')}
         >
-          {creating ? '...' : '+'}
-        </button>
+          <SvgNavImages active={activeFolder === 'all'} />
+          <span>All Images ({totalCount})</span>
+        </div>
+        {untaggedCount > 0 && (
+          <div
+            style={{
+              fontFamily: 'EB Garamond, serif',
+              fontSize: '12px',
+              fontStyle: 'italic',
+              color: activeFolder === 'untagged' ? 'var(--roseash)' : 'var(--faded)',
+              padding: '6px 12px',
+              cursor: 'pointer',
+            }}
+            onClick={() => onSelectFolder('untagged')}
+          >
+            Untagged ({untaggedCount})
+          </div>
+        )}
+
+        <div style={{ height: 1, background: 'var(--elevated)', margin: '8px 16px' }} />
+
+        <p style={{ fontFamily: 'var(--f-ui)', fontSize: '0.625rem', textTransform: 'uppercase', color: 'var(--faded)', padding: '4px 16px', margin: 0 }}>
+          Folders
+        </p>
+
+        {folders.map((folder) => (
+          <FolderRow
+            key={folder.id}
+            folder={folder}
+            isActive={activeFolder === folder.id}
+            onSelect={() => onSelectFolder(folder.id)}
+          />
+        ))}
+
+        <div style={{ padding: '10px 16px 0', display: 'flex', gap: 6 }}>
+          <input
+            type="text"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="New folder name..."
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
+            style={{
+              flex: 1, padding: '5px 8px', background: 'var(--char)', color: 'var(--roseash)',
+              border: '1px solid var(--elevated)', borderRadius: 2, fontFamily: 'var(--f-body)', fontSize: '0.78rem',
+              outline: 'none', minWidth: 0,
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleCreate}
+            disabled={creating}
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--faded)',
+              opacity: 0.7,
+              background: 'none',
+              border: '1px solid var(--elevated)',
+              borderRadius: 2,
+              padding: '6px 12px',
+              cursor: creating ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {creating ? '...' : '+'}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -1,21 +1,8 @@
 import { getMojoPersonalImages, getMojoImageFolders } from '@/lib/db/mojo'
 import MojoPersonalImageManager from '@/app/mojo/components/MojoPersonalImageManager'
-
-function FiligreeDivider() {
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      margin: '20px auto 28px',
-      maxWidth: 360,
-    }}>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--ember), var(--gold))' }} />
-      <span style={{ color: 'var(--gold)', fontSize: '0.7rem' }}>✦</span>
-      <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, var(--ember), var(--gold))' }} />
-    </div>
-  )
-}
+import {
+  SvgHangingPhotographs, SvgPageHeaderRule, SvgFiligreeRule,
+} from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoImagesPage() {
   const [images, folders] = await Promise.all([
@@ -27,23 +14,75 @@ export default async function MojoImagesPage() {
   const untaggedCount = images.filter((img) => !img.folder_id).length
 
   return (
-    <div>
-      <div style={{ textAlign: 'center', padding: '32px 28px 0' }}>
-        <h1 style={{ fontFamily: 'var(--f-display)', fontSize: '1.875rem', color: 'var(--gold)', margin: '0 0 6px' }}>
-          Images
+    <div
+      style={{
+        position: 'relative',
+        /* Safelight atmosphere — garnet tint from --gold #a02840 */
+        background: `
+          radial-gradient(ellipse at 50% 0%,
+            rgba(160,40,64,0.09) 0%, transparent 45%),
+          radial-gradient(ellipse at 15% 80%,
+            rgba(160,40,64,0.05) 0%, transparent 35%),
+          transparent
+        `,
+      }}
+    >
+      <div style={{ textAlign: 'center', padding: '32px 28px 0', position: 'relative', zIndex: 1 }}>
+        <h1 style={{
+          fontFamily: 'Cormorant Upright, serif',
+          fontSize: '36px',
+          fontWeight: 600,
+          color: 'var(--gold)',
+          margin: '0 0 4px',
+          letterSpacing: '0.02em',
+        }}>
+          The Darkroom
         </h1>
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--mist)', margin: 0 }}>
-          Your personal image library — folders, tags, and proxy URLs
+        <p style={{
+          fontFamily: 'EB Garamond, serif',
+          fontSize: '15px',
+          fontStyle: 'italic',
+          color: 'var(--mist)',
+          margin: '0 0 12px',
+        }}>
+          Where light becomes image.
         </p>
-        <FiligreeDivider />
+        <div style={{ color: 'var(--elevated)' }}>
+          <SvgPageHeaderRule />
+        </div>
       </div>
 
-      <MojoPersonalImageManager
-        initialImages={images}
-        initialFolders={folders}
-        totalCount={totalCount}
-        untaggedCount={untaggedCount}
-      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          color: 'var(--mist)',
+          marginBottom: '12px',
+          opacity: 0.75,
+          pointerEvents: 'none',
+        }}
+      >
+        <SvgHangingPhotographs />
+      </div>
+
+      <div style={{
+        color: 'var(--elevated)',
+        marginBottom: '16px',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <SvgFiligreeRule />
+      </div>
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <MojoPersonalImageManager
+          initialImages={images}
+          initialFolders={folders}
+          totalCount={totalCount}
+          untaggedCount={untaggedCount}
+        />
+      </div>
     </div>
   )
 }

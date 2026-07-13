@@ -27,6 +27,11 @@ function computeExpiryIso(option: ExpiryOption, customDate: string): string | nu
   return null
 }
 
+function getCardRotation(index: number): string {
+  const rotations = [-1.8, 0.9, -0.7, 1.4, -1.2, 0.6]
+  return `rotate(${rotations[index % rotations.length]}deg)`
+}
+
 const LABEL_STYLE: React.CSSProperties = {
   display: 'block',
   fontFamily: 'var(--f-ui)',
@@ -54,10 +59,12 @@ export default function MojoPersonalImageCard({
   image,
   folders,
   onDelete,
+  index,
 }: {
   image: MojoPersonalImage
   folders: MojoImageFolder[]
   onDelete: (imageId: string) => void
+  index?: number
 }) {
   const [dragging, setDragging] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -130,39 +137,55 @@ export default function MojoPersonalImageCard({
   }
 
   return (
-    <div
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData(
-          'application/mojo-avatar',
-          JSON.stringify({
-            storage_path: image.storage_path,
-            mime_type: image.mime_type,
-            avatar_id: image.id,
-          })
-        )
-        e.dataTransfer.effectAllowed = 'copy'
-        setDragging(true)
-      }}
-      onDragEnd={() => setDragging(false)}
-      style={{
-        background: 'var(--claret)',
-        border: '1px solid var(--elevated)',
-        borderRadius: 4,
-        overflow: 'hidden',
-        cursor: 'grab',
-        opacity: dragging ? 0.6 : 1,
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={proxyUrl}
-        alt={image.title}
-        style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }}
-      />
+    <div>
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData(
+            'application/mojo-avatar',
+            JSON.stringify({
+              storage_path: image.storage_path,
+              mime_type: image.mime_type,
+              avatar_id: image.id,
+            })
+          )
+          e.dataTransfer.effectAllowed = 'copy'
+          setDragging(true)
+        }}
+        onDragEnd={() => setDragging(false)}
+        className="mojo-photograph"
+        style={{
+          transform: getCardRotation(index ?? 0),
+          cursor: 'grab',
+          opacity: dragging ? 0.6 : 1,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={proxyUrl}
+          alt={image.title}
+          style={{ display: 'block', width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 0 }}
+        />
+        <div style={{ paddingTop: '4px', textAlign: 'center' }}>
+          <span style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '8px',
+            letterSpacing: '0.10em',
+            color: 'rgba(10,10,16,0.65)',
+            textTransform: 'uppercase',
+            display: 'block',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: '100%',
+          }}>
+            {image.title}
+          </span>
+        </div>
+      </div>
 
       {editing ? (
-        <div style={{ padding: 10, background: 'var(--raised)', border: '1px solid var(--gold-dim)' }}>
+        <div style={{ padding: 10, marginTop: 6, background: 'var(--raised)', border: '1px solid var(--gold-dim)' }}>
           {error && (
             <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.72rem', color: 'var(--ember)', margin: '0 0 6px' }}>{error}</p>
           )}
@@ -216,14 +239,7 @@ export default function MojoPersonalImageCard({
           </button>
         </div>
       ) : (
-        <div style={{ padding: '8px 10px' }}>
-          <p style={{
-            fontFamily: 'var(--f-body)', fontSize: '0.8125rem', color: 'var(--roseash)', margin: '0 0 4px',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>
-            {image.title}
-          </p>
-
+        <div style={{ padding: '6px 2px 0' }}>
           {folderName && (
             <span style={{
               display: 'inline-block', fontFamily: 'var(--f-ui)', fontSize: '0.5625rem', color: 'var(--faded)',
@@ -260,7 +276,7 @@ export default function MojoPersonalImageCard({
             </p>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
             <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--moonstone)', cursor: 'pointer', fontFamily: 'var(--f-ui)', fontSize: '0.6875rem', padding: 0 }}>
               {copied ? '✓' : 'Copy URL'}
             </button>

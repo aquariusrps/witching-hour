@@ -731,3 +731,98 @@ body {
   );
   pointer-events: none;
 }
+
+/* ═══════════════════════════════════════
+   MOJO DARKROOM (IMAGES) — MOJO-7J
+   ═══════════════════════════════════════ */
+
+/* New keyframe — developing tray ripple */
+@keyframes mojo-tray-ripple {
+  0%   { transform: scale(0.4); opacity: 0.20; }
+  60%  { transform: scale(1.4); opacity: 0.08; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Physical photograph card */
+.mojo-photograph {
+  background: rgba(255, 255, 255, 0.92);
+  padding: 5px 5px 18px 5px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  border-radius: 1px;
+}
+
+.mojo-photograph:hover {
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.65),
+    0 3px 8px rgba(0, 0, 0, 0.45);
+  transform: translateY(-4px) rotate(0deg) !important;
+}
+
+/* Folder panel cabinet */
+.mojo-cabinet-panel {
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,0.015) 0%,
+      transparent 100%
+    ),
+    var(--char);
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Folder tab item */
+.mojo-folder-tab {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mojo-folder-tab:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.mojo-folder-tab-active {
+  background: rgba(160,40,64,0.10);
+  border-left: 2px solid var(--gold);
+  color: var(--roseash);
+}
+
+/* Tag filter chip */
+.mojo-tag-chip {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 1px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  background: var(--elevated);
+  color: var(--faded);
+  border: 1px solid transparent;
+}
+
+.mojo-tag-chip-active {
+  background: var(--gold);
+  color: rgba(255,255,255,0.90);
+  border-color: transparent;
+}
+
+/* Developing tray drop zone */
+.mojo-developing-tray {
+  border: 1px dashed rgba(160,40,64,0.28);
+  background: var(--char);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tray ripple ring */
+.mojo-tray-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(160,40,64,0.20);
+  animation: mojo-tray-ripple 3.5s ease-out infinite;
+  pointer-events: none;
+}

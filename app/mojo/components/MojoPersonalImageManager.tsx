@@ -86,7 +86,7 @@ export default function MojoPersonalImageManager({
   else if (activeFolder !== 'all') emptyMessage = 'No images in this folder yet.'
 
   return (
-    <div style={{ display: 'flex', minHeight: '60vh' }}>
+    <div style={{ display: 'flex', minHeight: '60vh', position: 'relative', zIndex: 1 }}>
       <MojoImageFolderList
         folders={initialFolders}
         totalCount={totalCount}
@@ -135,16 +135,7 @@ export default function MojoPersonalImageManager({
                     key={tag}
                     type="button"
                     onClick={() => handleToggleTag(tag)}
-                    style={{
-                      fontFamily: 'var(--f-ui)',
-                      fontSize: '0.6875rem',
-                      padding: '3px 10px',
-                      borderRadius: 99,
-                      cursor: 'pointer',
-                      background: isActive ? 'var(--elevated)' : 'var(--raised)',
-                      color: isActive ? 'var(--gold)' : 'var(--faded)',
-                      border: `1px solid ${isActive ? 'var(--gold-dim)' : 'var(--elevated)'}`,
-                    }}
+                    className={['mojo-tag-chip', isActive ? 'mojo-tag-chip-active' : ''].join(' ').trim()}
                   >
                     {tag}
                   </button>
@@ -171,11 +162,17 @@ export default function MojoPersonalImageManager({
             {emptyMessage}
           </p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
-            {filteredImages.map((image) => (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: 12,
+            background: 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.1) 0%, transparent 70%)',
+          }}>
+            {filteredImages.map((image, index) => (
               <MojoPersonalImageCard
                 key={image.id}
                 image={image}
+                index={index}
                 folders={initialFolders}
                 onDelete={handleDelete}
               />

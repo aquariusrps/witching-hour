@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createBrowserClient } from '@/lib/supabase/browserClient'
 import { registerUploadedPersonalImage } from '@/lib/actions/mojo'
+import { SvgDevelopingTray } from '@/app/mojo/components/MojoSvgAssets'
 import MojoAvatarCrop from './MojoAvatarCrop'
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024
@@ -213,6 +214,29 @@ export default function MojoPersonalImageUpload({
 
       {queue.length === 0 ? (
         <div>
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '10px',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: 'var(--faded)',
+            marginBottom: '10px',
+          }}>
+            Developing Bay
+          </div>
+
+          <div
+            aria-hidden="true"
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              color: 'var(--mist)',
+              marginBottom: '10px',
+            }}
+          >
+            <SvgDevelopingTray />
+          </div>
+
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
@@ -222,20 +246,53 @@ export default function MojoPersonalImageUpload({
               if (e.dataTransfer.files.length > 0) enqueueFiles(e.dataTransfer.files)
             }}
             onClick={() => fileInputRef.current?.click()}
+            className="mojo-developing-tray"
             style={{
-              border: '2px dashed var(--elevated)',
-              borderRadius: 4,
-              background: dragOver ? 'var(--raised)' : 'var(--char)',
-              padding: 40,
+              padding: '24px 20px',
               textAlign: 'center',
+              borderRadius: '2px',
+              background: dragOver ? 'var(--raised)' : 'var(--char)',
               cursor: 'pointer',
             }}
           >
-            <div style={{ fontSize: 32, color: 'var(--faded)', marginBottom: 8 }}>↑</div>
-            <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.9375rem', color: 'var(--mist)', margin: '0 0 4px' }}>
-              Drop images here or click to browse
+            <div
+              aria-hidden="true"
+              className="mojo-tray-ring"
+              style={{
+                width: '60px', height: '60px',
+                top: '50%', left: '50%',
+                marginTop: '-30px', marginLeft: '-30px',
+                animationDelay: '0s',
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="mojo-tray-ring"
+              style={{
+                width: '60px', height: '60px',
+                top: '50%', left: '50%',
+                marginTop: '-30px', marginLeft: '-30px',
+                animationDelay: '1.5s',
+              }}
+            />
+
+            <div style={{ fontSize: 32, color: 'var(--faded)', marginBottom: 8, position: 'relative' }}>↑</div>
+            <p style={{ fontFamily: 'EB Garamond, serif', fontSize: '14px', fontStyle: 'italic', color: 'var(--mist)', margin: '0 0 4px', position: 'relative' }}>
+              Drop your negatives here.
             </p>
-            <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)', margin: 0 }}>
+            <p style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: 'var(--faded)',
+              opacity: 0.7,
+              margin: '0 0 6px',
+              position: 'relative',
+            }}>
+              or click to expose
+            </p>
+            <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)', margin: 0, position: 'relative' }}>
               PNG, JPG, GIF, WebP — max 20MB each
             </p>
             <input
