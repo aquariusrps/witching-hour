@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { updateMojoSnippet, deleteMojoSnippet } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
+import { SvgScrollEnd, SvgTelegraphDots } from '@/app/mojo/components/MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoSnippet = Tables<'mojo_snippets'>
@@ -154,73 +155,135 @@ export default function MojoSnippetCard({ snippet }: { snippet: MojoSnippet }) {
   }
 
   return (
-    <div style={{ background: 'var(--claret)', border: '1px solid var(--elevated)', borderRadius: 4, padding: '14px 16px', marginBottom: 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'var(--f-head)', fontSize: '0.94rem', color: 'var(--roseash)' }}>{snippet.title}</span>
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.6rem', textTransform: 'uppercase', color: 'var(--faded)', background: 'var(--raised)', padding: '2px 6px', borderRadius: 2 }}>
-            {TYPE_LABELS[snippet.type] ?? snippet.type}
-          </span>
-          {snippet.tags && (
-            <span style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)' }}>
-              {snippet.tags}
+    <div
+      className={isMono ? 'mojo-snippet-telegram' : 'mojo-snippet-scroll'}
+      style={{
+        position: 'relative',
+        marginBottom: '12px',
+        borderRadius: '2px',
+        overflow: 'hidden',
+        backgroundColor: 'var(--claret)',
+        ...(isMono
+          ? {
+              /* borderLeft comes from .mojo-snippet-telegram (3px solid moonstone) */
+              borderTop: '1px solid var(--elevated)',
+              borderRight: '1px solid var(--elevated)',
+              borderBottom: '1px solid var(--elevated)',
+            }
+          : { border: '1px solid var(--elevated)' }),
+      }}
+    >
+      {!isMono && (
+        <div aria-hidden="true">
+          <SvgScrollEnd flip={false} />
+        </div>
+      )}
+
+      {isMono && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '6px',
+            right: '6px',
+            color: 'var(--moonstone)',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgTelegraphDots />
+        </div>
+      )}
+
+      <div style={{
+        paddingTop: isMono ? '14px' : '8px',
+        paddingBottom: isMono ? '14px' : '8px',
+        paddingLeft: isMono ? '14px' : '16px',
+        paddingRight: '16px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{
+              fontFamily: isMono ? "'Courier New', monospace" : "'Playfair Display', serif",
+              fontSize: '14px',
+              color: isMono ? 'var(--moonstone)' : 'var(--roseash)',
+            }}>
+              {snippet.title}
+            </span>
+            {isMono && (
+              <span className="mojo-code-badge">
+                {snippet.type === 'app_code' ? 'Code' : 'Format'}
+              </span>
+            )}
+            <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.6rem', textTransform: 'uppercase', color: 'var(--faded)', background: 'var(--raised)', padding: '2px 6px', borderRadius: 2 }}>
+              {TYPE_LABELS[snippet.type] ?? snippet.type}
+            </span>
+            {snippet.tags && (
+              <span style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)' }}>
+                {snippet.tags}
+              </span>
+            )}
+          </div>
+
+          {confirmingDelete ? (
+            <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
+              <span style={{ color: 'var(--faded)' }}>Delete &lsquo;{snippet.title}&rsquo;? </span>
+              <button type="button" onClick={handleDelete} disabled={deleteLoading} style={{ background: 'none', border: 'none', color: 'var(--ember)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                Yes, delete
+              </button>
+              <span style={{ color: 'var(--faded)' }}> · </span>
+              <button type="button" onClick={() => setConfirmingDelete(false)} style={{ background: 'none', border: 'none', color: 'var(--faded)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
+              <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--moonstone)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                {copied ? '✓' : 'Copy'}
+              </button>
+              <span style={{ color: 'var(--faded)' }}> · </span>
+              <button type="button" onClick={startEdit} style={{ background: 'none', border: 'none', color: 'var(--gold-dim)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                Edit
+              </button>
+              <span style={{ color: 'var(--faded)' }}> · </span>
+              <button type="button" onClick={() => setConfirmingDelete(true)} style={{ background: 'none', border: 'none', color: 'var(--ember-dim)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+                Delete
+              </button>
             </span>
           )}
         </div>
 
-        {confirmingDelete ? (
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
-            <span style={{ color: 'var(--faded)' }}>Delete &lsquo;{snippet.title}&rsquo;? </span>
-            <button type="button" onClick={handleDelete} disabled={deleteLoading} style={{ background: 'none', border: 'none', color: 'var(--ember)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
-              Yes, delete
-            </button>
-            <span style={{ color: 'var(--faded)' }}> · </span>
-            <button type="button" onClick={() => setConfirmingDelete(false)} style={{ background: 'none', border: 'none', color: 'var(--faded)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
-              Cancel
-            </button>
-          </span>
+        {isMono ? (
+          <pre style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: '0.82rem',
+            color: 'var(--mist)',
+            margin: '8px 0 0',
+            whiteSpace: 'pre-wrap',
+            overflowX: 'auto',
+          }}>
+            {expanded ? snippet.content : preview}
+          </pre>
         ) : (
-          <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
-            <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--moonstone)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
-              {copied ? '✓' : 'Copy'}
-            </button>
-            <span style={{ color: 'var(--faded)' }}> · </span>
-            <button type="button" onClick={startEdit} style={{ background: 'none', border: 'none', color: 'var(--gold-dim)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
-              Edit
-            </button>
-            <span style={{ color: 'var(--faded)' }}> · </span>
-            <button type="button" onClick={() => setConfirmingDelete(true)} style={{ background: 'none', border: 'none', color: 'var(--ember-dim)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
-              Delete
-            </button>
-          </span>
+          <div style={{ margin: '8px 0 0', maxHeight: expanded ? 'none' : '4.8em', overflow: 'hidden' }}>
+            <MojoRichTextEditor content={snippet.content} onChange={() => {}} readonly />
+          </div>
+        )}
+
+        {isLong && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            style={{ background: 'none', border: 'none', color: 'var(--gold-dim)', cursor: 'pointer', fontFamily: 'var(--f-ui)', fontSize: '0.68rem', marginTop: 4 }}
+          >
+            {expanded ? 'Show less ▴' : 'Show more ▾'}
+          </button>
         )}
       </div>
 
-      {isMono ? (
-        <pre style={{
-          fontFamily: "'Courier New', monospace",
-          fontSize: '0.82rem',
-          color: 'var(--mist)',
-          margin: '8px 0 0',
-          whiteSpace: 'pre-wrap',
-          overflowX: 'auto',
-        }}>
-          {expanded ? snippet.content : preview}
-        </pre>
-      ) : (
-        <div style={{ margin: '8px 0 0', maxHeight: expanded ? 'none' : '4.8em', overflow: 'hidden' }}>
-          <MojoRichTextEditor content={snippet.content} onChange={() => {}} readonly />
+      {!isMono && (
+        <div aria-hidden="true">
+          <SvgScrollEnd flip={true} />
         </div>
-      )}
-
-      {isLong && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          style={{ background: 'none', border: 'none', color: 'var(--gold-dim)', cursor: 'pointer', fontFamily: 'var(--f-ui)', fontSize: '0.68rem', marginTop: 4 }}
-        >
-          {expanded ? 'Show less ▴' : 'Show more ▾'}
-        </button>
       )}
     </div>
   )

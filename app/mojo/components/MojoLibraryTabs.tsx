@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import MojoSnippetCard from './MojoSnippetCard'
+import { SvgNavLibrary, SvgFiligreeRule } from '@/app/mojo/components/MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoSnippet = Tables<'mojo_snippets'>
@@ -24,7 +25,7 @@ export default function MojoLibraryTabs({ snippets }: { snippets: MojoSnippet[] 
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 14, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '2px', marginBottom: 0, flexWrap: 'wrap', borderBottom: '1px solid var(--elevated)', position: 'relative' }}>
         {FILTER_TABS.map((tab) => {
           const isActive = tab.key === activeFilter
           return (
@@ -33,20 +34,45 @@ export default function MojoLibraryTabs({ snippets }: { snippets: MojoSnippet[] 
               type="button"
               onClick={() => setActiveFilter(tab.key)}
               style={{
-                background: 'none',
-                border: 'none',
+                padding: '7px 20px',
                 cursor: 'pointer',
-                fontFamily: 'var(--f-ui)',
-                fontSize: '0.68rem',
-                color: isActive ? 'var(--gold)' : 'var(--faded)',
-                borderBottom: isActive ? '1px solid var(--ember)' : '1px solid transparent',
-                paddingBottom: 2,
+                fontFamily: 'Cinzel, serif',
+                fontSize: '11px',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                position: 'relative',
+                ...(isActive
+                  ? {
+                      color: 'var(--roseash)',
+                      background: 'var(--raised)',
+                      borderTop: '1.5px solid var(--gold)',
+                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                      borderRight: '1px solid rgba(255,255,255,0.06)',
+                      borderBottom: '1px solid var(--raised)',
+                      marginBottom: '-1px',
+                      zIndex: 1,
+                      boxShadow: '0 -2px 8px rgba(0,0,0,0.15)',
+                    }
+                  : {
+                      color: 'var(--faded)',
+                      background: 'transparent',
+                      borderTop: '1.5px solid transparent',
+                    }),
               }}
             >
+              <SvgNavLibrary active={isActive} />
               {tab.label}
             </button>
           )
         })}
+      </div>
+
+      <div style={{ color: 'var(--elevated)', padding: '8px 0 12px', opacity: 0.6 }}>
+        <SvgFiligreeRule />
       </div>
 
       {filtered.length === 0 ? (

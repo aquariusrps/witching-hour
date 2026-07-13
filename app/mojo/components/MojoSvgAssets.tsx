@@ -1019,3 +1019,242 @@ export function SvgGalleryCorridor({
     </svg>
   )
 }
+
+// ── Library SVGs (MOJO-7F) ────────────────────────────────
+
+export function SvgBookshelf({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      width="100%"
+      height="90"
+      viewBox="0 0 800 90"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* ── Upper shelf board ── */}
+      <rect x="0" y="0" width="800" height="4"
+        fill="currentColor" opacity="0.20" />
+      {/* Shelf shadow */}
+      <rect x="0" y="4" width="800" height="2"
+        fill="currentColor" opacity="0.08" />
+
+      {/* ── Books on upper shelf (y from 4 to ~44) ── */}
+      {/* Each book: x, width, height (from shelf top), color-opacity */}
+      {[
+        { x: 8,   w: 18, h: 36, o: 0.20 },
+        { x: 26,  w: 12, h: 30, o: 0.14 },
+        { x: 38,  w: 22, h: 38, o: 0.18 },
+        { x: 60,  w: 14, h: 28, o: 0.16 },
+        { x: 74,  w: 10, h: 34, o: 0.12 },
+        { x: 84,  w: 20, h: 40, o: 0.22 },
+        { x: 104, w: 8,  h: 26, o: 0.10 },
+        { x: 112, w: 16, h: 36, o: 0.18 },
+        { x: 128, w: 24, h: 38, o: 0.16 },
+        { x: 152, w: 12, h: 30, o: 0.14 },
+        { x: 164, w: 18, h: 40, o: 0.20 },
+        { x: 182, w: 10, h: 28, o: 0.12 },
+        { x: 192, w: 14, h: 36, o: 0.16 },
+        { x: 206, w: 22, h: 34, o: 0.18 },
+        { x: 228, w: 16, h: 38, o: 0.14 },
+        { x: 244, w: 10, h: 26, o: 0.10 },
+        { x: 254, w: 20, h: 40, o: 0.22 },
+        { x: 274, w: 14, h: 30, o: 0.16 },
+        { x: 288, w: 18, h: 36, o: 0.18 },
+        { x: 306, w: 8,  h: 24, o: 0.10 },
+        { x: 314, w: 22, h: 38, o: 0.20 },
+        { x: 336, w: 12, h: 28, o: 0.14 },
+        { x: 348, w: 16, h: 34, o: 0.16 },
+        { x: 364, w: 20, h: 40, o: 0.18 },
+        { x: 384, w: 10, h: 26, o: 0.12 },
+        { x: 394, w: 18, h: 36, o: 0.20 },
+        { x: 412, w: 14, h: 38, o: 0.16 },
+        { x: 426, w: 22, h: 30, o: 0.18 },
+        { x: 448, w: 8,  h: 36, o: 0.12 },
+        { x: 456, w: 20, h: 40, o: 0.22 },
+        { x: 476, w: 12, h: 28, o: 0.14 },
+        { x: 488, w: 18, h: 34, o: 0.16 },
+        { x: 506, w: 16, h: 38, o: 0.18 },
+        { x: 522, w: 10, h: 26, o: 0.10 },
+        { x: 532, w: 24, h: 40, o: 0.20 },
+        { x: 556, w: 14, h: 30, o: 0.14 },
+        { x: 570, w: 18, h: 36, o: 0.18 },
+        { x: 588, w: 8,  h: 24, o: 0.10 },
+        { x: 596, w: 20, h: 38, o: 0.16 },
+        { x: 616, w: 12, h: 34, o: 0.14 },
+        { x: 628, w: 22, h: 40, o: 0.22 },
+        { x: 650, w: 10, h: 28, o: 0.12 },
+        { x: 660, w: 18, h: 36, o: 0.18 },
+        { x: 678, w: 14, h: 30, o: 0.16 },
+        { x: 692, w: 20, h: 38, o: 0.20 },
+        { x: 712, w: 8,  h: 26, o: 0.10 },
+        { x: 720, w: 24, h: 40, o: 0.18 },
+        { x: 744, w: 16, h: 34, o: 0.16 },
+        { x: 760, w: 12, h: 28, o: 0.14 },
+        { x: 772, w: 20, h: 36, o: 0.20 },
+      ].map((book, i) => (
+        <rect
+          key={i}
+          x={book.x}
+          y={44 - book.h}
+          width={book.w}
+          height={book.h}
+          fill="currentColor"
+          opacity={book.o}
+          rx="0.5"
+        />
+      ))}
+
+      {/* Small scroll between books around x=102 */}
+      <ellipse cx="110" cy="24" rx="4" ry="7"
+        fill="currentColor" opacity="0.12" />
+      <line x1="110" y1="17" x2="110" y2="31"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.10" />
+
+      {/* Small hourglass silhouette around x=320 */}
+      <path d="M 316 18 L 326 18 L 321 26 L 326 34 L 316 34 L 321 26 Z"
+        fill="currentColor" opacity="0.08" />
+
+      {/* ── Lower shelf board ── */}
+      <rect x="0" y="44" width="800" height="4"
+        fill="currentColor" opacity="0.20" />
+      <rect x="0" y="48" width="800" height="2"
+        fill="currentColor" opacity="0.08" />
+
+      {/* ── Books on lower shelf (y from 48 to ~86) ── */}
+      {[
+        { x: 4,   w: 20, h: 32, o: 0.16 },
+        { x: 24,  w: 14, h: 26, o: 0.12 },
+        { x: 38,  w: 18, h: 34, o: 0.18 },
+        { x: 56,  w: 10, h: 28, o: 0.14 },
+        { x: 66,  w: 24, h: 36, o: 0.20 },
+        { x: 90,  w: 12, h: 24, o: 0.10 },
+        { x: 102, w: 20, h: 32, o: 0.16 },
+        { x: 122, w: 16, h: 36, o: 0.18 },
+        { x: 138, w: 10, h: 26, o: 0.12 },
+        { x: 148, w: 22, h: 34, o: 0.20 },
+        { x: 170, w: 14, h: 30, o: 0.14 },
+        { x: 184, w: 18, h: 36, o: 0.18 },
+        { x: 202, w: 8,  h: 22, o: 0.10 },
+        { x: 210, w: 20, h: 34, o: 0.16 },
+        { x: 230, w: 16, h: 28, o: 0.14 },
+        { x: 246, w: 22, h: 36, o: 0.20 },
+        { x: 268, w: 12, h: 24, o: 0.12 },
+        { x: 280, w: 18, h: 32, o: 0.18 },
+        { x: 298, w: 10, h: 28, o: 0.12 },
+        { x: 308, w: 24, h: 36, o: 0.22 },
+        { x: 332, w: 14, h: 26, o: 0.14 },
+        { x: 346, w: 20, h: 34, o: 0.18 },
+        { x: 366, w: 8,  h: 22, o: 0.10 },
+        { x: 374, w: 18, h: 30, o: 0.16 },
+        { x: 392, w: 14, h: 36, o: 0.18 },
+        { x: 406, w: 22, h: 32, o: 0.20 },
+        { x: 428, w: 10, h: 26, o: 0.12 },
+        { x: 438, w: 18, h: 34, o: 0.16 },
+        { x: 456, w: 16, h: 28, o: 0.14 },
+        { x: 472, w: 20, h: 36, o: 0.20 },
+        { x: 492, w: 8,  h: 24, o: 0.10 },
+        { x: 500, w: 22, h: 32, o: 0.18 },
+        { x: 522, w: 14, h: 36, o: 0.16 },
+        { x: 536, w: 18, h: 28, o: 0.18 },
+        { x: 554, w: 10, h: 34, o: 0.12 },
+        { x: 564, w: 24, h: 36, o: 0.22 },
+        { x: 588, w: 12, h: 24, o: 0.12 },
+        { x: 600, w: 20, h: 32, o: 0.18 },
+        { x: 620, w: 16, h: 36, o: 0.16 },
+        { x: 636, w: 10, h: 26, o: 0.12 },
+        { x: 646, w: 22, h: 34, o: 0.20 },
+        { x: 668, w: 14, h: 28, o: 0.14 },
+        { x: 682, w: 18, h: 36, o: 0.18 },
+        { x: 700, w: 8,  h: 22, o: 0.10 },
+        { x: 708, w: 20, h: 34, o: 0.16 },
+        { x: 728, w: 16, h: 30, o: 0.14 },
+        { x: 744, w: 22, h: 36, o: 0.20 },
+        { x: 766, w: 12, h: 26, o: 0.12 },
+        { x: 778, w: 18, h: 32, o: 0.16 },
+      ].map((book, i) => (
+        <rect
+          key={i}
+          x={book.x}
+          y={86 - book.h}
+          width={book.w}
+          height={book.h}
+          fill="currentColor"
+          opacity={book.o}
+          rx="0.5"
+        />
+      ))}
+
+      {/* Small magnifying glass between lower books around x=556 */}
+      <circle cx="557" cy="62" r="5"
+        stroke="currentColor" strokeWidth="1" opacity="0.10" fill="none" />
+      <line x1="561" y1="66" x2="565" y2="70"
+        stroke="currentColor" strokeWidth="1.2" opacity="0.10"
+        strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function SvgScrollEnd({
+  flip = false,
+}: { flip?: boolean }) {
+  return (
+    <svg
+      width="100%"
+      height="12"
+      viewBox="0 0 400 12"
+      preserveAspectRatio="none"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        display: 'block',
+        transform: flip ? 'scaleY(-1)' : undefined,
+        pointerEvents: 'none',
+      }}
+    >
+      {/* The rolled edge — a gentle arc suggesting curled paper */}
+      <path
+        d="M 0 2 Q 100 0, 200 2 Q 300 4, 400 2"
+        stroke="currentColor" strokeWidth="1.0" opacity="0.25"
+        fill="none"
+      />
+      {/* Shadow of the curl */}
+      <path
+        d="M 0 4 Q 100 2, 200 4 Q 300 6, 400 4"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.10"
+        fill="none"
+      />
+      {/* Very faint filled area suggesting shadow beneath the curl */}
+      <path
+        d="M 0 2 Q 100 0, 200 2 Q 300 4, 400 2 L 400 12 L 0 12 Z"
+        fill="currentColor" opacity="0.04"
+      />
+    </svg>
+  )
+}
+
+export function SvgTelegraphDots() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* 3×3 grid of small dots */}
+      {[4, 10, 16, 20].flatMap(x =>
+        [4, 10, 16].map(y => (
+          <circle
+            key={`${x}-${y}`}
+            cx={x} cy={y} r="1.2"
+            fill="currentColor" opacity="0.15"
+          />
+        ))
+      )}
+    </svg>
+  )
+}

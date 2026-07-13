@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createMojoSnippet } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
+import { SvgNavLibrary } from '@/app/mojo/components/MojoSvgAssets'
 
 function navigateToLibrary() {
   window.location.href = '/mojo/library'
@@ -50,6 +51,8 @@ export default function MojoAddSnippet() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const isCodeType = MONO_TYPES.has(type)
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
@@ -82,7 +85,37 @@ export default function MojoAddSnippet() {
       </div>
 
       {open && (
-        <form onSubmit={handleSubmit} style={{ background: 'var(--claret)', border: '1px solid var(--elevated)', borderRadius: 4, padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <form onSubmit={handleSubmit} style={{
+          background: `
+            repeating-linear-gradient(
+              0deg,
+              rgba(255,255,255,0.006) 0px,
+              rgba(255,255,255,0.006) 1px,
+              transparent 1px,
+              transparent 4px
+            ),
+            var(--raised)
+          `,
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '2px',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}>
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '10px',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: 'var(--faded)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <SvgNavLibrary active={false} />
+            New Entry
+          </div>
           {error && (
             <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.82rem', color: 'var(--ember)', margin: 0 }}>{error}</p>
           )}
@@ -93,7 +126,15 @@ export default function MojoAddSnippet() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label style={LABEL_STYLE}>Type</label>
-              <select value={type} onChange={(e) => setType(e.target.value)} style={INPUT_STYLE}>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                style={{
+                  ...INPUT_STYLE,
+                  borderColor: isCodeType ? 'var(--moonstone)' : 'var(--elevated)',
+                  fontFamily: isCodeType ? "'Courier New', monospace" : INPUT_STYLE.fontFamily,
+                }}
+              >
                 {TYPE_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
@@ -106,7 +147,7 @@ export default function MojoAddSnippet() {
           </div>
           <div>
             <label style={LABEL_STYLE}>Content</label>
-            {MONO_TYPES.has(type) ? (
+            {isCodeType ? (
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}

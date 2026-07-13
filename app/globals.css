@@ -570,3 +570,42 @@ body {
     transparent 26px
   );
 }
+
+/* ═══════════════════════════════════════
+   MOJO LIBRARY — MOJO-7F
+   ═══════════════════════════════════════ */
+
+/* Snippet card scroll treatment */
+.mojo-snippet-scroll {
+  position: relative;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.007) 0px,
+    rgba(255,255,255,0.007) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* Code/telegram snippet card */
+.mojo-snippet-telegram {
+  border-left: 3px solid var(--moonstone);
+  background: linear-gradient(
+    90deg,
+    rgba(40,136,144,0.07) 0px,
+    transparent 50px
+  );
+}
+
+/* Code snippet badge */
+.mojo-code-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--moonstone);
+  border: 1px solid var(--moonstone);
+  padding: 1px 5px;
+  border-radius: 1px;
+  opacity: 0.7;
+}
