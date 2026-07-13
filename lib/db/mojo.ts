@@ -14,6 +14,7 @@ type MojoImageStack = Tables<'mojo_image_stacks'>
 type MojoImageStackMember = Tables<'mojo_image_stack_members'>
 type MojoImageFolder = Tables<'mojo_image_folders'>
 type MojoPersonalImage = Tables<'mojo_personal_images'>
+type MojoWanted = Tables<'mojo_wanted'>
 
 function sortResourcesByTypeThenOrder(resources: MojoResource[]): MojoResource[] {
   return [...resources].sort((a, b) => {
@@ -755,4 +756,44 @@ export async function getMojoPersonalImages(filter?: {
 
   const { data } = await query
   return data ?? []
+}
+
+// ─── WANTED / CONNECTIONS BOARD ─────────────────────────────
+
+export async function getMojoWanted(rpId: string): Promise<
+  Array<MojoWanted & { character_name: string | null; proxy_url: string | null }>
+> {
+  const admin = getAdminClient()
+
+  const { data: items, error } = await admin
+    .from('mojo_wanted')
+    .select('*')
+    .eq('rp_id', rpId)
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: false })
+  if (error || !items) return []
+
+  const characterIds = Array.from(
+    new Set(items.map((i) => i.character_id).filter((id): id is string => !!id))
+  )
+  const { data: characters } = characterIds.length
+    ? await admin.from('mojo_characters').select('id, name').in('id', characterIds)
+    : { data: [] as Array<{ id: string; name: string }> }
+
+  const nameById = new Map((characters ?? []).map((c) => [c.id, c.name]))
+
+  const sorted = [...items].sort((a, b) => {
+    const s = (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1)
+    if (s !== 0) return s
+    if (a.display_order !== b.display_order) return a.display_order - b.display_order
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+
+  return sorted.map((item) => ({
+    ...item,
+    character_name: item.character_id ? (nameById.get(item.character_id) ?? null) : null,
+    proxy_url: item.image_token
+      ? process.env.NEXT_PUBLIC_SITE_URL + '/i/' + item.image_token
+      : null,
+  }))
 }

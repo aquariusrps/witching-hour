@@ -66,12 +66,16 @@ export default function MojoStackCard({
   rpName,
   faceclaimName,
   members,
+  characters,
+  faceclaims,
 }: {
   stack: MojoImageStack & { member_count: number }
   characterName: string | null
   rpName: string | null
   faceclaimName: string | null
   members: MojoImageStackMember[]
+  characters: Array<{ id: string; name: string; rp_name: string }>
+  faceclaims: Array<{ id: string; name: string }>
 }) {
   const [editing, setEditing] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -83,17 +87,29 @@ export default function MojoStackCard({
   const [customDate, setCustomDate] = useState(
     stack.expires_at ? new Date(stack.expires_at).toISOString().slice(0, 10) : ''
   )
+  const [characterId, setCharacterId] = useState(stack.character_id ?? '')
+  const [faceclaimId, setFaceclaimId] = useState(stack.faceclaim_id ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const proxyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/i/${stack.token}`
 
+  const groupedCharacters = new Map<string, Array<{ id: string; name: string }>>()
+  for (const c of characters) {
+    const list = groupedCharacters.get(c.rp_name) ?? []
+    list.push({ id: c.id, name: c.name })
+    groupedCharacters.set(c.rp_name, list)
+  }
+  const sortedFaceclaims = [...faceclaims].sort((a, b) => a.name.localeCompare(b.name))
+
   function startEdit() {
     setLabel(stack.label)
     setRotationMode(stack.rotation_mode as RotationMode)
     setExpiryOption(stack.expires_at ? 'custom' : 'never')
     setCustomDate(stack.expires_at ? new Date(stack.expires_at).toISOString().slice(0, 10) : '')
+    setCharacterId(stack.character_id ?? '')
+    setFaceclaimId(stack.faceclaim_id ?? '')
     setError(null)
     setEditing(true)
   }
@@ -115,6 +131,8 @@ export default function MojoStackCard({
       label,
       rotation_mode: rotationMode,
       expires_at: expiresAt,
+      character_id: characterId || null,
+      faceclaim_id: faceclaimId || null,
     })
 
     if ('error' in result) {
@@ -174,6 +192,28 @@ export default function MojoStackCard({
                 style={{ ...INPUT_STYLE, marginTop: 8 }}
               />
             )}
+          </div>
+          <div>
+            <label style={LABEL_STYLE}>Character</label>
+            <select value={characterId} onChange={(e) => setCharacterId(e.target.value)} style={INPUT_STYLE}>
+              <option value="">— No character —</option>
+              {Array.from(groupedCharacters.entries()).map(([rpName, chars]) => (
+                <optgroup key={rpName} label={rpName}>
+                  {chars.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={LABEL_STYLE}>Faceclaim</label>
+            <select value={faceclaimId} onChange={(e) => setFaceclaimId(e.target.value)} style={INPUT_STYLE}>
+              <option value="">— No faceclaim —</option>
+              {sortedFaceclaims.map((fc) => (
+                <option key={fc.id} value={fc.id}>{fc.name}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div style={{ marginTop: 14 }}>

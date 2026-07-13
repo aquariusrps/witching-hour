@@ -2,8 +2,7 @@ import { getMojoSnippets, getMojoGlobalResources, getMojoRpsWithCharacters } fro
 import MojoAddSnippet from '@/app/mojo/components/MojoAddSnippet'
 import MojoLibraryTabs from '@/app/mojo/components/MojoLibraryTabs'
 import MojoAddResource from '@/app/mojo/components/MojoAddResource'
-import MojoResourceList from '@/app/mojo/components/MojoResourceList'
-import MojoLinkToCharacter from '@/app/mojo/components/MojoLinkToCharacter'
+import MojoLibraryResources from '@/app/mojo/components/MojoLibraryResources'
 
 function FiligreeDivider() {
   return (
@@ -67,42 +66,7 @@ export default async function MojoLibraryPage() {
           No global resources yet. Add images, links, or notes that aren&rsquo;t tied to a specific character or faceclaim.
         </p>
       ) : (
-        <>
-          {characters.length > 0 && (
-            <div style={{ marginBottom: 20 }}>
-              <h3 style={{
-                fontFamily: 'var(--f-ui)',
-                fontSize: '0.65rem',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--faded)',
-                margin: '0 0 10px',
-              }}>
-                Link resources to a character
-              </h3>
-              {globalResources.map((r) => (
-                <div
-                  key={r.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 8,
-                    padding: '6px 0',
-                    borderBottom: '1px solid var(--elevated)',
-                  }}
-                >
-                  <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.85rem', color: 'var(--roseash)' }}>
-                    {r.title}
-                  </span>
-                  <MojoLinkToCharacter resourceId={r.id} characters={characters} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          <MojoResourceList resources={globalResources} redirectPath="/mojo/library" />
-        </>
+        <MojoLibraryResources globalResources={globalResources} characters={characters} />
       )}
     </div>
   )

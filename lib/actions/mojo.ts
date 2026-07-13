@@ -20,6 +20,7 @@ type MojoImageStackMember = Tables<'mojo_image_stack_members'>
 type MojoAvatar = Tables<'mojo_avatars'>
 type MojoImageFolder = Tables<'mojo_image_folders'>
 type MojoPersonalImage = Tables<'mojo_personal_images'>
+type MojoWanted = Tables<'mojo_wanted'>
 
 const SNIPPET_TYPES = ['general', 'app_code', 'template', 'formatting', 'other']
 const WISHLIST_TYPES = ['character_concept', 'plot_idea', 'fandom', 'other']
@@ -948,6 +949,8 @@ export async function updateMojoImageStack(
     label?: string
     rotation_mode?: 'truly_random' | 'weighted' | 'sequential' | 'no_repeat'
     expires_at?: string | null
+    character_id?: string | null
+    faceclaim_id?: string | null
   }
 ): Promise<ActionError | { success: true }> {
   const userId = await requireSuperAdmin()
@@ -982,6 +985,8 @@ export async function updateMojoImageStack(
   revalidatePath('/mojo/stacks')
   if (stack.character_id) revalidatePath('/mojo/characters/' + stack.character_id)
   if (stack.faceclaim_id) revalidatePath('/mojo/faceclaims/' + stack.faceclaim_id)
+  if (payload.character_id) revalidatePath('/mojo/characters/' + payload.character_id)
+  if (payload.faceclaim_id) revalidatePath('/mojo/faceclaims/' + payload.faceclaim_id)
   return { success: true as const }
 }
 
@@ -1537,4 +1542,169 @@ export async function deleteMojoPersonalImage(
 
   revalidatePath('/mojo/images')
   return { success: true as const }
+}
+
+// ─── WANTED / CONNECTIONS BOARD ACTIONS ─────────────────────
+
+export async function createMojoWanted(payload: {
+  rp_id: string
+  character_id?: string | null
+  title: string
+  description?: string | null
+  image_token?: string | null
+}): Promise<ActionError | { success: true; item: MojoWanted }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const rpId = payload.rp_id?.trim()
+  const title = payload.title?.trim()
+  if (!rpId || !title) {
+    return { error: 'RP and title are required' }
+  }
+
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_wanted')
+    .insert({
+      rp_id: rpId,
+      character_id: payload.character_id ?? null,
+      title,
+      description: payload.description ?? null,
+      image_token: payload.image_token ?? null,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return { error: 'Failed to create connection' }
+
+  revalidatePath('/mojo/rps/' + rpId)
+  return { success: true as const, item: data }
+}
+
+export async function updateMojoWanted(
+  itemId: string,
+  payload: {
+    title?: string
+    description?: string | null
+    character_id?: string | null
+    image_token?: string | null
+  }
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if ('title' in payload && !payload.title?.trim()) {
+    return { error: 'Title cannot be empty' }
+  }
+
+  const admin = getAdminClient()
+
+  const { data: item } = await admin
+    .from('mojo_wanted')
+    .select('rp_id')
+    .eq('id', itemId)
+    .single()
+
+  if (!item) return { error: 'Item not found' }
+
+  const updates: TablesUpdate<'mojo_wanted'> = { ...payload }
+
+  const { error } = await admin
+    .from('mojo_wanted')
+    .update(updates)
+    .eq('id', itemId)
+
+  if (error) return { error: 'Failed to update connection' }
+
+  revalidatePath('/mojo/rps/' + item.rp_id)
+  return { success: true as const }
+}
+
+export async function updateMojoWantedStatus(
+  itemId: string,
+  status: 'open' | 'filled'
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: item } = await admin
+    .from('mojo_wanted')
+    .select('rp_id')
+    .eq('id', itemId)
+    .single()
+
+  if (!item) return { error: 'Item not found' }
+
+  const { error } = await admin
+    .from('mojo_wanted')
+    .update({ status })
+    .eq('id', itemId)
+
+  if (error) return { error: 'Failed to update status' }
+
+  revalidatePath('/mojo/rps/' + item.rp_id)
+  return { success: true as const }
+}
+
+export async function deleteMojoWanted(
+  itemId: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: item } = await admin
+    .from('mojo_wanted')
+    .select('rp_id, image_token')
+    .eq('id', itemId)
+    .single()
+
+  if (!item) return { error: 'Item not found' }
+
+  if (item.image_token) {
+    const { data: tokenRow } = await admin
+      .from('mojo_image_tokens')
+      .select('storage_path')
+      .eq('token', item.image_token)
+      .single()
+
+    if (tokenRow) {
+      const { error: storageError } = await admin.storage
+        .from('mojo-private')
+        .remove([tokenRow.storage_path])
+      if (storageError) {
+        console.error('Failed to delete storage object:', storageError)
+      }
+    }
+
+    await admin.from('mojo_image_tokens').delete().eq('token', item.image_token)
+  }
+
+  const { error } = await admin.from('mojo_wanted').delete().eq('id', itemId)
+
+  if (error) return { error: 'Failed to delete connection' }
+
+  revalidatePath('/mojo/rps/' + item.rp_id)
+  return { success: true as const }
+}
+
+export async function registerWantedImage(payload: {
+  storage_path: string
+  mime_type: string
+  rp_id: string
+}): Promise<ActionError | { success: true; token: string; proxyUrl: string }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const storagePath = payload.storage_path?.trim()
+  if (!storagePath) return { error: 'Storage path is required' }
+
+  const token = await registerImageToken(storagePath, payload.mime_type, null, 'wanted-ref')
+  const proxyUrl = getProxyUrl(token)
+
+  revalidatePath('/mojo/rps/' + payload.rp_id)
+  return { success: true as const, token, proxyUrl }
 }

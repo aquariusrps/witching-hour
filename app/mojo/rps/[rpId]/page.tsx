@@ -1,9 +1,16 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getMojoRpWithCharactersAndThreads } from '@/lib/db/mojo'
+import { getMojoRpWithCharactersAndThreads, getMojoWanted } from '@/lib/db/mojo'
 import MojoRpNotes from '@/app/mojo/components/MojoRpNotes'
 import MojoAddCharacter from '@/app/mojo/components/MojoAddCharacter'
 import MojoCharacterStatusToggle from '@/app/mojo/components/MojoCharacterStatusToggle'
+import MojoWantedBoard from '@/app/mojo/components/MojoWantedBoard'
+
+function FiligreeDivider() {
+  return (
+    <div style={{ height: 1, margin: '28px 0', background: 'linear-gradient(to right, var(--ember), var(--gold))', opacity: 0.4 }} />
+  )
+}
 
 const STATUS_COLOR: Record<string, string> = {
   active: 'var(--moonstone)',
@@ -19,6 +26,8 @@ export default async function MojoRpDetailPage({
   const { rpId } = await params
   const rp = await getMojoRpWithCharactersAndThreads(rpId)
   if (!rp) notFound()
+
+  const wanted = await getMojoWanted(rpId)
 
   const activeCharacters = rp.characters.filter((c) => c.status === 'active')
   const archivedCharacters = rp.characters.filter((c) => c.status !== 'active')
@@ -201,6 +210,14 @@ export default async function MojoRpDetailPage({
               ))}
             </div>
           )}
+
+          <FiligreeDivider />
+
+          <MojoWantedBoard
+            rpId={rp.id}
+            initialItems={wanted}
+            characters={rp.characters.map((c) => ({ id: c.id, name: c.name, status: c.status }))}
+          />
         </div>
       </div>
     </div>

@@ -71,6 +71,8 @@ export default async function MojoStacksPage() {
               rpName={character?.rp_name ?? null}
               faceclaimName={faceclaimName}
               members={membersByStack.get(stack.id) ?? []}
+              characters={characters}
+              faceclaims={faceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
             />
           )
         })

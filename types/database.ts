@@ -1253,6 +1253,57 @@ export type Database = {
           },
         ]
       }
+      mojo_wanted: {
+        Row: {
+          character_id: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          image_token: string | null
+          rp_id: string
+          status: string
+          title: string
+        }
+        Insert: {
+          character_id?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_token?: string | null
+          rp_id: string
+          status?: string
+          title: string
+        }
+        Update: {
+          character_id?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_token?: string | null
+          rp_id?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_wanted_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mojo_wanted_rp_id_fkey"
+            columns: ["rp_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_rps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mojo_wishlist: {
         Row: {
           created_at: string

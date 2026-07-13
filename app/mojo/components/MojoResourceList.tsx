@@ -37,11 +37,13 @@ export default function MojoResourceList({
   redirectPath,
   ownedCharacterId,
   linkedFromFaceclaimName,
+  onLinkToCharacter,
 }: {
   resources: MojoResource[]
   redirectPath: string
   ownedCharacterId?: string
   linkedFromFaceclaimName?: string
+  onLinkToCharacter?: (resourceId: string) => void
 }) {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
@@ -184,6 +186,15 @@ export default function MojoResourceList({
           <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.72rem', color: 'var(--ember)' }}>
             {rowError!.message}
           </span>
+        )}
+        {onLinkToCharacter && (
+          <button
+            type="button"
+            onClick={() => onLinkToCharacter(resource.id)}
+            style={{ background: 'none', border: 'none', color: 'var(--moonstone)', cursor: 'pointer', fontFamily: 'var(--f-ui)', fontSize: '0.68rem' }}
+          >
+            Link →
+          </button>
         )}
         {linked ? (
           <button
