@@ -1,7 +1,8 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.3
-### Last updated: July 2026 — through MOJO-7D (commit 2c06adf)
+### Created: July 2026 | Current version: v1.4
+### Last updated: July 2026 — through MOJO-7O (commit ef2a26c)
+### BUILD STATUS: COMPLETE
 
 This is the single authoritative document for the Mojo personal RP
 dashboard. It combines project brief, build governance, and roadmap.
@@ -34,6 +35,12 @@ Features include:
 - Personal image repository — flat folders + tags, not tied to any
   character or RP
 - Rich text editing throughout — Tiptap with full toolbar
+- Wanted/connections board per RP — open call ads with rich text,
+  optional reference image, character assignment, open/filled status
+- Global search across all mojo tables — characters, threads, faceclaims,
+  resources, snippets, partners, personal images
+- Fully mobile-responsive — functional on iPhone and iPad from anywhere,
+  with sidebar drawer navigation and touch-optimised layout
 
 Mojo is operator-only. No public registration. No other users.
 Auth is the existing TWH super admin session.
@@ -250,7 +257,7 @@ This is the single sanitisation path (MOJO-6A Q1 decision).
 Do NOT use dangerouslySetInnerHTML inline — always use readonly mode.
 
 ### Visual Pass Law (MOJO-7B onward)
-Every visual pass prompt (7B through 7K) is presentational ONLY.
+Every visual pass prompt (7B through 7O) is presentational ONLY.
 No logic, no state, no action calls, no data fetches change.
 Before touching any file: read it in full, identify functional vs
 presentational lines, touch only the presentational lines.
@@ -284,9 +291,54 @@ All @keyframes defined in globals.css under the mojo- prefix.
 CSS hover effects for purely presentational hover: use globals.css
   classes, not useState. Example: .mojo-portrait-card:hover { ... }
 
+### searchParams is a Promise in Next.js 16 App Router
+In Next.js 16, searchParams in Server Components is a
+Promise<Record<string, string | string[] | undefined>>.
+It must be awaited before accessing any key:
+  export default async function MyPage({
+    searchParams,
+  }: { searchParams: Promise<{ character_id?: string }> }) {
+    const { character_id } = await searchParams
+  }
+Never access searchParams.key directly — always await first.
+Confirmed: MOJO-7K Q1 (search page), applied in MOJO-7L (stacks filter).
+
+### Hydration-Safe Randomness
+Never use Math.random() in components that render on both server and
+client. The server and client will produce different values, causing
+a React hydration mismatch error.
+Use predetermined arrays indexed by a stable value (e.g. loop index):
+  const rotations = [-1.8, 0.9, -0.7, 1.4, -1.2, 0.6]
+  const rotation = rotations[index % rotations.length]
+Confirmed pattern: MojoPersonalImageCard.tsx getCardRotation() (MOJO-7J).
+SvgStarfield uses predetermined coordinate arrays for the same reason.
+
+### Viewport Meta and iOS Behaviour
+app/layout.tsx must include:
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1" />
+maximum-scale=1 prevents iOS Safari from auto-zooming on form field
+focus, which causes jarring layout jumps in mobile web apps.
+Confirmed missing and added in MOJO-7O.
+
 ### No New npm Packages in Visual Passes
 All visual work in 7B–7K uses: CSS, inline SVG in JSX, canvas.
 No additional npm packages in any visual pass prompt.
+
+### Canvas Rendering Hex Values
+MojoAvatarCrop.tsx uses the HTML Canvas API for the crop overlay.
+Canvas strokeStyle/fillStyle must use literal hex values — CSS variables
+do not work in canvas context. Use the confirmed Silver & Onyx hex:
+  strokeStyle = '#a02840'  (--gold, dark garnet)
+Never use Blood Moon hex values (#e0b028 etc.) in mojo canvas code.
+Confirmed fix: MOJO-7N WS1.
+
+### Rich Text Swatch Palette
+MojoRichTextEditor.tsx text-color swatches use Silver & Onyx hex values.
+The 8 token-labeled swatches (Rose Ash, Mist, Gold, Ember, Moonstone,
+Moon Light, Gold Light, Faded) map to confirmed S&O token values.
+Three non-theme swatches (White, Cream, Soft Pink) are generic and
+intentionally unchanged. Confirmed fix: MOJO-7N WS2.
 
 ### mojo_image_tokens + mojo_avatars are paired
 Registering an avatar creates TWO rows:
@@ -308,7 +360,10 @@ Never use the TWH numeric sequence (001-022+).
 Applied via Supabase MCP.
 
 After every migration:
-  npx supabase gen types typescript --project-id vkhuttcusqubteseifui > types/database.ts
+  npx supabase gen types typescript \
+    --project-id vkhuttcusqubteseifui > types/database.ts 2>/dev/null
+The 2>/dev/null is REQUIRED — npm warnings on stderr will corrupt
+types/database.ts if not suppressed (confirmed MOJO-7A Q2, permanent fix).
 
 Applied migrations:
   mojo_001_foundation — 5 core tables
@@ -604,9 +659,12 @@ app/
     components/
       -- Navigation & layout
       MojoSidebar.tsx
+      MojoMobileNav.tsx  (MOJO-7O — hamburger button, overlay backdrop,
+        sidebar drawer wrapper for mobile; 'use client')
       -- RP management
       MojoRpNotes.tsx, MojoRpEditForm.tsx
-      MojoRpCard.tsx [RETIRED], MojoArchivedRps.tsx [RETIRED]
+      (MojoRpCard.tsx and MojoArchivedRps.tsx deleted MOJO-7L — confirmed
+       zero imports, both retired since MOJO-6B redesign)
       MojoDashboardRpPanel.tsx, MojoDashboardNotes.tsx
       MojoDashboardCharCard.tsx, MojoCollapsedRps.tsx
       MojoDashboardStatTile.tsx
@@ -640,9 +698,13 @@ app/
       MojoWantedBoard.tsx  (MOJO-7A — per-RP wanted ad CRUD, reference image upload)
       -- Personal images
       MojoPersonalImageUpload.tsx, MojoPersonalImageCard.tsx
-      MojoImageFolderList.tsx, MojoPersonalImageManager.tsx
+      MojoImageFolderList.tsx
+      MojoPersonalImageManager.tsx  (NOTE: this component contains the
+        actual two-column folder+grid layout, not images/page.tsx —
+        confirmed MOJO-7O Q1. Responsive layout classes applied here.)
       -- Rich text
-      MojoRichTextEditor.tsx  (outer) + MojoRichTextEditorInner (inner)
+      MojoRichTextEditor.tsx  (outer — readonly gate, no hooks)
+      MojoRichTextEditorInner (inner — always calls useEditor, edit only)
       -- Visual design assets (MOJO-7B onward)
       MojoSvgAssets.tsx  (SVG component library — all decorative SVGs)
       MojoMoonPhases.tsx  (MOJO-7C — live lunar phase calculator + display)
@@ -655,7 +717,8 @@ app/
     wishlist/page.tsx
     partners/page.tsx
     images/page.tsx  (built MOJO-6C)
-    search/page.tsx  (full global search — built MOJO-7A)
+    search/page.tsx  (full global search — built MOJO-7A; awaits searchParams)
+    stacks/page.tsx  (now accepts ?character_id= filter — MOJO-7L)
   i/[token]/route.ts  (public, no auth)
   api/mojo/
     fetch-image/route.ts
@@ -674,7 +737,7 @@ lib/
 
 ## 10. Navigation
 
-Current sidebar nav order (as of MOJO-6C):
+Sidebar nav order (final — as of MOJO-7O):
   1. Dashboard → /mojo
   2. Images → /mojo/images
   3. Faceclaims → /mojo/faceclaims
@@ -745,8 +808,9 @@ Visual elements added in MOJO-7C (The Sanctum):
 
 ---
 
-## 12. Personal Image Repository (COMPLETE — MOJO-6C, commit 3ca7020)
-Visual pass: MOJO-7J "The Darkroom" (planned)
+## 12. Personal Image Repository
+Functional: COMPLETE — MOJO-6C (commit 3ca7020)
+Visual pass: COMPLETE — MOJO-7J "The Darkroom" (commit dd8bdb4)
 
 Route: /mojo/images
 Sidebar: Second position (between Dashboard and Faceclaims)
@@ -876,12 +940,14 @@ Wanted reference images: registerImageToken() stores token in
 
 ## 16. Known Technical Debt
 
-TD-1: Pre-MOJO-3A inline window.location.href violations (5 components)
-  MojoAddCharacter.tsx, MojoCharacterArchiveToggle.tsx,
-  MojoCharacterStatusToggle.tsx, MojoRpEditForm.tsx,
-  MojoSidebar.tsx (create-RP handler)
-  Fix: MOJO-7L (deliberately preserved through visual passes per
-  Function Preservation Law — these are logic changes, not visual)
+TD-1: RESOLVED in MOJO-7L. Five module-level navigation functions added:
+  MojoAddCharacter.tsx: navigateToRp(rpId)
+  MojoCharacterArchiveToggle.tsx: navigateToCharacter(charId)
+  MojoCharacterStatusToggle.tsx: navigateToRp(rpId)
+  MojoRpEditForm.tsx: navigateToRp(rpId)
+  MojoSidebar.tsx: navigateToDashboard()
+  All window.location.href assignments now at module level. 32 total
+  href assignments confirmed module-level via coherence audit (MOJO-7M).
 
 TD-2: RESOLVED in MOJO-7A. Link affordance moved inline into
   MojoResourceList rows via onLinkToCharacter prop. MojoLibraryResources.tsx
@@ -911,14 +977,30 @@ TD-9: Table count expectation in MOJO-6C was off by one (Q3).
   mojo_005a is ALTER TABLE not CREATE TABLE, so it adds a column not
   a table. Post-mojo_005 table count is 15, not 16. Informational only.
 
-TD-10: SvgCandle.tsx has an unused idSuffix prop (ESLint warning, not
-  error). Forward-compatible prop per spec. Acceptable per project
+TD-10: Four SVG components have unused idSuffix props (ESLint warnings,
+  not errors). Forward-compatible props per spec. Acceptable per project
   standards (warnings acceptable). No action needed.
+  Affected: SvgCandle, SvgPortraitFrame, SvgSidebarOrnamentTop,
+  SvgNavDashboard — all have the idSuffix prop as forward-compatible
+  uniqueness mechanism for future multi-instance rendering.
 
 TD-11: MojoCharacterNotes.tsx has two structural containers (Biography
   standalone + tabbed Plot/Partner/Misc), not four separate sections as
   originally planned. Journal frames applied to the two real containers
   in MOJO-7D. Documented deviation from original spec — resolved in build.
+
+TD-12: .mojo-sidebar-width CSS class defined in globals.css (MOJO-7O)
+  but not applied to MojoSidebar.tsx — tablet sidebar narrowing rule is
+  currently inert. MojoSidebar.tsx was not in the MOJO-7O authorized
+  file list (Rule 3). Low priority future enhancement: add
+  className="mojo-sidebar-width" to the sidebar wrapper in MojoSidebar.tsx
+  to activate the 200px tablet width rule.
+
+TD-13: .mojo-folder-tab CSS class defined in globals.css (MOJO-7O)
+  but not applied to folder items in MojoImageFolderList.tsx — mobile
+  folder compact chip styling is inert. MojoImageFolderList.tsx was not
+  in the MOJO-7O authorized file list. Low priority future enhancement:
+  apply mojo-folder-tab className to folder item elements.
 
 ---
 
@@ -1005,6 +1087,15 @@ Additional grep for visual pass prompts (7B through 7K):
   # All purely decorative elements must have pointer-events: none
   # Can be set on the SVG component itself rather than every call site
 
+Additional checks for Next.js 16 patterns:
+  # searchParams must be awaited in Server Components
+  grep -rn "searchParams\." --include="*.tsx" app/mojo/
+  # Any direct .key access without await is a type error in Next.js 16
+
+  # No Math.random() in components (hydration mismatch risk)
+  grep -rn "Math\.random" --include="*.tsx" app/mojo/
+  # Expected: 0 (use predetermined arrays instead)
+
 Every prompt ends with:
   git add -A
   git commit -m "MOJO-X: descriptive message"
@@ -1032,14 +1123,19 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-7B | ✅ Complete | 7d999a2 | Global chrome — sidebar, top bar, background, animation library, SVG assets |
 | MOJO-7C | ✅ Complete | 1efaabe | The Sanctum — moon, moon phases, candles, corner brackets, wax seal badges |
 | MOJO-7D | ✅ Complete | 2c06adf | The Dossier — character banner, medallion, manuscript tabs, journal frames |
-| MOJO-7E | ⬜ Next     | —       | The Portrait Gallery — faceclaims index + detail visual pass |
-| MOJO-7F | ⬜ Planned  | —       | The Library — library page visual pass |
-| MOJO-7G | ⬜ Planned  | —       | Desires — wishlist visual pass |
-| MOJO-7H | ⬜ Planned  | —       | The Black Book — partners visual pass |
-| MOJO-7I | ⬜ Planned  | —       | The Reliquary — stacks visual pass |
-| MOJO-7J | ⬜ Planned  | —       | The Darkroom — images visual pass |
-| MOJO-7K | ⬜ Planned  | —       | The Oracle — search visual pass |
-| MOJO-7L | ⬜ Planned  | —       | TD-1 cleanup, stacks URL filter, loose ends, final coherence pass |
+| MOJO-7E | ✅ Complete | 9c39260 | The Portrait Gallery — corridor, portrait frames, brass plates, contact sheet |
+| MOJO-7F | ✅ Complete | 2c100f1 | The Library — bookshelf, scroll cards, telegram code blocks, drawer tabs |
+| MOJO-7G | ✅ Complete | f2b860e | Desires — starfield, botanicals, candle status system, watercolor cards |
+| MOJO-7H | ✅ Complete | 0f49c5f | The Black Book — leather header, silk ribbon, Rolodex cards, lined notes |
+| MOJO-7I | ✅ Complete | 7adfb91 | The Reliquary — cabinet, specimen labels, rotation icons, vitrine previews |
+| MOJO-7J | ✅ Complete | dd8bdb4 | The Darkroom — safelight atmosphere, photograph cards, developing tray |
+| MOJO-7K | ✅ Complete | ae72b23 | The Oracle — scrying bowl, starfield, result visions, altar search form |
+| MOJO-7L | ✅ Complete | e37d457 | TD-1 resolved, stacks URL filter, dead code removal, coherence pass |
+| MOJO-7M | ✅ Complete | —       | Comprehensive audit — 54 checks, 48 pass, 6 flags, 0 fails (read-only) |
+| MOJO-7N | ✅ Complete | 6146621 | Audit fixes — crop color, swatch palette, darkroom header, dead code |
+| MOJO-7O | ✅ Complete | ef2a26c | Mobile optimization — drawer nav, responsive layout, touch targets |
+| MOJO-BRIEF v1.3 | ✅ Complete | 9672fa2 | Brief updated through MOJO-7D |
+| MOJO-BRIEF v1.4 | ✅ Complete | [hash]  | Brief updated through MOJO-7O — BUILD COMPLETE |
 
 ---
 
@@ -1050,7 +1146,9 @@ URL: https://vkhuttcusqubteseifui.supabase.co
 Storage bucket: mojo-private (PRIVATE)
 
 Types regeneration:
-  npx supabase gen types typescript --project-id vkhuttcusqubteseifui > types/database.ts
+  npx supabase gen types typescript \
+    --project-id vkhuttcusqubteseifui > types/database.ts 2>/dev/null
+(2>/dev/null required — npm warnings corrupt the output file)
 
 ---
 
@@ -1060,6 +1158,12 @@ In addition to the six existing TWH env vars:
 
   TUMBLR_API_KEY — Tumblr OAuth consumer key for thread auto-fetch
   Status: Set in .env.local and Vercel. Redeployment confirmed.
+
+  NEXT_PUBLIC_SITE_URL — Used throughout mojo for proxy URL construction:
+    getProxyUrl(token) → NEXT_PUBLIC_SITE_URL + '/i/' + token
+  Confirmed used in: lib/mojo/proxy.ts, lib/db/mojo.ts (getMojoWanted),
+  app/mojo/search/page.tsx (image thumbnails), MojoPersonalImageCard.tsx.
+  Must be set in .env.local and Vercel. Value: https://atwitchinghour.com
 
 ---
 
@@ -1086,6 +1190,19 @@ Version history:
     search complete, TD-2/TD-6/TD-7 resolved, TD-10/TD-11 added,
     server actions updated to 52, getMojoWanted added, build status
     expanded through MOJO-7L, file structure updated with new components
+  v1.4 — FINAL — through MOJO-7O: completed visual redesign system
+    (7E-7K all passing), mobile optimization (7O — MojoMobileNav,
+    responsive CSS, viewport meta), comprehensive audit (7M — 54 checks,
+    0 fails), audit fixes (7N — canvas hex, swatches, darkroom header,
+    dead code), TD-1 resolved (all 5 module-level nav functions), TD-1
+    confirmed via audit, TD-12/TD-13 added (inert CSS, low priority),
+    SVG library catalogued at 45 exports, animation library corrected to
+    10 keyframes, full CSS class inventory added, page-specific key notes
+    for all 9 visual passes, mobile system documented, audit summary
+    added, NEXT_PUBLIC_SITE_URL documented, searchParams async pattern
+    added, hydration-safe randomness rule added, types command updated
+    with 2>/dev/null, build status table complete through MOJO-7O.
+    BUILD OFFICIALLY COMPLETE.
 
 ---
 
@@ -1115,47 +1232,115 @@ Sidebar: vertical repeating-linear-gradient texture (aged wood/velvet
   (alchemical symbol), "THE CIRCLE" label in Cinzel
 
 ### Animation Library (globals.css — defined once, used by all pages)
-9 @keyframes:
-  mojo-moon-breathe — gentle glow pulse, 5s (moon, active phase)
-  mojo-flame-main   — candle outer flame flicker, 1.8s
-  mojo-flame-inner  — candle inner flame, 1.2s (offset from main)
-  mojo-flame-smoke  — wisp above flame, 2.5s
-  mojo-ember-pulse  — RP sidebar dot glow, 2.5s
-  mojo-float        — slow vertical rise/fall, 4-5s (medallion, crescent)
-  mojo-shimmer      — silver shimmer on borders
-  mojo-portal-glow  — "back to TWH" link glow, 3s
-  mojo-rune-fade    — subtle background rune pulse
+10 @keyframes (mojo-rune-fade removed MOJO-7N; two new added in 7J/7K):
+  mojo-moon-breathe  — gentle glow pulse, 5s (moon, active phase)
+  mojo-flame-main    — candle outer flame flicker, 1.8s
+  mojo-flame-inner   — candle inner flame, 1.2s (offset from main)
+  mojo-flame-smoke   — wisp above flame, 2.5s (also: SvgCandleSnuffed)
+  mojo-ember-pulse   — RP sidebar dot glow, 2.5s
+  mojo-float         — slow vertical rise/fall, 4-5s (medallion, crescent)
+  mojo-shimmer       — silver shimmer on borders (silk ribbon)
+  mojo-portal-glow   — "back to TWH" link glow, 3s
+  mojo-oracle-surface — result row fade-up, 0.35s (search results)
+  mojo-tray-ripple   — developing tray ripple, 3.5s (images upload area)
 
-6 utility classes:
-  .mojo-rp-ember       — sidebar RP color dot
-  .mojo-nav-active     — active nav item (gold left border + glow)
-  .mojo-nav-item       — nav item hover state
-  .mojo-filigree-rule  — decorative hr
-  .mojo-bg-tile        — tiled alchemical pattern background
-  .mojo-portal-glow    — animated portal icon
+CSS utility classes (globals.css — complete list):
+Global chrome (MOJO-7B):
+  .mojo-rp-ember, .mojo-nav-active, .mojo-nav-item, .mojo-filigree-rule,
+  .mojo-bg-tile, .mojo-portal-glow
+Portrait Gallery (MOJO-7E):
+  .mojo-portrait-card, .mojo-brass-plate, .mojo-film-strip-edge
+Library (MOJO-7F):
+  .mojo-snippet-scroll, .mojo-snippet-telegram, .mojo-code-badge
+Desires/Wishlist (MOJO-7G):
+  .mojo-desire-card, .mojo-desire-idea, .mojo-desire-active,
+  .mojo-desire-shelved
+Black Book/Partners (MOJO-7H):
+  .mojo-partner-card, .mojo-notes-lined, .mojo-silk-ribbon
+Reliquary/Stacks (MOJO-7I):
+  .mojo-specimen-card, .mojo-vitrine-preview (+ ::after glass reflection)
+Darkroom/Images (MOJO-7J):
+  .mojo-photograph, .mojo-cabinet-panel, .mojo-folder-tab,
+  .mojo-folder-tab-active, .mojo-tag-chip, .mojo-tag-chip-active,
+  .mojo-developing-tray, .mojo-tray-ring
+Oracle/Search (MOJO-7K):
+  .mojo-oracle-result, .mojo-oracle-input, .mojo-oracle-submit,
+  .mojo-oracle-group-heading, .mojo-oracle-group-line
+Mobile (MOJO-7O):
+  .mojo-hamburger, .mojo-drawer-close, .mojo-sidebar-drawer,
+  .mojo-sidebar-open, .mojo-content-area, .mojo-stats-strip,
+  .mojo-moon-wrapper, .mojo-tab-bar, .mojo-images-layout,
+  .mojo-folder-panel, .mojo-gallery-grid, .mojo-botanical-corner,
+  .mojo-bowl-wrapper, .mojo-rich-text-toolbar, .mojo-sidebar-width*,
+  .mojo-folder-tab* (* = defined but not yet wired — see TD-12, TD-13)
 
 ### SVG Asset Library (app/mojo/components/MojoSvgAssets.tsx)
-All reusable SVG decorative components. 19 exports as of MOJO-7D.
+All reusable SVG decorative components. 45 exports — COMPLETE.
+All are inline JSX — no external SVG files. Append-only: never
+modify existing exports.
 
-Global chrome SVGs (MOJO-7B):
+Global chrome (MOJO-7B — 13 exports):
   SvgCrescent(size, idSuffix) — crescent moon with star
   SvgSidebarOrnamentTop() — large crescent with cardinal ticks
   SvgSidebarOrnamentBottom() — small alchemical triangle
   SvgNavDashboard/Images/Faceclaims/Library/Wishlist/Partners/Stacks/Search
-    (active: boolean) — 8 unique nav glyphs
+    (active: boolean) — 8 unique nav glyphs matching each page's theme
   SvgPortalIcon() — arch/portal for "back to TWH"
   SvgFiligreeRule(width) — decorative hr with diamond pip
 
-Dashboard SVGs (MOJO-7C):
-  SvgMoon(size, idSuffix) — layered luminous moon, mojo-moon-breathe
-  SvgCandle(height, idSuffix, flameDelay) — animated candle with 3
-    flame layers (main 1.8s, inner 1.2s, smoke 2.5s)
+Dashboard — The Sanctum (MOJO-7C — +4):
+  SvgMoon(size, idSuffix) — layered luminous moon with glow filter
+  SvgCandle(height, idSuffix, flameDelay) — animated candle, 3 flame
+    layers at different durations (never perfectly in sync)
   SvgCornerBracket(size, color, rotation, style) — L-shaped panel accent
   SvgPageHeaderRule() — elaborate decorative hr with crescent centre
 
-Character SVGs (MOJO-7D):
+Characters — The Dossier (MOJO-7D — +2):
   SvgIvyTrail(width, height, flip) — manuscript margin ivy/vine
   SvgMedallion(size, idSuffix) — tick-ring avatar frame overlay
+    (pure SVG overlay — parent renders avatar clip div behind it)
+
+Faceclaims — The Portrait Gallery (MOJO-7E — +4):
+  SvgPortraitFrame(width, height, color, idSuffix) — ornate rect frame
+    with corner rosettes and mid-point diamond pips
+  SvgFlourishUnderline(width) — calligraphic pen-stroke underline
+  SvgCandleFlame(size, delay, className) — flame only, no wax/holder
+  SvgGalleryCorridor(width, height) — architectural perspective lines
+
+Library — The Library (MOJO-7F — +3):
+  SvgBookshelf() — two-shelf illustration, 100 books, data-driven rects
+  SvgScrollEnd(flip) — parchment curl end-cap for snippet cards
+  SvgTelegraphDots() — 3×4 dot grid for code snippet cards
+
+Desires — Wishlist (MOJO-7G — +5):
+  SvgStarfield(width, height) — 100+ predetermined star positions
+  SvgBotanicalSpray(width, height, flip) — Victorian botanical corner
+  SvgDreamHeader() — crescent with scattered stars, inline ornament
+  SvgCandleUnlit(size) — candle body + wick, no flame (idea status)
+  SvgCandleSnuffed(size) — candle with smoke curl (shelved status)
+
+Partners — The Black Book (MOJO-7H — +4):
+  SvgLeatherTexture() — procedural leather grain via Math.sin waves
+  SvgBookSeal(size, idSuffix) — circular embossed colophon with nib
+  SvgSilkRibbon(width, height) — vertical bookmark ribbon, V-cut end
+  SvgPageCornerFold(size) — dog-eared corner triangle
+
+Stacks — The Reliquary (MOJO-7I — +5):
+  SvgCabinetOfCuriosities() — triptych arched display cabinet, 160px
+  SvgRotationRandom(size, active) — dice icon for truly_random mode
+  SvgRotationWeighted(size, active) — uneven scales for weighted mode
+  SvgRotationSequential(size, active) — spiral for sequential mode
+  SvgRotationNoRepeat(size, active) — crossing arrows for no_repeat
+
+Images — The Darkroom (MOJO-7J — +4):
+  SvgDarkroomHeader() — enlarger + trays + hanging photos silhouette
+  SvgFolderTab(size, active) — manila folder shape for panel items
+  SvgDevelopingTray() — shallow tray viewed from above, with handles
+  SvgHangingPhotographs() — clothesline with 8 photograph silhouettes
+
+Search — The Oracle (MOJO-7K — +1):
+  SvgScryingBowl(size, idSuffix) — concentric rings, dark water fill,
+    moon reflection dot, glow filter on outermost halo
 
 MojoMoonPhases.tsx (MOJO-7C) — Client Component:
   getLunarPhaseIndex() → 0-7 based on real synodic month calculation
@@ -1164,17 +1349,17 @@ MojoMoonPhases.tsx (MOJO-7C) — Client Component:
 ### Page Visual Themes
 Each page receives a focused visual pass in its own prompt.
 
-| Prompt | Page      | Theme               | Status    |
-|--------|-----------|---------------------|-----------|
-| MOJO-7C | Dashboard | The Sanctum         | ✅ 1efaabe |
-| MOJO-7D | Characters| The Dossier         | ✅ 2c06adf |
-| MOJO-7E | Faceclaims| The Portrait Gallery| ⬜ Next   |
-| MOJO-7F | Library   | The Library         | ⬜        |
-| MOJO-7G | Wishlist  | Desires             | ⬜        |
-| MOJO-7H | Partners  | The Black Book      | ⬜        |
-| MOJO-7I | Stacks    | The Reliquary       | ⬜        |
-| MOJO-7J | Images    | The Darkroom        | ⬜        |
-| MOJO-7K | Search    | The Oracle          | ⬜        |
+| Prompt  | Page       | Theme               | Status       |
+|---------|------------|---------------------|--------------|
+| MOJO-7C | Dashboard  | The Sanctum         | ✅ 1efaabe   |
+| MOJO-7D | Characters | The Dossier         | ✅ 2c06adf   |
+| MOJO-7E | Faceclaims | The Portrait Gallery | ✅ 9c39260  |
+| MOJO-7F | Library    | The Library         | ✅ 2c100f1   |
+| MOJO-7G | Wishlist   | Desires             | ✅ f2b860e   |
+| MOJO-7H | Partners   | The Black Book      | ✅ 0f49c5f   |
+| MOJO-7I | Stacks     | The Reliquary       | ✅ 7adfb91   |
+| MOJO-7J | Images     | The Darkroom        | ✅ dd8bdb4   |
+| MOJO-7K | Search     | The Oracle          | ✅ ae72b23   |
 
 ### The Dossier — Character Sheet (MOJO-7D) Key Notes
 - Character header banner: SvgIvyTrail flanking the name (left normal,
@@ -1191,6 +1376,110 @@ Each page receives a focused visual pass in its own prompt.
 - Dossier stamp: "DOSSIER" in Cinzel 64px at 2.5% opacity, rotated -8deg
 - Avatar URL computed from characterStacks/characterAvatars already in
   page scope — same priority logic as getMojoDashboardData().
+
+### The Portrait Gallery — Faceclaims (MOJO-7E) Key Notes
+- Index redesigned as CSS grid (auto-fill minmax 200px) — was a flat row list
+- MojoFaceclaimRow.tsx redesigned as portrait card; MojoFaceclaimNameEdit
+  preserved intact (on "Do NOT modify" list) — name renders at ~30px not 48px
+- SvgGalleryCorridor on both index and detail pages as faint bg strip
+- SvgCandleFlame hover: .mojo-portrait-card:hover .mojo-portrait-flame
+  (CSS-only, no useState — established hover pattern)
+- SvgPortraitFrame color prop requires literal hex (not CSS var)
+- Quick copy panel redesigned as contact sheet with film strip edge
+- No faceclaim avatars available at index level — silhouette placeholder only
+- MojoLibraryTabs is a 6-way snippet-type filter, NOT a Snippets/Resources
+  switcher as originally assumed — archive-drawer style applied to all 6
+
+### The Library (MOJO-7F) Key Notes
+- SvgBookshelf: two shelves, 99 books as data-driven rect arrays, 3 objects
+- SvgScrollEnd: flows in document (not positioned absolute), scroll ends are
+  first/last children inside card — overflow:hidden on card is fine
+- Code/telegram snippets distinguished by isMono variable (existing pattern)
+- MojoLibraryTabs discovered to be a 6-way type filter — Resources section
+  header moved to library/page.tsx above MojoLibraryResources call
+
+### Desires — Wishlist (MOJO-7G) Key Notes
+- SvgStarfield uses predetermined coordinates (not Math.random) — hydration
+- SvgDreamHeader required idSuffix prop addition — renders twice on same page
+  (page header + add form) which would have caused clipPath id collision
+- Three candle states: SvgCandleUnlit (idea), SvgCandleFlame (active),
+  SvgCandleSnuffed (shelved, uses mojo-flame-smoke animation)
+- Status grouping already existed (STATUS_SECTIONS logic) — candle headers
+  added to existing groups
+- TYPE_BORDER_COLOR constant repurposed to color type icons instead of borders
+
+### The Black Book — Partners (MOJO-7H) Key Notes
+- SvgLeatherTexture uses Math.sin for organic grain (server-side math is fine,
+  result is deterministic — not a hydration risk)
+- .mojo-notes-lined horizontal lines at 24px intervals; readonly editor
+  containers get lineHeight: '24px' to align text to ruled lines
+- expandedPartnerId lives in MojoPartnerList (not MojoPartnerCard)
+- No list heading found in MojoPartnerList — Part E's heading instruction
+  did not apply
+
+### The Reliquary — Stacks (MOJO-7I) Key Notes
+- getSpecimenNumber(createdAt): uses timestamp % 1000 for stable 3-digit ID
+- getModeColor/getModeLabel replaced old ROTATION_BADGE_COLOR/ROTATION_LABEL
+  Record constants
+- "Stack URL" label was in MojoStackCard.tsx (outside MojoStackUrlCopy) —
+  changed to "Catalog Entry" cleanly
+- SvgCabinetOfCuriosities: triptych arched doors, specimens visible inside,
+  cabinet legs at bottom — most structurally complex SVG in the build
+
+### The Darkroom — Images (MOJO-7J) Key Notes
+- MojoPersonalImageManager.tsx contains the two-column layout (not
+  images/page.tsx) — responsive classes applied to MojoPersonalImageManager
+- Photograph card rotation: getCardRotation(index) uses predetermined array
+  [-1.8, 0.9, -0.7, 1.4, -1.2, 0.6] — never Math.random()
+- .mojo-photograph:hover uses transform: translateY(-4px) rotate(0deg)
+  !important to override the inline rotation via CSS specificity
+- SvgDarkroomHeader wired in MOJO-7N (was built in 7J but orphaned)
+- Drop zone text: "Drop your negatives here." / "or click to expose"
+- Safelight: radial gradient using --gold hex (#a02840) at 8-9% opacity
+
+### The Oracle — Search (MOJO-7K) Key Notes
+- Three bowl sizes: 220px (no query) / 140px (has query) / 120px (no results)
+- searchParams is awaited Promise in Next.js 16 — existing pattern preserved
+- Result rows: className="mojo-oracle-result" + animationDelay per row index
+- Submit button: just SvgNavSearch icon — no text, no conventional styling
+- SvgScryingBowl glowId filter was dead on creation; activated in MOJO-7N
+- All search query logic byte-for-byte identical to pre-visual state
+
+### Mobile Responsive System (MOJO-7O)
+Breakpoints: mobile < 768px / tablet 768-1023px / desktop >= 1024px
+Desktop layout: completely unchanged. All responsive changes inside @media.
+
+MojoMobileNav.tsx ('use client'):
+  Props: children (React.ReactNode — wraps MojoSidebar)
+  State: isOpen (boolean)
+  Renders: hamburger button (fixed, top-left, mobile only) + overlay
+  backdrop + sidebar drawer container
+  CSS: .mojo-hamburger (display:none on desktop), .mojo-sidebar-drawer
+  (position:fixed translateX(-100%) on mobile, translateX(0) when open)
+  The sidebar's content and all its nav/RP-tree logic is completely
+  untouched — MojoMobileNav only controls visibility.
+
+Key mobile decisions:
+  - Content area gets padding-top:60px on mobile to clear hamburger
+  - Stats strip: 6-tile flex → 3×2 grid on mobile
+  - SvgMoon: 160px on mobile, repositioned (was 320px at -80px right)
+  - Images page: folder panel stacks above grid, max-height 180px
+  - Photograph cards: rotation zeroed on mobile (overflow risk)
+  - Manuscript tabs: horizontal scroll on mobile (.mojo-tab-bar)
+  - prefers-reduced-motion: all mojo animations disabled via @media
+  - viewport meta: maximum-scale=1 added to app/layout.tsx (was missing)
+
+### MOJO-7M Audit Summary
+54 checks across 8 categories. 48 pass, 6 flags, 0 fails.
+All 6 flags were in the visual-polish layer, resolved in MOJO-7N:
+  1. MojoAvatarCrop canvas hex (#e0b028 Blood Moon → #a02840 S&O)
+  2. Rich text swatches (Blood Moon hex → Silver & Onyx hex)
+  3. SvgDarkroomHeader orphaned → wired into images page
+  4. mojo-rune-fade keyframe orphaned → removed
+  5. SvgMoon glowId dead filter → activated on outermost halo circle
+  6. #9c9ab8 in non-SVG style props (all were SVG-bound, no change needed)
+Categories 1, 2, 4, 5, 7, 8 all passed outright — the build is
+structurally, functionally, and pattern-clean.
 
 Cross-reference: TWH_BRIEF_v1.md | TWH_PROCESS_v1.md
 This document must be updated when new decisions are made or patterns confirmed.
