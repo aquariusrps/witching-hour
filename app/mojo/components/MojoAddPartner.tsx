@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createMojoPartner } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
+import { SvgLeatherTexture, SvgBookSeal, SvgFiligreeRule } from './MojoSvgAssets'
 
 function navigateToPartners() {
   window.location.href = '/mojo/partners'
@@ -76,7 +77,41 @@ export default function MojoAddPartner() {
       </div>
 
       {open && (
-        <form onSubmit={handleSubmit} style={{ background: 'var(--claret)', border: '1px solid var(--elevated)', borderRadius: 4, padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <form onSubmit={handleSubmit} style={{ background: 'var(--claret)', border: '1px solid var(--elevated)', borderRadius: '2px', padding: 18, position: 'relative', overflow: 'hidden' }}>
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              color: 'var(--mist)',
+              pointerEvents: 'none',
+              opacity: 0.5,
+            }}
+          >
+            <SvgLeatherTexture />
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 14,
+            position: 'relative',
+            zIndex: 1,
+          }}>
+            <SvgBookSeal size={24} idSuffix="add-partner" />
+            <span style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
+              color: 'var(--faded)',
+            }}>
+              New Entry
+            </span>
+          </div>
+
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {error && (
             <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.82rem', color: 'var(--ember)', margin: 0 }}>{error}</p>
           )}
@@ -131,7 +166,19 @@ export default function MojoAddPartner() {
               placeholder="How you met, RPs you've done, threads to remember..."
             />
           </div>
-          <div>
+          </div>
+
+          <div style={{
+            color: 'var(--elevated)',
+            margin: '14px 0',
+            position: 'relative',
+            zIndex: 1,
+            opacity: 0.5,
+          }}>
+            <SvgFiligreeRule />
+          </div>
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
             <button
               type="submit"
               disabled={loading}

@@ -34,20 +34,31 @@ const LABEL_STYLE: React.CSSProperties = {
   marginBottom: 4,
 }
 
-function NoteSection({ label, content }: { label: string; content: string | null }) {
+function NoteSection({ label, content, first = false }: { label: string; content: string | null; first?: boolean }) {
   return (
     <div style={{ marginBottom: 12 }}>
-      <span style={{
-        fontFamily: 'var(--f-ui)',
-        fontSize: '0.62rem',
-        letterSpacing: '0.08em',
+      <div style={{
+        display: 'block',
+        fontFamily: 'Cinzel, serif',
+        fontSize: '9px',
+        letterSpacing: '0.25em',
         textTransform: 'uppercase',
         color: 'var(--faded)',
+        marginBottom: '6px',
+        marginTop: first ? undefined : '14px',
+        opacity: 0.7,
       }}>
         {label}
-      </span>
+      </div>
+      <div style={{
+        width: '40px',
+        height: '1px',
+        background: 'linear-gradient(90deg, var(--faded), transparent)',
+        opacity: 0.3,
+        marginBottom: '8px',
+      }} />
       {content ? (
-        <div style={{ margin: '4px 0 0' }}>
+        <div style={{ margin: '4px 0 0', fontSize: '13px', lineHeight: '24px' }}>
           <MojoRichTextEditor content={content} onChange={() => {}} readonly />
         </div>
       ) : (
@@ -143,7 +154,22 @@ export default function MojoPartnerCard({
 
   if (editing) {
     return (
-      <div style={{ background: 'var(--raised)', border: '1px solid var(--gold-dim)', borderRadius: 4, padding: '14px 16px', marginBottom: 8 }}>
+      <div style={{
+        background: `
+          repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 23px,
+            rgba(255,255,255,0.03) 23px,
+            rgba(255,255,255,0.03) 24px
+          ),
+          var(--raised)
+        `,
+        border: '1px solid var(--elevated)',
+        borderRadius: 2,
+        padding: '14px 16px',
+        marginBottom: 8,
+      }}>
         {error && <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--ember)', margin: '0 0 8px' }}>{error}</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div>
@@ -180,38 +206,63 @@ export default function MojoPartnerCard({
   }
 
   return (
-    <div style={{
-      background: 'var(--claret)',
-      border: '1px solid var(--elevated)',
-      borderRadius: 4,
-      padding: '12px 16px',
-      marginBottom: 8,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <button
-          type="button"
-          onClick={onToggle}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            textAlign: 'left',
+    <div
+      className="mojo-partner-card"
+      style={{
+        position: 'relative',
+        background: 'var(--claret)',
+        border: '1px solid var(--elevated)',
+        borderLeft: '3px solid rgba(255,255,255,0.06)',
+        borderRadius: '2px',
+        marginBottom: '0',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            background: 'var(--elevated)',
+            border: '1px solid rgba(255,255,255,0.08)',
             display: 'flex',
-            alignItems: 'baseline',
-            gap: 8,
-            flexWrap: 'wrap',
-            padding: 0,
-          }}
-        >
-          <span style={{ fontFamily: 'var(--f-head)', fontSize: '1rem', color: 'var(--roseash)' }}>
-            {partner.handle}
-          </span>
-          {!isExpanded && partner.sites && (
-            <span style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.8rem', color: 'var(--faded)' }}>
-              · {partner.sites}
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            fontFamily: 'Cinzel, serif',
+            fontSize: '14px',
+            fontWeight: 600,
+            color: 'var(--faded)',
+            userSelect: 'none',
+          }}>
+            {partner.handle.charAt(0).toUpperCase()}
+          </div>
+          <button
+            type="button"
+            onClick={onToggle}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 8,
+              flexWrap: 'wrap',
+              padding: 0,
+            }}
+          >
+            <span style={{ fontFamily: 'Cormorant Upright, serif', fontSize: '20px', fontWeight: 600, color: 'var(--gold)' }}>
+              {partner.handle}
             </span>
-          )}
-        </button>
+            {!isExpanded && partner.sites && (
+              <span style={{ fontFamily: 'EB Garamond, serif', fontSize: '12px', fontStyle: 'italic', color: 'var(--mist)' }}>
+                · {partner.sites}
+              </span>
+            )}
+          </button>
+        </div>
 
         <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button
@@ -226,13 +277,13 @@ export default function MojoPartnerCard({
       </div>
 
       {isExpanded && (
-        <div style={{ marginTop: 14 }}>
+        <div className="mojo-notes-lined" style={{ padding: '14px 16px 14px 14px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
           {partner.sites && (
-            <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.82rem', color: 'var(--faded)', margin: '0 0 12px' }}>
+            <p style={{ fontFamily: 'EB Garamond, serif', fontSize: '12px', fontStyle: 'italic', color: 'var(--mist)', margin: '0 0 12px' }}>
               {partner.sites}
             </p>
           )}
-          <NoteSection label="Pace" content={partner.pace_notes} />
+          <NoteSection label="Pace" content={partner.pace_notes} first />
           <NoteSection label="Style" content={partner.style_notes} />
           <NoteSection label="History" content={partner.history_notes} />
         </div>

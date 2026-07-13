@@ -644,3 +644,43 @@ body {
   border-left: 2px solid rgba(255, 255, 255, 0.08);
   opacity: 0.7;
 }
+
+/* ═══════════════════════════════════════
+   MOJO BLACK BOOK (PARTNERS) — MOJO-7H
+   ═══════════════════════════════════════ */
+
+/* Partner card — Rolodex/business card base */
+.mojo-partner-card {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.004) 0px,
+    rgba(255,255,255,0.004) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  transition: box-shadow 0.2s ease;
+}
+
+.mojo-partner-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35),
+              0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* Expanded notes area — lined paper treatment */
+.mojo-notes-lined {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 23px,
+    rgba(255, 255, 255, 0.04) 23px,
+    rgba(255, 255, 255, 0.04) 24px
+  );
+  border-left: 1px solid rgba(160, 40, 64, 0.18);
+  padding-left: 14px;
+}
+
+/* Silk ribbon shimmer */
+.mojo-silk-ribbon {
+  animation: mojo-shimmer 4s linear infinite;
+  background-size: 200% 100%;
+}

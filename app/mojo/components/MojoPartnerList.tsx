@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import MojoPartnerCard from './MojoPartnerCard'
+import { SvgFiligreeRule } from './MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoPartner = Tables<'mojo_partners'>
@@ -19,15 +20,25 @@ export default function MojoPartnerList({ partners }: { partners: MojoPartner[] 
 
   return (
     <div>
-      {partners.map((partner) => (
-        <MojoPartnerCard
-          key={partner.id}
-          partner={partner}
-          isExpanded={expandedPartnerId === partner.id}
-          onToggle={() =>
-            setExpandedPartnerId((current) => (current === partner.id ? null : partner.id))
-          }
-        />
+      {partners.map((partner, index) => (
+        <div key={partner.id}>
+          {index > 0 && (
+            <div style={{
+              color: 'var(--elevated)',
+              padding: '4px 0',
+              opacity: 0.35,
+            }}>
+              <SvgFiligreeRule />
+            </div>
+          )}
+          <MojoPartnerCard
+            partner={partner}
+            isExpanded={expandedPartnerId === partner.id}
+            onToggle={() =>
+              setExpandedPartnerId((current) => (current === partner.id ? null : partner.id))
+            }
+          />
+        </div>
       ))}
     </div>
   )

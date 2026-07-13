@@ -1655,3 +1655,182 @@ export function SvgCandleSnuffed({
     </svg>
   )
 }
+
+export function SvgLeatherTexture({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 800 120"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Leather grain — irregular horizontal lines */}
+      {Array.from({ length: 28 }, (_, i) => {
+        const y = 4 + i * 4.2
+        const wobble = Math.sin(i * 2.1) * 3
+        return (
+          <path
+            key={i}
+            d={`M 0 ${y + wobble}
+                C 120 ${y + wobble * 0.7},
+                  240 ${y - wobble * 0.5},
+                  400 ${y + wobble * 0.3}
+                C 560 ${y - wobble * 0.6},
+                  680 ${y + wobble * 0.8},
+                  800 ${y + wobble * 0.2}`}
+            stroke="currentColor"
+            strokeWidth={i % 5 === 0 ? 0.8 : 0.4}
+            opacity={i % 5 === 0 ? 0.06 : 0.03}
+          />
+        )
+      })}
+
+      {/* Cross-grain pebble texture — scattered short marks */}
+      {[
+        [80,18],[160,42],[240,8],[320,55],[400,22],[480,48],
+        [560,14],[640,38],[720,60],[40,65],[120,82],[200,70],
+        [280,90],[360,75],[440,88],[520,72],[600,95],[680,78],
+        [100,105],[250,112],[400,108],[550,102],[700,115],
+      ].map(([x, y], i) => (
+        <ellipse
+          key={i}
+          cx={x} cy={y}
+          rx={3 + (i % 3)} ry={1.2}
+          fill="currentColor"
+          opacity={0.03 + (i % 4) * 0.01}
+          transform={`rotate(${(i * 17) % 30 - 15} ${x} ${y})`}
+        />
+      ))}
+    </svg>
+  )
+}
+
+export function SvgBookSeal({
+  size = 60,
+  idSuffix = 'seal',
+}: { size?: number; idSuffix?: string }) {
+  const r = size / 2
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Outer ring */}
+      <circle cx={r} cy={r} r={r - 2}
+        stroke="currentColor" strokeWidth="0.8" opacity="0.35" />
+      {/* Inner ring */}
+      <circle cx={r} cy={r} r={r - 8}
+        stroke="currentColor" strokeWidth="0.4" opacity="0.20" />
+      {/* Outer ring tick marks — 12 evenly spaced */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * Math.PI * 2
+        const isMajor = i % 3 === 0
+        const r1 = r - 3
+        const r2 = r - 3 - (isMajor ? 5 : 3)
+        return (
+          <line key={i}
+            x1={r + r1 * Math.cos(angle)}
+            y1={r + r1 * Math.sin(angle)}
+            x2={r + r2 * Math.cos(angle)}
+            y2={r + r2 * Math.sin(angle)}
+            stroke="currentColor"
+            strokeWidth={isMajor ? 0.8 : 0.4}
+            opacity={isMajor ? 0.30 : 0.15}
+          />
+        )
+      })}
+      {/* Centre — quill/nib suggestion */}
+      {/* Nib body */}
+      <path
+        d={`M ${r} ${r - 10} L ${r + 6} ${r + 8} L ${r} ${r + 4} L ${r - 6} ${r + 8} Z`}
+        fill="currentColor" opacity="0.25"
+      />
+      {/* Nib slit */}
+      <line x1={r} y1={r} x2={r} y2={r + 8}
+        stroke="currentColor" strokeWidth="0.5" opacity="0.20" />
+      {/* Small dot above — the ink drop */}
+      <circle cx={r} cy={r - 12} r="1.5"
+        fill="currentColor" opacity="0.20" />
+    </svg>
+  )
+}
+
+export function SvgSilkRibbon({
+  width = 20,
+  height = 800,
+}: { width?: number; height?: number }) {
+  const cx = width / 2
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none', display: 'block' }}
+    >
+      {/* Ribbon body */}
+      <rect x="0" y="0" width={width} height={height - 20}
+        fill="currentColor" opacity="0.08" />
+
+      {/* Left highlight edge — the silk catching light */}
+      <rect x="0" y="0" width="3" height={height - 20}
+        fill="white" opacity="0.04" />
+
+      {/* Right shadow edge */}
+      <rect x={width - 2} y="0" width="2" height={height - 20}
+        fill="black" opacity="0.10" />
+
+      {/* Subtle horizontal sheen line (mid-ribbon highlight) */}
+      <rect x="4" y="0" width="2" height={height - 20}
+        fill="white" opacity="0.02" />
+
+      {/* Pointed V-cut terminus at the bottom */}
+      <path
+        d={`M 0 ${height - 20} L ${cx} ${height} L ${width} ${height - 20} Z`}
+        fill="currentColor" opacity="0.10"
+      />
+      {/* V-cut highlight */}
+      <path
+        d={`M 0 ${height - 20} L ${cx} ${height} L ${width} ${height - 20}`}
+        stroke="white" strokeWidth="0.5" opacity="0.06"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
+export function SvgPageCornerFold({
+  size = 24,
+}: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Triangle fold — the folded corner piece */}
+      <path d="M 24 0 L 24 24 L 0 0 Z"
+        fill="currentColor" opacity="0.12" />
+      {/* Shadow line under fold */}
+      <path d="M 0 0 L 24 24"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.20" />
+      {/* Inner fold line */}
+      <path d="M 8 0 L 24 16"
+        stroke="currentColor" strokeWidth="0.3" opacity="0.10" />
+    </svg>
+  )
+}
