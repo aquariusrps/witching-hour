@@ -1408,3 +1408,69 @@ body {
 .mojo-avatar-strip-card:hover .mojo-avatar-set-primary {
   opacity: 1;
 }
+
+/* ═══════════════════════════════════════
+   MOJO LAYOUT CORRECTIONS — FIX-007b/008b
+   ═══════════════════════════════════════ */
+
+/* RP Note Panel — individual note card */
+.mojo-rp-note-panel {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 23px,
+    rgba(255, 255, 255, 0.04) 23px,
+    rgba(255, 255, 255, 0.04) 24px
+  ), var(--raised);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid rgba(160, 40, 64, 0.30);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* RP Note Panel header (always visible label + edit toggle) */
+.mojo-rp-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.mojo-rp-note-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faded);
+}
+
+/* RP Note Panel body */
+.mojo-rp-note-body {
+  padding: 12px 14px;
+  line-height: 24px;
+  min-height: 60px;
+}
+
+/* Character portrait zone — two-column layout */
+.mojo-char-portrait-zone {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 600px) {
+  .mojo-char-portrait-zone {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Character portrait meta column */
+.mojo-char-portrait-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}

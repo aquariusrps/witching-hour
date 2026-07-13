@@ -1,13 +1,13 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getMojoRpWithCharactersAndThreads, getMojoWanted } from '@/lib/db/mojo'
-import MojoRpNotes from '@/app/mojo/components/MojoRpNotes'
+import MojoRpNotePanel from '@/app/mojo/components/MojoRpNotePanel'
 import MojoAddCharacter from '@/app/mojo/components/MojoAddCharacter'
 import MojoCharacterStatusToggle from '@/app/mojo/components/MojoCharacterStatusToggle'
 import MojoWantedBoard from '@/app/mojo/components/MojoWantedBoard'
 import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
 import {
-  SvgCandleRealistic, SvgParchmentEdge, SvgWaxSeal,
+  SvgCandleRealistic, SvgParchmentEdge,
   SvgPageHeaderRule, SvgFiligreeRule, SvgCornerBracket,
 } from '@/app/mojo/components/MojoSvgAssets'
 import { deriveWhoseTurn } from '@/lib/mojo/utils'
@@ -299,38 +299,24 @@ export default async function MojoRpDetailPage({
 
         {/* RIGHT: Notes */}
         <div className="mojo-rp-side-panel">
-          <div>
-            <div style={{ ...SECTION_LABEL_STYLE, marginBottom: '8px' }}>
-              Plot Notes
-            </div>
-            <div className="mojo-journal-panel">
-              <MojoRpNotes
-                rpId={rp.id}
-                initialPlot={rp.notes_plot}
-                initialPartners={rp.notes_partners}
-                initialMisc={rp.notes_misc}
-              />
-            </div>
-          </div>
-
-          {/* Wax seal divider */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '12px',
-            opacity: 0.75,
-          }} aria-hidden="true">
-            <div style={{
-              flex: 1, height: '1px',
-              background: 'linear-gradient(90deg, transparent, var(--elevated))',
-            }} />
-            <SvgWaxSeal size={32} idSuffix="notes-divider" />
-            <div style={{
-              flex: 1, height: '1px',
-              background: 'linear-gradient(90deg, var(--elevated), transparent)',
-            }} />
-          </div>
+          <MojoRpNotePanel
+            rpId={rp.id}
+            label="Plot Threads"
+            field="notes_plot"
+            initialValue={rp.notes_plot}
+          />
+          <MojoRpNotePanel
+            rpId={rp.id}
+            label="Partner Info"
+            field="notes_partners"
+            initialValue={rp.notes_partners}
+          />
+          <MojoRpNotePanel
+            rpId={rp.id}
+            label="Misc Notes"
+            field="notes_misc"
+            initialValue={rp.notes_misc}
+          />
         </div>
       </div>
 

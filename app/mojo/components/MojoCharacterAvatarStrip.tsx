@@ -87,21 +87,9 @@ export default function MojoCharacterAvatarStrip({
         </p>
       )}
 
-      {/* Primary avatar (large) */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginBottom: '20px',
-      }}>
-        <MojoPortraitCard
-          token={primaryTokenState}
-          alt="Primary avatar"
-          size="lg"
-          idSuffix="char-primary"
-        />
-      </div>
-
-      {/* Secondary avatar strip */}
+      {/* Secondary avatar strip — the large primary portrait is rendered
+          directly by the character page (Zone 2, left column); this strip
+          shows only non-primary avatars/stacks + the upload trigger. */}
       <div style={{
         display: 'flex',
         gap: '10px',

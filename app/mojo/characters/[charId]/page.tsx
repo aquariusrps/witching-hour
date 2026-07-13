@@ -12,6 +12,7 @@ import {
 import MojoCharacterArchiveToggle from '@/app/mojo/components/MojoCharacterArchiveToggle'
 import MojoFaceclaimAssign from '@/app/mojo/components/MojoFaceclaimAssign'
 import MojoCharacterAvatarStrip from '@/app/mojo/components/MojoCharacterAvatarStrip'
+import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
 import MojoCharacterNotes from '@/app/mojo/components/MojoCharacterNotes'
 import MojoThreadTracker from '@/app/mojo/components/MojoThreadTracker'
 import MojoResourcesTab from '@/app/mojo/components/MojoResourcesTab'
@@ -173,19 +174,6 @@ export default async function MojoCharacterPage({
               )}
             </div>
 
-            {/* Action buttons row */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px', flexWrap: 'wrap' }}>
-              <MojoFaceclaimAssign
-                characterId={character.id}
-                currentFaceclaimId={character.faceclaim_id}
-                currentFaceclaimName={character.faceclaim_name}
-                allFaceclaims={allFaceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
-              />
-              <MojoCharacterArchiveToggle
-                charId={character.id}
-                status={isArchived ? 'archived' : 'active'}
-              />
-            </div>
           </div>
 
           {/* Header rule at bottom */}
@@ -194,33 +182,123 @@ export default async function MojoCharacterPage({
           </div>
         </div>
 
-        {/* ════ ZONE 2: AVATAR STRIP ════ */}
+        {/* ════ ZONE 2: PORTRAIT + METADATA ════ */}
         <div style={{
           position: 'relative', zIndex: 1,
-          padding: '24px',
+          padding: '20px 24px',
           background: 'var(--raised)',
           borderLeft: '1px solid rgba(255,255,255,0.05)',
           borderRight: '1px solid rgba(255,255,255,0.05)',
           marginBottom: '24px',
         }}>
-          <div style={{
-            fontFamily: 'Cinzel, serif',
-            fontSize: '10px',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: 'var(--faded)',
-            marginBottom: '16px',
-          }}>
-            Portraits
+          <div className="mojo-char-portrait-zone">
+
+            {/* LEFT: Primary portrait only — contained size */}
+            <div style={{ flexShrink: 0 }}>
+              <MojoPortraitCard
+                token={avatarToken}
+                alt={character.name}
+                size="md"
+                idSuffix={`char-primary-${character.id}`}
+              />
+            </div>
+
+            {/* RIGHT: Metadata + actions + secondary strip */}
+            <div className="mojo-char-portrait-meta">
+
+              {character.faceclaim_name && (
+                <div>
+                  <span style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '9px',
+                    letterSpacing: '0.20em',
+                    textTransform: 'uppercase',
+                    color: 'var(--faded)',
+                    display: 'block',
+                    marginBottom: '3px',
+                  }}>
+                    Faceclaim
+                  </span>
+                  <span style={{
+                    fontFamily: 'EB Garamond, serif',
+                    fontSize: '16px',
+                    fontStyle: 'italic',
+                    color: 'var(--mist)',
+                  }}>
+                    {character.faceclaim_name}
+                  </span>
+                </div>
+              )}
+
+              {character.rp_name && (
+                <div>
+                  <span style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '9px',
+                    letterSpacing: '0.20em',
+                    textTransform: 'uppercase',
+                    color: 'var(--faded)',
+                    display: 'block',
+                    marginBottom: '3px',
+                  }}>
+                    Roleplay
+                  </span>
+                  <Link
+                    href={`/mojo/rps/${character.rp_id}`}
+                    style={{
+                      fontFamily: 'EB Garamond, serif',
+                      fontSize: '14px',
+                      color: 'var(--roseash)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {character.rp_name}
+                  </Link>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                <MojoFaceclaimAssign
+                  characterId={character.id}
+                  currentFaceclaimId={character.faceclaim_id}
+                  currentFaceclaimName={character.faceclaim_name}
+                  allFaceclaims={allFaceclaims.map((fc) => ({ id: fc.id, name: fc.name }))}
+                />
+                <MojoCharacterArchiveToggle
+                  charId={character.id}
+                  status={isArchived ? 'archived' : 'active'}
+                />
+              </div>
+
+              {/* Divider */}
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+
+              {/* Secondary avatar strip — non-primary avatars + upload */}
+              <div>
+                <span style={{
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: '9px',
+                  letterSpacing: '0.20em',
+                  textTransform: 'uppercase',
+                  color: 'var(--faded)',
+                  display: 'block',
+                  marginBottom: '8px',
+                }}>
+                  All Portraits
+                </span>
+                <MojoCharacterAvatarStrip
+                  characterId={character.id}
+                  faceclaimId={character.faceclaim_id}
+                  avatars={characterAvatars}
+                  stacks={characterStacks}
+                  primaryStackId={character.primary_stack_id}
+                  primaryToken={avatarToken}
+                />
+              </div>
+
+            </div>
           </div>
-          <MojoCharacterAvatarStrip
-            characterId={character.id}
-            faceclaimId={character.faceclaim_id}
-            avatars={characterAvatars}
-            stacks={characterStacks}
-            primaryStackId={character.primary_stack_id}
-            primaryToken={avatarToken}
-          />
         </div>
 
         {/* ════ ZONE 3: THREE COLUMNS ════ */}
