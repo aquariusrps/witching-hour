@@ -437,6 +437,49 @@ export async function assignFaceclaimToCharacter(
   return { success: true as const }
 }
 
+export async function createAndAssignFaceclaim(
+  name: string,
+  characterId: string
+): Promise<ActionError | { success: true; faceclaimId: string }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const trimmed = name?.trim()
+  if (!trimmed) return { error: 'Faceclaim name is required' }
+
+  const admin = getAdminClient()
+
+  const { data: existing } = await admin
+    .from('mojo_faceclaims')
+    .select('id')
+    .ilike('name', trimmed)
+    .maybeSingle()
+
+  let faceclaimId = existing?.id ?? null
+
+  if (!faceclaimId) {
+    const { data: created, error: createError } = await admin
+      .from('mojo_faceclaims')
+      .insert({ name: trimmed })
+      .select('id')
+      .single()
+
+    if (createError || !created) return { error: 'Failed to create faceclaim' }
+    faceclaimId = created.id
+  }
+
+  const { error: assignError } = await admin
+    .from('mojo_characters')
+    .update({ faceclaim_id: faceclaimId })
+    .eq('id', characterId)
+
+  if (assignError) return { error: 'Failed to assign faceclaim' }
+
+  revalidatePath('/mojo/characters/' + characterId)
+  revalidatePath('/mojo/faceclaims')
+  return { success: true as const, faceclaimId }
+}
+
 // ─── RESOURCE ACTIONS ──────────────────────────────────────
 
 export async function createMojoResource(payload: {
