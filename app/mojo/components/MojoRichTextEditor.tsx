@@ -148,6 +148,7 @@ function MojoRichTextEditorInner({
   return (
     <div style={{ border: '1px solid var(--elevated)', borderRadius: 2 }}>
       <div
+        className="mojo-rich-text-toolbar"
         style={{
           display: 'flex',
           flexWrap: 'wrap',

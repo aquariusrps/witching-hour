@@ -28,6 +28,7 @@ export default async function MojoWishlistPage() {
 
       <div
         aria-hidden="true"
+        className="mojo-botanical-corner"
         style={{
           position: 'absolute',
           bottom: 0,
@@ -35,13 +36,15 @@ export default async function MojoWishlistPage() {
           color: 'var(--mist)',
           pointerEvents: 'none',
           zIndex: 0,
-        }}
+          '--botanical-origin': 'bottom left',
+        } as React.CSSProperties}
       >
         <SvgBotanicalSpray width={160} height={220} flip={false} />
       </div>
 
       <div
         aria-hidden="true"
+        className="mojo-botanical-corner"
         style={{
           position: 'absolute',
           top: 0,
@@ -52,7 +55,8 @@ export default async function MojoWishlistPage() {
           transform: 'rotate(180deg)',
           /* Rotating 180deg flips both X and Y — creating a
              downward cascade from top-right corner */
-        }}
+          '--botanical-origin': 'top right',
+        } as React.CSSProperties}
       >
         <SvgBotanicalSpray width={130} height={180} flip={true} />
       </div>

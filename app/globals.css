@@ -906,3 +906,227 @@ body {
   background: var(--elevated);
   opacity: 0.4;
 }
+
+/* ═══════════════════════════════════════
+   MOJO MOBILE RESPONSIVE — MOJO-7O
+   ═══════════════════════════════════════ */
+
+/* ── SIDEBAR DRAWER (mobile/tablet) ── */
+
+/* On desktop: drawer classes have no effect — sidebar renders normally */
+.mojo-sidebar-drawer {
+  position: relative;
+}
+
+/* On mobile: sidebar becomes a fixed left drawer, hidden by default */
+@media (max-width: 767px) {
+  /* Hide hamburger on desktop (it's always in DOM but hidden via CSS) */
+  .mojo-hamburger {
+    display: flex;
+  }
+
+  .mojo-drawer-close {
+    display: block;
+  }
+
+  .mojo-sidebar-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+    /* z-index set inline in component */
+  }
+
+  .mojo-sidebar-drawer.mojo-sidebar-open {
+    transform: translateX(0);
+  }
+}
+
+/* ── LAYOUT: hide hamburger on desktop ── */
+@media (min-width: 768px) {
+  .mojo-hamburger {
+    display: none !important;
+  }
+  .mojo-drawer-close {
+    display: none !important;
+  }
+  .mojo-sidebar-drawer {
+    position: relative;
+    transform: none;
+  }
+}
+
+/* ── LAYOUT: main content full-width on mobile ── */
+@media (max-width: 767px) {
+  /* The layout wrapper (flex row: sidebar + content) */
+  /* becomes a single-column layout on mobile */
+  /* The sidebar is removed from flow (fixed) */
+  /* so the content div expands to full width automatically */
+  /* Additional top padding to clear the fixed hamburger button */
+  .mojo-content-area {
+    padding-top: 60px;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* ── DASHBOARD: stats strip wraps on mobile ── */
+@media (max-width: 767px) {
+  .mojo-stats-strip {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+/* ── DASHBOARD: moon size and position on mobile ── */
+@media (max-width: 767px) {
+  .mojo-moon-wrapper {
+    top: 0px !important;
+    right: -30px !important;
+  }
+  .mojo-moon-wrapper svg {
+    width: 160px !important;
+    height: 160px !important;
+  }
+}
+
+/* ── CHARACTER SHEET: tabs scroll horizontally on mobile ── */
+@media (max-width: 767px) {
+  .mojo-tab-bar {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+  .mojo-tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── IMAGES PAGE: folder panel stacks above grid on mobile ── */
+@media (max-width: 767px) {
+  .mojo-images-layout {
+    flex-direction: column !important;
+  }
+  .mojo-folder-panel {
+    width: 100% !important;
+    max-height: 180px;
+    overflow-y: auto;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  }
+  .mojo-folder-panel .mojo-cabinet-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 4px;
+  }
+}
+
+/* ── IMAGES PAGE: folder items as horizontal chips on mobile ── */
+@media (max-width: 767px) {
+  .mojo-folder-tab {
+    padding: 5px 10px !important;
+    border-radius: 2px;
+    flex-shrink: 0;
+    font-size: 12px !important;
+  }
+}
+
+/* ── GENERAL: touch targets minimum 44px on mobile ── */
+@media (max-width: 767px) {
+  .mojo-nav-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Button touch targets */
+  button, [role="button"] {
+    min-height: 36px;
+  }
+}
+
+/* ── TABLET: sidebar narrows slightly ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mojo-sidebar-width {
+    width: 200px !important;
+    min-width: 200px !important;
+  }
+  /* Hide sidebar labels, show only glyphs — optional;
+     keep labels for usability but reduce padding */
+  .mojo-nav-item {
+    padding: 7px 10px !important;
+    font-size: 12px;
+  }
+}
+
+/* ── PORTRAIT GALLERY: ensure min 2 cols on tablet ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mojo-gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+  }
+}
+
+/* ── PHOTOGRAPH CARDS: reduce rotation on mobile (less overflow risk) ── */
+@media (max-width: 767px) {
+  .mojo-photograph {
+    /* Keep some rotation for character, but subtler */
+    transform: rotate(0deg) !important;
+  }
+  .mojo-photograph:hover {
+    transform: translateY(-2px) rotate(0deg) !important;
+  }
+}
+
+/* ── DESIRES: reduce botanical spray size on mobile ── */
+@media (max-width: 767px) {
+  .mojo-botanical-corner {
+    opacity: 0.06 !important;
+    transform: scale(0.6);
+    transform-origin: var(--botanical-origin, bottom left);
+  }
+}
+
+/* ── ORACLE: bowl size on mobile ── */
+@media (max-width: 767px) {
+  .mojo-bowl-wrapper svg {
+    /* Bowl SVG already scales — just ensure container is centred */
+    max-width: 85vw;
+  }
+}
+
+/* ── RICH TEXT EDITOR: toolbar wraps on mobile ── */
+@media (max-width: 767px) {
+  .mojo-rich-text-toolbar {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+}
+
+/* ── PREFERS-REDUCED-MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all mojo animations — respects battery/accessibility */
+  [style*="mojo-moon-breathe"],
+  [style*="mojo-flame-main"],
+  [style*="mojo-flame-inner"],
+  [style*="mojo-flame-smoke"],
+  [style*="mojo-ember-pulse"],
+  [style*="mojo-float"],
+  [style*="mojo-shimmer"],
+  [style*="mojo-portal-glow"],
+  [style*="mojo-oracle-surface"],
+  [style*="mojo-tray-ripple"],
+  .mojo-silk-ribbon,
+  .mojo-moon-breathe,
+  .mojo-portal-glow {
+    animation: none !important;
+    transition: none !important;
+  }
+}

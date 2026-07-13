@@ -4,6 +4,7 @@ import { getServerClient } from '@/lib/supabase/serverClient'
 import { isSuperAdmin } from '@/lib/permissions'
 import { getMojoRpsWithCharacters } from '@/lib/db/mojo'
 import MojoSidebar from './components/MojoSidebar'
+import MojoMobileNav from './components/MojoMobileNav'
 import { SvgCrescent, SvgPortalIcon } from './components/MojoSvgAssets'
 
 export default async function MojoLayout({
@@ -36,9 +37,11 @@ export default async function MojoLayout({
         `,
       }}
     >
-      <MojoSidebar rps={rps} />
+      <MojoMobileNav>
+        <MojoSidebar rps={rps} />
+      </MojoMobileNav>
 
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
+      <div className="mojo-content-area" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
         <header style={{
           display: 'flex',
           alignItems: 'center',

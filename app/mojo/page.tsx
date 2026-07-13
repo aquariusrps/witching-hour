@@ -13,6 +13,7 @@ export default async function MojoDashboardPage() {
       {/* The Moon — The Sanctum centrepiece */}
       <div
         aria-hidden="true"
+        className="mojo-moon-wrapper"
         style={{
           position: 'absolute',
           top: '-40px',
@@ -52,7 +53,7 @@ export default async function MojoDashboardPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+      <div className="mojo-stats-strip" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
         <MojoDashboardStatTile href="/mojo" value={stats.activeRpCount} label="Active RPs" watermark="☽" />
         <MojoDashboardStatTile href="/mojo" value={stats.characterCount} label="Characters" watermark="♃" />
         <MojoDashboardStatTile href="/mojo" value={stats.activeThreadCount} label="Active Threads" watermark="∞" />

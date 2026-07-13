@@ -61,6 +61,7 @@ export default async function MojoFaceclaimsPage() {
         </p>
       ) : (
         <div
+          className="mojo-gallery-grid"
           style={{
             position: 'relative',
             zIndex: 1,

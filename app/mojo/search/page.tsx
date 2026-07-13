@@ -99,7 +99,7 @@ export default async function MojoSearchPage({
         </div>
 
         {/* Scrying Bowl */}
-        <div style={{
+        <div className="mojo-bowl-wrapper" style={{
           marginBottom: query ? '20px' : '28px',
           color: 'var(--mist)',
           animation: 'mojo-moon-breathe 5s ease-in-out infinite',

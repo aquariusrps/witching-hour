@@ -55,7 +55,7 @@ export default function MojoCharacterTabs({
 
   return (
     <div>
-      <div style={{
+      <div className="mojo-tab-bar" style={{
         display: 'flex',
         background: 'var(--char)',
         borderBottom: '1px solid var(--elevated)',

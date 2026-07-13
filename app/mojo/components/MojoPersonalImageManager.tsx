@@ -86,14 +86,16 @@ export default function MojoPersonalImageManager({
   else if (activeFolder !== 'all') emptyMessage = 'No images in this folder yet.'
 
   return (
-    <div style={{ display: 'flex', minHeight: '60vh', position: 'relative', zIndex: 1 }}>
-      <MojoImageFolderList
-        folders={initialFolders}
-        totalCount={totalCount}
-        untaggedCount={untaggedCount}
-        activeFolder={activeFolder}
-        onSelectFolder={handleSelectFolder}
-      />
+    <div className="mojo-images-layout" style={{ display: 'flex', minHeight: '60vh', position: 'relative', zIndex: 1 }}>
+      <div className="mojo-folder-panel">
+        <MojoImageFolderList
+          folders={initialFolders}
+          totalCount={totalCount}
+          untaggedCount={untaggedCount}
+          activeFolder={activeFolder}
+          onSelectFolder={handleSelectFolder}
+        />
+      </div>
 
       <div style={{ flex: 1, padding: '0 24px', minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
