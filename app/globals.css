@@ -520,3 +520,53 @@ body {
 .mojo-portal-glow {
   animation: mojo-portal-glow 3s ease-in-out infinite;
 }
+
+/* ═══════════════════════════════════════
+   MOJO PORTRAIT GALLERY — MOJO-7E
+   ═══════════════════════════════════════ */
+
+/* Portrait card hover — frame glow */
+.mojo-portrait-card {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.mojo-portrait-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.10),
+    0 8px 32px rgba(0,0,0,0.5),
+    0 0 20px rgba(192,192,200,0.08);
+  transform: translateY(-2px);
+}
+
+/* Portrait card candle flame — hidden until hover */
+.mojo-portrait-card .mojo-portrait-flame {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.mojo-portrait-card:hover .mojo-portrait-flame {
+  opacity: 1;
+}
+
+/* Brass plate effect */
+.mojo-brass-plate {
+  background: linear-gradient(
+    135deg,
+    rgba(160,120,60,0.25) 0%,
+    rgba(120,90,40,0.18) 40%,
+    rgba(160,120,60,0.22) 100%
+  );
+  border-top: 1px solid rgba(200,160,80,0.20);
+  border-bottom: 1px solid rgba(80,60,20,0.25);
+}
+
+/* Contact sheet film strip sprocket holes */
+.mojo-film-strip-edge {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 10px,
+    rgba(255,255,255,0.12) 10px,
+    rgba(255,255,255,0.12) 16px,
+    transparent 16px,
+    transparent 26px
+  );
+}

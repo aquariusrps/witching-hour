@@ -754,3 +754,268 @@ export function SvgMedallion({
     </svg>
   )
 }
+
+// ── Portrait Gallery SVGs (MOJO-7E) ──────────────────────
+
+export function SvgPortraitFrame({
+  width = 200,
+  height = 260,
+  color = 'currentColor',
+  idSuffix = 'fc',
+}: {
+  width?: number
+  height?: number
+  color?: string
+  idSuffix?: string
+}) {
+  const strokeW = 1.2
+  const inset = 6   // inner rule inset from outer frame
+  const rosette = 8  // rosette radius at corners
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Outer frame rectangle */}
+      <rect
+        x={2} y={2}
+        width={width - 4} height={height - 4}
+        stroke={color}
+        strokeWidth={strokeW}
+        opacity="0.55"
+        rx="1"
+      />
+
+      {/* Inner ruled line — the classic portrait frame double border */}
+      <rect
+        x={inset} y={inset}
+        width={width - inset * 2} height={height - inset * 2}
+        stroke={color}
+        strokeWidth={strokeW * 0.6}
+        opacity="0.30"
+        rx="0.5"
+      />
+
+      {/* Corner rosettes — circular flourishes at all four corners */}
+      {/* Top-left */}
+      <circle cx={inset} cy={inset} r={rosette * 0.5}
+        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
+      <circle cx={inset} cy={inset} r={rosette * 0.2}
+        fill={color} opacity="0.30" />
+      {/* Top-right */}
+      <circle cx={width - inset} cy={inset} r={rosette * 0.5}
+        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
+      <circle cx={width - inset} cy={inset} r={rosette * 0.2}
+        fill={color} opacity="0.30" />
+      {/* Bottom-left */}
+      <circle cx={inset} cy={height - inset} r={rosette * 0.5}
+        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
+      <circle cx={inset} cy={height - inset} r={rosette * 0.2}
+        fill={color} opacity="0.30" />
+      {/* Bottom-right */}
+      <circle cx={width - inset} cy={height - inset} r={rosette * 0.5}
+        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
+      <circle cx={width - inset} cy={height - inset} r={rosette * 0.2}
+        fill={color} opacity="0.30" />
+
+      {/* Mid-point ornaments on each side — small diamond pips */}
+      {/* Top center */}
+      <rect x={width/2 - 3} y={0} width={6} height={6}
+        transform={`rotate(45 ${width/2} 3)`}
+        fill={color} opacity="0.25" />
+      {/* Bottom center */}
+      <rect x={width/2 - 3} y={height - 6} width={6} height={6}
+        transform={`rotate(45 ${width/2} ${height - 3})`}
+        fill={color} opacity="0.25" />
+      {/* Left center */}
+      <rect x={0} y={height/2 - 3} width={6} height={6}
+        transform={`rotate(45 3 ${height/2})`}
+        fill={color} opacity="0.25" />
+      {/* Right center */}
+      <rect x={width - 6} y={height/2 - 3} width={6} height={6}
+        transform={`rotate(45 ${width - 3} ${height/2})`}
+        fill={color} opacity="0.25" />
+    </svg>
+  )
+}
+
+export function SvgFlourishUnderline({
+  width = 300,
+}: { width?: number }) {
+  return (
+    <svg
+      width={width}
+      height="16"
+      viewBox="0 0 300 16"
+      preserveAspectRatio="none"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Main flourish stroke — starts thin, swells, tapers */}
+      <path
+        d="M 0 10 C 30 8, 60 12, 100 9 C 130 7, 145 11, 150 8
+           C 155 5, 170 9, 200 8 C 230 7, 260 11, 290 9 L 300 10"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        strokeLinecap="round"
+        opacity="0.40"
+      />
+      {/* Swelled center — thicker stroke in the middle section */}
+      <path
+        d="M 100 9 C 120 7, 135 11, 150 8 C 165 5, 180 9, 200 8"
+        stroke="currentColor"
+        strokeWidth="2.0"
+        strokeLinecap="round"
+        opacity="0.35"
+      />
+      {/* Decorative tail at right end */}
+      <path
+        d="M 285 9 C 292 6, 298 12, 300 8 C 302 4, 308 10, 305 14"
+        stroke="currentColor"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+        opacity="0.25"
+      />
+      {/* Small diamond at the swell peak */}
+      <rect x="147" y="4" width="6" height="6"
+        transform="rotate(45 150 7)"
+        fill="currentColor" opacity="0.30" />
+    </svg>
+  )
+}
+
+export function SvgCandleFlame({
+  size = 16,
+  delay = '0s',
+  className = '',
+}: {
+  size?: number
+  delay?: string
+  className?: string
+}) {
+  return (
+    <svg
+      width={size}
+      height={size * 1.6}
+      viewBox="0 0 16 26"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      {/* Outer flame */}
+      <ellipse cx="8" cy="14" rx="5" ry="9"
+        fill="currentColor" opacity="0.35"
+        style={{
+          transformOrigin: '8px 22px',
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: delay,
+        }}
+      />
+      {/* Inner flame */}
+      <ellipse cx="8" cy="16" rx="3" ry="6"
+        fill="white" opacity="0.50"
+        style={{
+          transformOrigin: '8px 22px',
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: delay,
+        }}
+      />
+      {/* Wick dot */}
+      <circle cx="8" cy="22" r="1.5"
+        fill="currentColor" opacity="0.6" />
+    </svg>
+  )
+}
+
+export function SvgGalleryCorridor({
+  width = 800,
+  height = 200,
+}: { width?: number; height?: number }) {
+  const cx = width / 2  // vanishing point x
+  const vy = height * 0.45  // vanishing point y
+
+  return (
+    <svg
+      width="100%"
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Ceiling line */}
+      <line x1="0" y1="0" x2={width} y2="0"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+
+      {/* Floor line */}
+      <line x1="0" y1={height} x2={width} y2={height}
+        stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+
+      {/* Left wall perspective lines — converging to vanishing point */}
+      {[0, 0.15, 0.3, 0.45, 0.6].map((frac, i) => (
+        <line key={`l${i}`}
+          x1={width * frac} y1="0"
+          x2={cx} y2={vy}
+          stroke="currentColor"
+          strokeWidth={i === 0 ? 0.8 : 0.4}
+          opacity={0.08 - i * 0.012}
+        />
+      ))}
+
+      {/* Right wall perspective lines */}
+      {[1, 0.85, 0.70, 0.55, 0.40].map((frac, i) => (
+        <line key={`r${i}`}
+          x1={width * frac} y1="0"
+          x2={cx} y2={vy}
+          stroke="currentColor"
+          strokeWidth={i === 0 ? 0.8 : 0.4}
+          opacity={0.08 - i * 0.012}
+        />
+      ))}
+
+      {/* Floor perspective lines */}
+      {[0, 0.15, 0.3, 0.45, 0.55, 0.70, 0.85, 1].map((frac, i) => (
+        <line key={`f${i}`}
+          x1={width * frac} y1={height}
+          x2={cx} y2={vy}
+          stroke="currentColor" strokeWidth="0.4"
+          opacity={0.05}
+        />
+      ))}
+
+      {/* Vanishing point — very faint circle */}
+      <circle cx={cx} cy={vy} r="4"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
+      <circle cx={cx} cy={vy} r="1"
+        fill="currentColor" opacity="0.10" />
+
+      {/* Wall panel suggestions — vertical lines at diminishing widths */}
+      {[-280, -180, -100, -40, 40, 100, 180, 280].map((offset, i) => {
+        const x = cx + offset
+        if (x < 0 || x > width) return null
+        return (
+          <line key={`p${i}`}
+            x1={x} y1="0"
+            x2={x} y2={height}
+            stroke="currentColor" strokeWidth="0.3"
+            opacity={0.04}
+          />
+        )
+      })}
+    </svg>
+  )
+}
