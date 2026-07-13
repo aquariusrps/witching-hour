@@ -1309,6 +1309,7 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
+          image_token: string | null
           notes: string | null
           status: string
           title: string
@@ -1318,6 +1319,7 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          image_token?: string | null
           notes?: string | null
           status?: string
           title: string
@@ -1327,6 +1329,7 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          image_token?: string | null
           notes?: string | null
           status?: string
           title?: string

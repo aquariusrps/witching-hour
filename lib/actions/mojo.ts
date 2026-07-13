@@ -780,6 +780,7 @@ export async function createMojoWishlistItem(payload: {
   title: string
   notes?: string
   type: string
+  image_token?: string | null
 }): Promise<ActionError | { success: true; item: MojoWishlist }> {
   const userId = await requireSuperAdmin()
   if (!userId) return { error: 'Unauthorized' }
@@ -795,6 +796,7 @@ export async function createMojoWishlistItem(payload: {
       title,
       notes: payload.notes?.trim() || null,
       type: payload.type,
+      image_token: payload.image_token ?? null,
     })
     .select()
     .single()
@@ -807,7 +809,7 @@ export async function createMojoWishlistItem(payload: {
 
 export async function updateMojoWishlistItem(
   itemId: string,
-  payload: { title?: string; notes?: string; type?: string }
+  payload: { title?: string; notes?: string; type?: string; image_token?: string | null }
 ): Promise<ActionError | { success: true }> {
   const userId = await requireSuperAdmin()
   if (!userId) return { error: 'Unauthorized' }
@@ -859,9 +861,90 @@ export async function deleteMojoWishlistItem(
   if (!userId) return { error: 'Unauthorized' }
 
   const admin = getAdminClient()
+
+  const { data: item } = await admin
+    .from('mojo_wishlist')
+    .select('image_token')
+    .eq('id', itemId)
+    .single()
+
+  if (item?.image_token) {
+    const { data: tokenRow } = await admin
+      .from('mojo_image_tokens')
+      .select('storage_path')
+      .eq('token', item.image_token)
+      .single()
+
+    if (tokenRow) {
+      const { error: storageError } = await admin.storage
+        .from('mojo-private')
+        .remove([tokenRow.storage_path])
+      if (storageError) {
+        console.error('Failed to delete storage object:', storageError)
+      }
+    }
+
+    await admin.from('mojo_image_tokens').delete().eq('token', item.image_token)
+  }
+
   const { error } = await admin.from('mojo_wishlist').delete().eq('id', itemId)
 
   if (error) return { error: 'Failed to delete wishlist item' }
+
+  revalidatePath('/mojo/wishlist')
+  return { success: true as const }
+}
+
+export async function registerWishlistImage(payload: {
+  storage_path: string
+  mime_type: string
+  item_id?: string
+}): Promise<ActionError | { success: true; token: string; proxyUrl: string }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const storagePath = payload.storage_path?.trim()
+  if (!storagePath) return { error: 'Storage path is required' }
+
+  const token = await registerImageToken(storagePath, payload.mime_type, null, 'wishlist-ref')
+  const proxyUrl = getProxyUrl(token)
+
+  revalidatePath('/mojo/wishlist')
+  return { success: true as const, token, proxyUrl }
+}
+
+export async function removeWishlistImage(
+  itemId: string,
+  token: string
+): Promise<ActionError | { success: true }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  const admin = getAdminClient()
+
+  const { data: tokenRow } = await admin
+    .from('mojo_image_tokens')
+    .select('storage_path')
+    .eq('token', token)
+    .single()
+
+  if (tokenRow) {
+    const { error: storageError } = await admin.storage
+      .from('mojo-private')
+      .remove([tokenRow.storage_path])
+    if (storageError) {
+      console.error('Failed to delete storage object:', storageError)
+    }
+  }
+
+  await admin.from('mojo_image_tokens').delete().eq('token', token)
+
+  const { error } = await admin
+    .from('mojo_wishlist')
+    .update({ image_token: null })
+    .eq('id', itemId)
+
+  if (error) return { error: 'Failed to remove image' }
 
   revalidatePath('/mojo/wishlist')
   return { success: true as const }

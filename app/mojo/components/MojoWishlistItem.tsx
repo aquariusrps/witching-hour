@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { createBrowserClient } from '@/lib/supabase/browserClient'
 import {
   updateMojoWishlistItem,
   updateMojoWishlistStatus,
   deleteMojoWishlistItem,
+  removeWishlistImage,
+  registerWishlistImage,
 } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
 import {
@@ -17,6 +20,44 @@ type MojoWishlist = Tables<'mojo_wishlist'>
 
 function navigateToWishlist() {
   window.location.href = '/mojo/wishlist'
+}
+
+async function uploadWishlistImage(
+  file: File
+): Promise<{ error: string } | { success: true; token: string; proxyUrl: string }> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  let response: Response
+  try {
+    response = await fetch('/api/mojo/process-image', { method: 'POST', body: formData })
+  } catch {
+    return { error: 'Failed to process image' }
+  }
+  if (!response.ok) {
+    return { error: 'Failed to process image' }
+  }
+
+  const processedBlob = await response.blob()
+  const processedMime = response.headers.get('Content-Type') ?? 'image/png'
+  const finalIsGif = response.headers.get('X-Is-Gif') === 'true'
+
+  const supabase = createBrowserClient()
+  const ext = finalIsGif ? 'gif' : 'png'
+  const storagePath = 'wishlist/' + crypto.randomUUID() + '.' + ext
+
+  const { error: uploadError } = await supabase.storage
+    .from('mojo-private')
+    .upload(storagePath, processedBlob, { contentType: processedMime, upsert: false })
+
+  if (uploadError) {
+    return { error: 'Upload failed: ' + uploadError.message }
+  }
+
+  return registerWishlistImage({
+    storage_path: storagePath,
+    mime_type: processedMime,
+  })
 }
 
 const TYPE_OPTIONS = [
@@ -83,24 +124,70 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
   const [statusLoading, setStatusLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  const [imageToken, setImageToken] = useState(item.image_token)
+  const [removeImageLoading, setRemoveImageLoading] = useState(false)
+
+  const [pendingImageToken, setPendingImageToken] = useState<string | null>(item.image_token)
+  const [pendingProxyUrl, setPendingProxyUrl] = useState<string | null>(
+    item.image_token ? `${process.env.NEXT_PUBLIC_SITE_URL}/i/${item.image_token}.png` : null
+  )
+  const [imageUploadLoading, setImageUploadLoading] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
+
   function startEdit() {
     setTitle(item.title)
     setType(item.type)
     setNotes(item.notes ?? '')
     setError(null)
+    setPendingImageToken(imageToken)
+    setPendingProxyUrl(imageToken ? `${process.env.NEXT_PUBLIC_SITE_URL}/i/${imageToken}.png` : null)
+    setImageUploadError(null)
     setEditing(true)
   }
 
   async function handleSave() {
     setLoading(true)
     setError(null)
-    const result = await updateMojoWishlistItem(item.id, { title, notes, type })
+    const result = await updateMojoWishlistItem(item.id, { title, notes, type, image_token: pendingImageToken })
     if ('error' in result) {
       setLoading(false)
       setError(result.error)
       return
     }
     navigateToWishlist()
+  }
+
+  async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setImageUploadLoading(true)
+    setImageUploadError(null)
+
+    const result = await uploadWishlistImage(file)
+    setImageUploadLoading(false)
+
+    if ('error' in result) {
+      setImageUploadError(result.error)
+      return
+    }
+
+    setPendingImageToken(result.token)
+    setPendingProxyUrl(result.proxyUrl)
+  }
+
+  function removePendingImage() {
+    setPendingImageToken(null)
+    setPendingProxyUrl(null)
+  }
+
+  async function handleRemoveImage() {
+    if (!imageToken) return
+    setRemoveImageLoading(true)
+    const result = await removeWishlistImage(item.id, imageToken)
+    setRemoveImageLoading(false)
+    if ('error' in result) return
+    setImageToken(null)
   }
 
   async function handleStatusChange(status: 'idea' | 'active' | 'shelved') {
@@ -149,6 +236,50 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
             {TYPE_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
           <MojoRichTextEditor content={notes} onChange={setNotes} minHeight="80px" />
+          <div>
+            <label style={{
+              display: 'block',
+              fontFamily: 'var(--f-ui)',
+              fontSize: '0.65rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--faded)',
+              marginBottom: 4,
+            }}>
+              Reference Image
+            </label>
+            {pendingProxyUrl ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={pendingProxyUrl} alt="Reference" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 2 }} />
+                <button
+                  type="button"
+                  onClick={removePendingImage}
+                  style={{ background: 'none', border: 'none', color: 'var(--ember-dim)', cursor: 'pointer', fontFamily: 'var(--f-ui)', fontSize: '0.7rem' }}
+                >
+                  Remove image
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                disabled={imageUploadLoading}
+                style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--mist)' }}
+              />
+            )}
+            {imageUploadLoading && (
+              <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)', margin: '4px 0 0' }}>
+                Uploading…
+              </p>
+            )}
+            {imageUploadError && (
+              <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.75rem', color: 'var(--ember)', margin: '4px 0 0' }}>
+                {imageUploadError}
+              </p>
+            )}
+          </div>
         </div>
         <div style={{ marginTop: 10 }}>
           <button type="button" onClick={handleSave} disabled={loading} style={{ background: 'var(--ember)', color: 'var(--roseash)', border: 'none', borderRadius: 2, padding: '6px 16px', fontFamily: 'var(--f-ui)', fontSize: '0.75rem', cursor: loading ? 'not-allowed' : 'pointer' }}>
@@ -253,6 +384,42 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
           )}
         </div>
       </div>
+
+      {imageToken && (
+        <div style={{ marginBottom: '10px', position: 'relative' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`${process.env.NEXT_PUBLIC_SITE_URL}/i/${imageToken}.png`}
+            alt="Reference"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '300px',
+              objectFit: 'contain',
+              borderRadius: '3px',
+              display: 'block',
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleRemoveImage}
+            disabled={removeImageLoading}
+            style={{
+              position: 'absolute',
+              top: '4px', right: '4px',
+              background: 'rgba(0,0,0,0.6)',
+              border: 'none',
+              color: 'var(--faded)',
+              cursor: removeImageLoading ? 'not-allowed' : 'pointer',
+              borderRadius: '2px',
+              padding: '2px 6px',
+              fontFamily: 'Cinzel, serif',
+              fontSize: '10px',
+            }}
+          >
+            × Remove image
+          </button>
+        </div>
+      )}
 
       {item.notes && (
         <div style={{ margin: '6px 0 0' }}>
