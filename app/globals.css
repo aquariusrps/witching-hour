@@ -1304,3 +1304,107 @@ body {
   color: var(--roseash);
   margin: 0;
 }
+
+/* ═══════════════════════════════════════
+   MOJO CHARACTER PAGE — MOJO-FIX-008
+   ═══════════════════════════════════════ */
+
+/* Three-column layout */
+.mojo-char-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1023px) {
+  .mojo-char-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .mojo-char-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Column headers */
+.mojo-column-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.mojo-column-heading span {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--faded);
+}
+
+/* Resource card */
+.mojo-resource-card {
+  position: relative;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: var(--raised);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 2px;
+  transition: box-shadow 0.15s ease;
+}
+
+.mojo-resource-card:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Notes accordion */
+.mojo-notes-section {
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mojo-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.15);
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faded);
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.mojo-notes-content {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 23px,
+    rgba(255,255,255,0.03) 23px,
+    rgba(255,255,255,0.03) 24px
+  ), var(--raised);
+  border-left: 3px solid rgba(160,40,64,0.30);
+  padding: 12px 14px;
+  line-height: 24px;
+}
+
+/* Avatar strip hover */
+.mojo-avatar-strip-card .mojo-avatar-set-primary {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.mojo-avatar-strip-card:hover .mojo-avatar-set-primary {
+  opacity: 1;
+}

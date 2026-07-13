@@ -3077,3 +3077,360 @@ export function SvgWaxSeal({
     </svg>
   )
 }
+
+// ── Character Dossier Page SVGs (MOJO-FIX-008) ───────────
+
+export function SvgIvyBorder({
+  width = 160,
+  height = 100,
+  flip = false,
+}: {
+  width?: number
+  height?: number
+  flip?: boolean
+}) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 160 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        transform: flip ? 'scaleX(-1)' : undefined,
+        pointerEvents: 'none',
+      }}
+    >
+      {/* ── MAIN VINE STEMS ── */}
+      {/* Primary stem — thick, curves upward from bottom-left */}
+      <path
+        d="M 6 95 C 18 78, 14 58, 28 44 C 42 30, 38 14, 54 6"
+        stroke="#2d5a27" strokeWidth="2.2"
+        strokeLinecap="round" opacity="0.85" fill="none"
+      />
+      {/* Secondary branch — splits right mid-way */}
+      <path
+        d="M 30 46 C 48 40, 65 46, 80 38"
+        stroke="#2d5a27" strokeWidth="1.4"
+        strokeLinecap="round" opacity="0.75" fill="none"
+      />
+      {/* Tertiary tendril — upper */}
+      <path
+        d="M 54 6 C 70 2, 88 8, 102 4"
+        stroke="#3a6e32" strokeWidth="1.0"
+        strokeLinecap="round" opacity="0.65" fill="none"
+      />
+      {/* Fourth branch — lower right */}
+      <path
+        d="M 20 68 C 36 62, 52 66, 66 58"
+        stroke="#3a6e32" strokeWidth="0.9"
+        strokeLinecap="round" opacity="0.55" fill="none"
+      />
+
+      {/* ── LEAVES — each with highlight face ── */}
+      {/* Leaf 1 — large, lower-left */}
+      <ellipse cx="14" cy="72" rx="11" ry="5.5"
+        fill="#2d5a27" opacity="0.80"
+        transform="rotate(-35 14 72)" />
+      <ellipse cx="14" cy="72" rx="11" ry="5.5"
+        fill="rgba(255,255,255,0.10)"
+        transform="rotate(-35 14 72) scale(0.7 0.5) translate(2 -1)" />
+      {/* Leaf 1 vein */}
+      <line x1="6" y1="75" x2="22" y2="69"
+        stroke="#4a7a3d" strokeWidth="0.6" opacity="0.50" />
+
+      {/* Leaf 2 — mid-stem */}
+      <ellipse cx="34" cy="40" rx="10" ry="5"
+        fill="#3a6e32" opacity="0.75"
+        transform="rotate(22 34 40)" />
+      <line x1="27" y1="43" x2="41" y2="37"
+        stroke="#5a8a4a" strokeWidth="0.5" opacity="0.45" />
+
+      {/* Leaf 3 — branch leaf */}
+      <ellipse cx="62" cy="44" rx="9" ry="4.5"
+        fill="#2d5a27" opacity="0.70"
+        transform="rotate(-18 62 44)" />
+      {/* Leaf 3 secondary veins */}
+      <path d="M 55 46 C 58 44, 62 44, 68 42"
+        stroke="#4a7a3d" strokeWidth="0.4" opacity="0.40" fill="none" />
+
+      {/* Leaf 4 — upper left */}
+      <ellipse cx="50" cy="8" rx="10" ry="4.8"
+        fill="#3a6e32" opacity="0.72"
+        transform="rotate(28 50 8)" />
+      <line x1="43" y1="11" x2="57" y2="5"
+        stroke="#5a8a4a" strokeWidth="0.5" opacity="0.42" />
+
+      {/* Leaf 5 — tendril leaf */}
+      <ellipse cx="96" cy="6" rx="8" ry="3.8"
+        fill="#2d5a27" opacity="0.65"
+        transform="rotate(-12 96 6)" />
+
+      {/* Leaf 6 — lower branch */}
+      <ellipse cx="58" cy="62" rx="9" ry="4.2"
+        fill="#3a6e32" opacity="0.68"
+        transform="rotate(-25 58 62)" />
+
+      {/* Leaf 7 — small, near top */}
+      <ellipse cx="78" cy="40" rx="7" ry="3.5"
+        fill="#4a7a3d" opacity="0.60"
+        transform="rotate(15 78 40)" />
+
+      {/* ── WILDFLOWERS ── */}
+      {/* Flower 1 — mid-right on branch */}
+      <g transform="translate(76 37)">
+        {[0, 72, 144, 216, 288].map((deg, i) => {
+          const rad = deg * Math.PI / 180
+          return (
+            <ellipse key={i}
+              cx={Math.cos(rad) * 4.5}
+              cy={Math.sin(rad) * 4.5}
+              rx="3" ry="1.8"
+              fill="#f5f0e0" opacity="0.85"
+              transform={`rotate(${deg} ${Math.cos(rad)*4.5} ${Math.sin(rad)*4.5})`}
+            />
+          )
+        })}
+        <circle cx="0" cy="0" r="2" fill="#e8c86a" opacity="0.90" />
+        {/* Flower center glow */}
+        <circle cx="0" cy="0" r="1" fill="#f5d87a" opacity="0.95" />
+      </g>
+
+      {/* Flower 2 — upper tendril */}
+      <g transform="translate(90 5)">
+        {[0, 72, 144, 216, 288].map((deg, i) => {
+          const rad = deg * Math.PI / 180
+          return (
+            <ellipse key={i}
+              cx={Math.cos(rad) * 3.5}
+              cy={Math.sin(rad) * 3.5}
+              rx="2.4" ry="1.4"
+              fill="#f0ebe0" opacity="0.80"
+              transform={`rotate(${deg} ${Math.cos(rad)*3.5} ${Math.sin(rad)*3.5})`}
+            />
+          )
+        })}
+        <circle cx="0" cy="0" r="1.6" fill="#e0b84a" opacity="0.88" />
+      </g>
+
+      {/* Flower 3 — lower branch, smaller */}
+      <g transform="translate(62 60)">
+        {[0, 72, 144, 216, 288].map((deg, i) => {
+          const rad = deg * Math.PI / 180
+          return (
+            <ellipse key={i}
+              cx={Math.cos(rad) * 3}
+              cy={Math.sin(rad) * 3}
+              rx="2" ry="1.2"
+              fill="#f5f0e0" opacity="0.75"
+              transform={`rotate(${deg} ${Math.cos(rad)*3} ${Math.sin(rad)*3})`}
+            />
+          )
+        })}
+        <circle cx="0" cy="0" r="1.4" fill="#e8c86a" opacity="0.88" />
+      </g>
+
+      {/* ── TENDRILS ── */}
+      <path d="M 56 4 C 60 -2, 66 1, 63 6"
+        stroke="#3a6e32" strokeWidth="0.6"
+        strokeLinecap="round" opacity="0.55" fill="none" />
+      <path d="M 80 36 C 85 30, 90 33, 87 38"
+        stroke="#3a6e32" strokeWidth="0.5"
+        strokeLinecap="round" opacity="0.45" fill="none" />
+      <path d="M 44 14 C 48 8, 53 11, 50 16"
+        stroke="#3a6e32" strokeWidth="0.5"
+        strokeLinecap="round" opacity="0.45" fill="none" />
+
+      {/* ── BERRIES / BUDS ── */}
+      <circle cx="22" cy="50" r="2.2" fill="#1a3e16" opacity="0.65" />
+      <circle cx="22" cy="50" r="1" fill="#2d5a27" opacity="0.80" />
+      <circle cx="48" cy="22" r="1.8" fill="#1a3e16" opacity="0.55" />
+      <circle cx="72" cy="52" r="1.5" fill="#1a3e16" opacity="0.50" />
+    </svg>
+  )
+}
+
+export function SvgDossierQuill({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="32"
+      height="56"
+      viewBox="0 0 32 56"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* ── FEATHER BODY ── */}
+      {/* Main feather spine */}
+      <path
+        d="M 16 2 C 15 12, 14 24, 13 36 C 12.5 42, 12 48, 14 52"
+        stroke="#c8c0a8" strokeWidth="1.2"
+        strokeLinecap="round" fill="none"
+      />
+
+      {/* Left barbs — upper (wider, lighter) */}
+      {[4, 8, 12, 16, 20, 24].map((y, i) => {
+        const x = 16 - i * 0.3
+        const len = 8 - i * 0.4
+        return (
+          <path key={`bl${i}`}
+            d={`M ${x} ${y} C ${x - len*0.6} ${y + len*0.3}, ${x - len} ${y + len*0.6}, ${x - len*0.9} ${y + len*0.7}`}
+            stroke="#e0d8c0" strokeWidth={1.2 - i * 0.08}
+            strokeLinecap="round" opacity={0.80 - i * 0.05} fill="none"
+          />
+        )
+      })}
+
+      {/* Right barbs — upper */}
+      {[4, 8, 12, 16, 20, 24].map((y, i) => {
+        const x = 16 + i * 0.2
+        const len = 6 - i * 0.3
+        return (
+          <path key={`br${i}`}
+            d={`M ${x} ${y} C ${x + len*0.5} ${y + len*0.3}, ${x + len*0.9} ${y + len*0.6}, ${x + len*0.8} ${y + len*0.7}`}
+            stroke="#d8d0b8" strokeWidth={1.0 - i * 0.06}
+            strokeLinecap="round" opacity={0.70 - i * 0.04} fill="none"
+          />
+        )
+      })}
+
+      {/* Lower barbs — tighter, darker (toward quill) */}
+      {[28, 31, 34, 37].map((y, i) => (
+        <g key={`ll${i}`}>
+          <path
+            d={`M ${14 - i*0.2} ${y} C ${10 - i*0.2} ${y + 2}, ${8 - i*0.2} ${y + 4}, ${9} ${y + 5}`}
+            stroke="#b0a890" strokeWidth="0.8"
+            strokeLinecap="round" opacity="0.55" fill="none"
+          />
+          <path
+            d={`M ${14 + i*0.1} ${y} C ${17 + i*0.1} ${y + 2}, ${19} ${y + 4}, ${18.5} ${y + 5}`}
+            stroke="#b0a890" strokeWidth="0.7"
+            strokeLinecap="round" opacity="0.45" fill="none"
+          />
+        </g>
+      ))}
+
+      {/* ── QUILL SHAFT ── */}
+      {/* Transparent shaft section */}
+      <path
+        d="M 13.5 36 C 13 42, 13 46, 14 52"
+        stroke="#8a7860" strokeWidth="1.8"
+        strokeLinecap="round" fill="none" opacity="0.70"
+      />
+
+      {/* ── NIB ── */}
+      <path
+        d="M 14 52 C 13.5 53.5, 13 54.5, 14 56 C 15 54.5, 16 53, 15 52 Z"
+        fill="#2a2018"
+        opacity="0.90"
+      />
+      {/* Nib slit */}
+      <line x1="14.5" y1="52" x2="14.5" y2="55.5"
+        stroke="#1a1008" strokeWidth="0.5" opacity="0.85" />
+      {/* Ink bead at nib tip */}
+      <circle cx="14" cy="55.8" r="0.9"
+        fill="#0a0808" opacity="0.90" />
+      {/* Ink drip */}
+      <path
+        d="M 14 55.8 C 13.8 56.5, 14.2 57, 14 57.5"
+        stroke="#0a0808" strokeWidth="0.8"
+        strokeLinecap="round" opacity="0.70" fill="none"
+      />
+    </svg>
+  )
+}
+
+export function SvgOpenBook({ width = 52, height = 36 }: {
+  width?: number
+  height?: number
+}) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 52 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* ── LEFT PAGE ── */}
+      {/* Page fill — warm cream */}
+      <path
+        d="M 2 4 C 2 3, 3 2, 14 2 C 22 2, 25 3, 26 4 L 26 34 C 25 33, 22 32, 14 32 C 6 32, 2 33, 2 34 Z"
+        fill="#f5f0e2"
+        stroke="#c8b888" strokeWidth="0.5"
+      />
+      {/* Left page shadow at spine */}
+      <path
+        d="M 26 4 L 26 34 C 24 33, 22 32, 20 32 L 20 4 C 22 4, 24 3, 26 4 Z"
+        fill="rgba(0,0,0,0.06)"
+      />
+      {/* Page curve — subtle */}
+      <path
+        d="M 2 4 C 8 3.5, 16 3, 26 4"
+        stroke="#e8d8b0" strokeWidth="0.4" opacity="0.60" fill="none"
+      />
+
+      {/* Text lines on left page */}
+      {[8, 12, 16, 20, 24, 28].map((y, i) => (
+        <line key={i}
+          x1="6" y1={y} x2={i < 4 ? 22 : 18} y2={y}
+          stroke="#c8b888" strokeWidth="0.4" opacity="0.35"
+        />
+      ))}
+
+      {/* ── RIGHT PAGE ── */}
+      <path
+        d="M 50 4 C 50 3, 49 2, 38 2 C 30 2, 27 3, 26 4 L 26 34 C 27 33, 30 32, 38 32 C 46 32, 50 33, 50 34 Z"
+        fill="#f0ebe0"
+        stroke="#c8b888" strokeWidth="0.5"
+      />
+      {/* Right page shadow at spine */}
+      <path
+        d="M 26 4 L 26 34 C 28 33, 30 32, 32 32 L 32 4 C 30 4, 28 3, 26 4 Z"
+        fill="rgba(0,0,0,0.06)"
+      />
+
+      {/* Text lines on right page */}
+      {[8, 12, 16, 20, 24, 28].map((y, i) => (
+        <line key={i}
+          x1="30" y1={y} x2={i < 3 ? 46 : 42} y2={y}
+          stroke="#c8b888" strokeWidth="0.4" opacity="0.35"
+        />
+      ))}
+
+      {/* ── SPINE ── */}
+      <path
+        d="M 26 3 C 26 2, 26 1, 26 0"
+        stroke="#3a2a1a" strokeWidth="1.5"
+        strokeLinecap="round" opacity="0.80"
+      />
+      <path
+        d="M 26 3 L 26 35"
+        stroke="#3a2a1a" strokeWidth="1.0" opacity="0.65"
+      />
+
+      {/* ── COVER BINDING (bottom) ── */}
+      <path
+        d="M 2 34 C 2 35, 3 36, 14 36 C 20 36, 25 35.5, 26 35 C 27 35.5, 32 36, 38 36 C 49 36, 50 35, 50 34"
+        fill="#3a2a1a" stroke="#2a1a0a" strokeWidth="0.4"
+      />
+
+      {/* ── RIBBON BOOKMARK ── */}
+      <path
+        d="M 34 35 L 34 40 L 36 42 L 38 40 L 38 35"
+        fill="#6b1515"
+        stroke="#4a0f0f" strokeWidth="0.3"
+      />
+
+      {/* ── PAGE SHADOW (under left page) ── */}
+      <path
+        d="M 2 34 C 4 35, 14 35.5, 26 35 C 26 35.5, 14 36.5, 2 35.5 Z"
+        fill="rgba(0,0,0,0.08)"
+      />
+    </svg>
+  )
+}
