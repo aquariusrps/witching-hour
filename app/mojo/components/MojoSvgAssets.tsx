@@ -1258,3 +1258,400 @@ export function SvgTelegraphDots() {
     </svg>
   )
 }
+
+// ── Desires SVGs (MOJO-7G) ────────────────────────────────
+
+export function SvgStarfield({
+  width = 800,
+  height = 400,
+  className = '',
+}: {
+  width?: number
+  height?: number
+  className?: string
+}) {
+  // Predetermined star positions for a natural scattered look.
+  // Three types: tiny dots, small circles, large crosshair stars.
+  const tinyStars: [number, number][] = [
+    [42,28],[118,67],[203,15],[287,44],[356,89],[421,23],[503,56],
+    [578,81],[642,19],[714,72],[771,38],[89,112],[167,98],[248,133],
+    [334,107],[412,141],[487,118],[561,96],[636,127],[708,103],
+    [44,168],[122,154],[199,182],[276,159],[351,194],[426,170],
+    [501,147],[573,178],[648,162],[722,185],[54,220],[131,208],
+    [208,234],[285,217],[360,242],[435,226],[510,210],[582,238],
+    [657,222],[731,246],[762,196],[38,272],[115,258],[190,284],
+    [267,269],[342,293],[417,278],[492,261],[564,288],[639,274],
+    [713,298],[68,320],[145,308],[220,334],[297,319],[372,343],
+    [447,328],[522,312],[594,338],[669,324],[743,348],[82,372],
+    [159,358],[234,382],[311,367],[386,391],[461,376],[536,360],
+    [608,386],[683,372],[757,395],
+  ]
+
+  const smallStars: [number, number][] = [
+    [74,42],[198,88],[322,31],[446,74],[570,51],[694,83],[99,140],
+    [223,163],[347,128],[471,152],[595,139],[719,165],[124,218],
+    [248,241],[372,206],[496,230],[620,217],[744,243],[149,296],
+    [273,319],[397,284],[521,308],[645,295],[769,321],[174,374],
+    [298,397],[422,362],[546,386],[670,373],[794,399],
+  ]
+
+  const bigStars: [number, number][] = [
+    [156,54],[436,97],[712,42],[244,195],[578,188],[86,335],[468,318],
+    [736,362],[312,421],[624,408],
+  ]
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Tiny dots */}
+      {tinyStars.map(([x, y], i) => (
+        <circle key={`t${i}`} cx={x} cy={y} r="0.8"
+          fill="currentColor"
+          opacity={0.04 + (i % 5) * 0.015}
+        />
+      ))}
+
+      {/* Small circles */}
+      {smallStars.map(([x, y], i) => (
+        <circle key={`s${i}`} cx={x} cy={y} r="1.3"
+          fill="currentColor"
+          opacity={0.06 + (i % 4) * 0.02}
+        />
+      ))}
+
+      {/* Large crosshair stars */}
+      {bigStars.map(([x, y], i) => (
+        <g key={`b${i}`} opacity={0.08 + (i % 3) * 0.02}>
+          <circle cx={x} cy={y} r="1.8" fill="currentColor" />
+          <line x1={x - 5} y1={y} x2={x + 5} y2={y}
+            stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
+          <line x1={x} y1={y - 5} x2={x} y2={y + 5}
+            stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+export function SvgBotanicalSpray({
+  width = 160,
+  height = 220,
+  flip = false,
+  className = '',
+}: {
+  width?: number
+  height?: number
+  flip?: boolean
+  className?: string
+}) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 160 220"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{
+        transform: flip ? 'scaleX(-1)' : undefined,
+        pointerEvents: 'none',
+      }}
+    >
+      {/* Main stem */}
+      <path d="M 20 220 C 30 180, 25 150, 40 120 C 55 90, 50 60, 65 30"
+        stroke="currentColor" strokeWidth="1.0" strokeLinecap="round"
+        opacity="0.18" fill="none" />
+
+      {/* Branch left */}
+      <path d="M 40 120 C 55 115, 75 120, 85 108"
+        stroke="currentColor" strokeWidth="0.7" strokeLinecap="round"
+        opacity="0.14" fill="none" />
+
+      {/* Branch right */}
+      <path d="M 52 90 C 65 82, 80 88, 95 80"
+        stroke="currentColor" strokeWidth="0.6" strokeLinecap="round"
+        opacity="0.12" fill="none" />
+
+      {/* Fern frond 1 — lower left */}
+      {[0,1,2,3,4].map(i => {
+        const t = i / 4
+        const x = 20 + t * 20
+        const y = 220 - t * 100
+        const lx = x - 12 + i * 2
+        const ly = y + 6
+        const rx = x + 8
+        const ry = y - 4
+        return (
+          <g key={`f1${i}`} opacity="0.13">
+            <ellipse cx={lx} cy={ly} rx="7" ry="3"
+              fill="currentColor"
+              transform={`rotate(-30 ${lx} ${ly})`} />
+            <ellipse cx={rx} cy={ry} rx="6" ry="2.5"
+              fill="currentColor"
+              transform={`rotate(20 ${rx} ${ry})`} />
+          </g>
+        )
+      })}
+
+      {/* Five-petal flowers */}
+      {/* Flower 1 */}
+      <g opacity="0.15" transform="translate(82 110)">
+        {[0,72,144,216,288].map(angle => (
+          <ellipse key={angle}
+            cx={Math.cos(angle * Math.PI / 180) * 5}
+            cy={Math.sin(angle * Math.PI / 180) * 5}
+            rx="3.5" ry="2"
+            fill="currentColor"
+            transform={`rotate(${angle} ${Math.cos(angle * Math.PI / 180) * 5} ${Math.sin(angle * Math.PI / 180) * 5})`}
+          />
+        ))}
+        <circle cx="0" cy="0" r="2" fill="currentColor" opacity="0.8" />
+      </g>
+
+      {/* Flower 2 — smaller */}
+      <g opacity="0.12" transform="translate(92 82)">
+        {[0,72,144,216,288].map(angle => (
+          <ellipse key={angle}
+            cx={Math.cos(angle * Math.PI / 180) * 4}
+            cy={Math.sin(angle * Math.PI / 180) * 4}
+            rx="2.8" ry="1.6"
+            fill="currentColor"
+            transform={`rotate(${angle} ${Math.cos(angle * Math.PI / 180) * 4} ${Math.sin(angle * Math.PI / 180) * 4})`}
+          />
+        ))}
+        <circle cx="0" cy="0" r="1.5" fill="currentColor" opacity="0.8" />
+      </g>
+
+      {/* Flower 3 — top */}
+      <g opacity="0.14" transform="translate(62 32)">
+        {[0,72,144,216,288].map(angle => (
+          <ellipse key={angle}
+            cx={Math.cos(angle * Math.PI / 180) * 5}
+            cy={Math.sin(angle * Math.PI / 180) * 5}
+            rx="3.5" ry="2"
+            fill="currentColor"
+            transform={`rotate(${angle} ${Math.cos(angle * Math.PI / 180) * 5} ${Math.sin(angle * Math.PI / 180) * 5})`}
+          />
+        ))}
+        <circle cx="0" cy="0" r="2" fill="currentColor" opacity="0.8" />
+      </g>
+
+      {/* Simple leaf shapes along branch */}
+      <ellipse cx="88" cy="108" rx="9" ry="4"
+        fill="currentColor" opacity="0.12"
+        transform="rotate(-20 88 108)" />
+      <ellipse cx="96" cy="78" rx="8" ry="3.5"
+        fill="currentColor" opacity="0.11"
+        transform="rotate(15 96 78)" />
+
+      {/* Small star/dot accents scattered */}
+      <circle cx="70" cy="58" r="1.5" fill="currentColor" opacity="0.10" />
+      <circle cx="110" cy="95" r="1.2" fill="currentColor" opacity="0.08" />
+      <circle cx="45" cy="145" r="1.8" fill="currentColor" opacity="0.10" />
+
+      {/* Tendril curls */}
+      <path d="M 62 30 C 68 22, 74 25, 71 30"
+        stroke="currentColor" strokeWidth="0.5" strokeLinecap="round"
+        opacity="0.12" fill="none" />
+      <path d="M 88 106 C 95 100, 100 104, 97 109"
+        stroke="currentColor" strokeWidth="0.4" strokeLinecap="round"
+        opacity="0.10" fill="none" />
+    </svg>
+  )
+}
+
+export function SvgDreamHeader({
+  idSuffix = 'default',
+  className = '',
+}: {
+  idSuffix?: string
+  className?: string
+}) {
+  const clipId = `dream-crescent-clip-${idSuffix}`
+  return (
+    <svg
+      width="120"
+      height="40"
+      viewBox="0 0 120 40"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Crescent — left side */}
+      <defs>
+        <clipPath id={clipId}>
+          <circle cx="22" cy="20" r="14" />
+        </clipPath>
+      </defs>
+      <circle cx="22" cy="20" r="14" fill="currentColor" opacity="0.30" />
+      <circle cx="30" cy="17" r="11" fill="#0c0c14"
+        clipPath={`url(#${clipId})`} />
+      <circle cx="22" cy="20" r="14" stroke="currentColor"
+        strokeWidth="0.5" opacity="0.40" fill="none" />
+
+      {/* Stars scattered around the crescent */}
+      <circle cx="52" cy="8" r="1.5" fill="currentColor" opacity="0.45" />
+      <circle cx="68" cy="20" r="1.0" fill="currentColor" opacity="0.35" />
+      <circle cx="85" cy="10" r="1.8" fill="currentColor" opacity="0.40" />
+      <circle cx="100" cy="28" r="1.0" fill="currentColor" opacity="0.30" />
+      <circle cx="112" cy="12" r="1.3" fill="currentColor" opacity="0.38" />
+
+      {/* Small crosshair on largest star */}
+      <line x1="81" y1="10" x2="89" y2="10"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+      <line x1="85" y1="6" x2="85" y2="14"
+        stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+
+      {/* Trailing dots — like the crescent's wake */}
+      <circle cx="44" cy="16" r="0.8" fill="currentColor" opacity="0.25" />
+      <circle cx="48" cy="24" r="0.8" fill="currentColor" opacity="0.20" />
+    </svg>
+  )
+}
+
+export function SvgCandleUnlit({
+  size = 18,
+  className = '',
+}: {
+  size?: number
+  className?: string
+}) {
+  const totalW = size * 0.55
+  const waxH = size * 0.72
+  const baseH = size * 0.15
+  const cx = totalW / 2
+  const waxW = size * 0.22
+
+  return (
+    <svg
+      width={totalW}
+      height={size}
+      viewBox={`0 0 ${totalW} ${size}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      {/* Base */}
+      <ellipse cx={cx} cy={size - baseH * 0.3} rx={totalW * 0.44} ry={baseH * 0.3}
+        fill="currentColor" opacity="0.25" />
+      <rect x={cx - totalW * 0.22} y={size - baseH}
+        width={totalW * 0.44} height={baseH * 0.7} rx="1"
+        fill="currentColor" opacity="0.20" />
+
+      {/* Wax column */}
+      <rect x={cx - waxW / 2} y={size - baseH - waxH}
+        width={waxW} height={waxH} rx="1"
+        fill="currentColor" opacity="0.15" />
+
+      {/* Wax highlight */}
+      <rect x={cx - waxW / 2} y={size - baseH - waxH}
+        width={waxW * 0.15} height={waxH} rx="1"
+        fill="white" opacity="0.05" />
+
+      {/* Wick */}
+      <line x1={cx} y1={size - baseH - waxH}
+        x2={cx} y2={size - baseH - waxH - size * 0.08}
+        stroke="currentColor" strokeWidth="1"
+        opacity="0.50" strokeLinecap="round" />
+
+      {/* Wick tip — slight bend suggesting previously used */}
+      <path
+        d={`M ${cx} ${size - baseH - waxH - size * 0.08}
+            Q ${cx + 1.5} ${size - baseH - waxH - size * 0.12}
+              ${cx + 1} ${size - baseH - waxH - size * 0.14}`}
+        stroke="currentColor" strokeWidth="0.8"
+        opacity="0.35" strokeLinecap="round" fill="none" />
+    </svg>
+  )
+}
+
+export function SvgCandleSnuffed({
+  size = 18,
+  className = '',
+}: {
+  size?: number
+  className?: string
+}) {
+  const totalW = size * 0.55
+  const waxH = size * 0.72
+  const baseH = size * 0.15
+  const cx = totalW / 2
+  const waxW = size * 0.22
+
+  return (
+    <svg
+      width={totalW}
+      height={size * 1.4}
+      viewBox={`0 0 ${totalW} ${size * 1.4}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      {/* Offset down to leave room for smoke above */}
+      <g transform={`translate(0, ${size * 0.3})`}>
+        {/* Base */}
+        <ellipse cx={cx} cy={size - baseH * 0.3} rx={totalW * 0.44} ry={baseH * 0.3}
+          fill="currentColor" opacity="0.20" />
+        <rect x={cx - totalW * 0.22} y={size - baseH}
+          width={totalW * 0.44} height={baseH * 0.7} rx="1"
+          fill="currentColor" opacity="0.15" />
+
+        {/* Wax column — slightly melted look */}
+        <rect x={cx - waxW / 2} y={size - baseH - waxH}
+          width={waxW} height={waxH} rx="1"
+          fill="currentColor" opacity="0.12" />
+
+        {/* Wick */}
+        <line x1={cx} y1={size - baseH - waxH}
+          x2={cx} y2={size - baseH - waxH - size * 0.06}
+          stroke="currentColor" strokeWidth="1"
+          opacity="0.35" strokeLinecap="round" />
+
+        {/* Smoke wisps — three curling paths, animated */}
+        <path
+          d={`M ${cx} ${size - baseH - waxH - size * 0.08}
+              C ${cx + 3} ${size - baseH - waxH - size * 0.18}
+                ${cx - 4} ${size - baseH - waxH - size * 0.28}
+                ${cx + 2} ${size - baseH - waxH - size * 0.40}`}
+          stroke="currentColor" strokeWidth="0.8"
+          strokeLinecap="round" fill="none"
+          opacity="0.18"
+          style={{
+            animationName: 'mojo-flame-smoke',
+            animationDuration: '3s',
+            animationTimingFunction: 'ease-out',
+            animationIterationCount: 'infinite',
+            transformOrigin: `${cx}px ${size - baseH - waxH - size * 0.06}px`,
+          }}
+        />
+        <path
+          d={`M ${cx} ${size - baseH - waxH - size * 0.08}
+              C ${cx - 2} ${size - baseH - waxH - size * 0.20}
+                ${cx + 3} ${size - baseH - waxH - size * 0.32}
+                ${cx - 1} ${size - baseH - waxH - size * 0.42}`}
+          stroke="currentColor" strokeWidth="0.5"
+          strokeLinecap="round" fill="none"
+          opacity="0.10"
+          style={{
+            animationName: 'mojo-flame-smoke',
+            animationDuration: '3s',
+            animationTimingFunction: 'ease-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.8s',
+            transformOrigin: `${cx}px ${size - baseH - waxH - size * 0.06}px`,
+          }}
+        />
+      </g>
+    </svg>
+  )
+}

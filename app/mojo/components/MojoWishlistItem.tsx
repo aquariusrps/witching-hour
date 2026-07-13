@@ -7,6 +7,10 @@ import {
   deleteMojoWishlistItem,
 } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
+import {
+  SvgCandleFlame, SvgCandleUnlit, SvgCandleSnuffed,
+  SvgNavFaceclaims, SvgNavSearch, SvgNavDashboard, SvgNavLibrary,
+} from '@/app/mojo/components/MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoWishlist = Tables<'mojo_wishlist'>
@@ -32,6 +36,26 @@ const TYPE_BORDER_COLOR: Record<string, string> = {
 }
 
 const STATUS_OPTIONS: Array<'idea' | 'active' | 'shelved'> = ['idea', 'active', 'shelved']
+
+const TYPE_BADGE_LABELS: Record<string, string> = {
+  plot_idea: 'Plot',
+  character_concept: 'Character',
+  fandom: 'Fandom',
+  other: 'Other',
+}
+
+function TypeIcon({ type }: { type: string }) {
+  if (type === 'character_concept') return <SvgNavFaceclaims active={false} />
+  if (type === 'plot_idea') return <SvgNavSearch active={false} />
+  if (type === 'fandom') return <SvgNavDashboard active={false} />
+  return <SvgNavLibrary active={false} />
+}
+
+function CandleIndicator({ status }: { status: string }) {
+  if (status === 'active') return <SvgCandleFlame size={18} delay="0s" />
+  if (status === 'idea') return <SvgCandleUnlit size={18} />
+  return <SvgCandleSnuffed size={18} />
+}
 
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
@@ -103,10 +127,19 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
   if (editing) {
     return (
       <div style={{
-        background: 'var(--raised)',
-        border: '1px solid var(--gold-dim)',
-        borderRadius: 4,
-        padding: '12px 16px',
+        background: `
+          repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,0.007) 0px,
+            rgba(255,255,255,0.007) 1px,
+            transparent 1px,
+            transparent 4px
+          ),
+          var(--raised)
+        `,
+        border: '1px solid var(--elevated)',
+        borderRadius: '4px',
+        padding: '14px',
         marginBottom: 8,
       }}>
         {error && <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--ember)', margin: '0 0 8px' }}>{error}</p>}
@@ -129,17 +162,36 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
     )
   }
 
+  const isActive = item.status === 'active'
+  const isIdea = item.status === 'idea'
+  const isShelved = item.status === 'shelved'
+
   return (
-    <div style={{
-      background: 'var(--claret)',
-      border: '1px solid var(--elevated)',
-      borderLeft: `3px solid ${TYPE_BORDER_COLOR[item.type] ?? 'var(--faded)'}`,
-      borderRadius: 4,
-      padding: '12px 16px',
-      marginBottom: 8,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ minWidth: 0 }}>
+    <div
+      className={[
+        'mojo-desire-card',
+        isActive ? 'mojo-desire-active' : '',
+        isIdea ? 'mojo-desire-idea' : '',
+        isShelved ? 'mojo-desire-shelved' : '',
+      ].join(' ').trim()}
+      style={{
+        padding: '14px 16px',
+        marginBottom: '12px',
+        position: 'relative',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+        {/* Candle status indicator */}
+        <div aria-hidden="true" style={{ flexShrink: 0, marginTop: 2, color: isActive ? 'var(--roseash)' : 'var(--faded)', opacity: isShelved ? 0.6 : 1 }}>
+          <CandleIndicator status={item.status} />
+        </div>
+
+        {/* Type icon */}
+        <div aria-hidden="true" style={{ flexShrink: 0, marginTop: 2, color: TYPE_BORDER_COLOR[item.type] ?? 'var(--faded)' }}>
+          <TypeIcon type={item.type} />
+        </div>
+
+        <div style={{ minWidth: 0, flex: 1 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: 'var(--f-head)', fontSize: '0.94rem', color: 'var(--roseash)' }}>
               {item.title}
@@ -148,11 +200,6 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
               {TYPE_LABELS[item.type] ?? item.type}
             </span>
           </span>
-          {item.notes && (
-            <div style={{ margin: '6px 0 0' }}>
-              <MojoRichTextEditor content={item.notes} onChange={() => {}} readonly />
-            </div>
-          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -205,6 +252,27 @@ export default function MojoWishlistItem({ item }: { item: MojoWishlist }) {
             </span>
           )}
         </div>
+      </div>
+
+      {item.notes && (
+        <div style={{ margin: '6px 0 0' }}>
+          <MojoRichTextEditor content={item.notes} onChange={() => {}} readonly />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
+        <span style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '9px',
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+          color: 'var(--faded)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          padding: '1px 6px',
+          borderRadius: '1px',
+        }}>
+          {TYPE_BADGE_LABELS[item.type] ?? 'Other'}
+        </span>
       </div>
     </div>
   )

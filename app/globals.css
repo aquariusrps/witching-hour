@@ -609,3 +609,38 @@ body {
   border-radius: 1px;
   opacity: 0.7;
 }
+
+/* ═══════════════════════════════════════
+   MOJO DESIRES (WISHLIST) — MOJO-7G
+   ═══════════════════════════════════════ */
+
+/* Desires item card — watercolor wash effect */
+.mojo-desire-card {
+  background:
+    radial-gradient(ellipse at 30% 40%,
+      rgba(96, 64, 192, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 60%,
+      rgba(160, 40, 64, 0.05) 0%, transparent 50%),
+    var(--raised);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.mojo-desire-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Status-specific left accent */
+.mojo-desire-idea {
+  border-left: 2px solid var(--faded);
+}
+.mojo-desire-active {
+  border-left: 2px solid var(--roseash);
+}
+.mojo-desire-shelved {
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  opacity: 0.7;
+}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createMojoWishlistItem } from '@/lib/actions/mojo'
 import MojoRichTextEditor from './MojoRichTextEditor'
+import { SvgDreamHeader } from '@/app/mojo/components/MojoSvgAssets'
 
 function navigateToWishlist() {
   window.location.href = '/mojo/wishlist'
@@ -65,16 +66,37 @@ export default function MojoAddWishlistItem() {
     <form
       onSubmit={handleSubmit}
       style={{
-        background: 'var(--claret)',
-        border: '1px solid var(--elevated)',
-        borderRadius: 4,
-        padding: 18,
+        background: `
+          radial-gradient(ellipse at 50% 0%,
+            rgba(96,64,192,0.05) 0%, transparent 60%),
+          var(--raised)
+        `,
+        border: '1px solid rgba(255,255,255,0.05)',
+        borderRadius: '6px',
+        padding: '16px',
         marginBottom: 24,
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
       }}
     >
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginBottom: '14px',
+        color: 'var(--faded)',
+      }}>
+        <SvgDreamHeader idSuffix="add-wishlist-form" />
+        <span style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '10px',
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+        }}>
+          New Desire
+        </span>
+      </div>
       {error && (
         <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.82rem', color: 'var(--ember)', margin: 0 }}>{error}</p>
       )}

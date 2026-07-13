@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import MojoWishlistItem from './MojoWishlistItem'
+import { SvgCandleFlame, SvgCandleUnlit, SvgCandleSnuffed } from '@/app/mojo/components/MojoSvgAssets'
 import type { Tables } from '@/types/database'
 
 type MojoWishlist = Tables<'mojo_wishlist'>
@@ -20,6 +21,28 @@ const STATUS_SECTIONS: Array<{ key: 'idea' | 'active' | 'shelved'; label: string
   { key: 'active', label: 'Active' },
   { key: 'shelved', label: 'Shelved' },
 ]
+
+function SectionCandle({ status }: { status: 'idea' | 'active' | 'shelved' }) {
+  if (status === 'active') {
+    return (
+      <div aria-hidden="true" style={{ color: 'var(--roseash)' }}>
+        <SvgCandleFlame size={14} delay="0s" />
+      </div>
+    )
+  }
+  if (status === 'idea') {
+    return (
+      <div aria-hidden="true" style={{ color: 'var(--faded)' }}>
+        <SvgCandleUnlit size={14} />
+      </div>
+    )
+  }
+  return (
+    <div aria-hidden="true" style={{ color: 'var(--faded)' }}>
+      <SvgCandleSnuffed size={14} />
+    </div>
+  )
+}
 
 export default function MojoWishlistList({ items }: { items: MojoWishlist[] }) {
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
@@ -54,8 +77,14 @@ export default function MojoWishlistList({ items }: { items: MojoWishlist[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
-          Nothing here yet.
+        <p style={{
+          fontFamily: 'Cormorant Upright, serif',
+          fontSize: '24px',
+          fontStyle: 'italic',
+          color: 'var(--mist)',
+          textAlign: 'center',
+        }}>
+          Your desires await.
         </p>
       ) : activeFilter === 'all' ? (
         <div>
@@ -64,16 +93,28 @@ export default function MojoWishlistList({ items }: { items: MojoWishlist[] }) {
             if (sectionItems.length === 0) return null
             return (
               <div key={key} style={{ marginBottom: 24 }}>
-                <h3 style={{
-                  fontFamily: 'var(--f-ui)',
-                  fontSize: '0.65rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '10px',
+                  marginTop: '20px',
                   color: 'var(--faded)',
-                  margin: '0 0 10px',
                 }}>
-                  {label} ({sectionItems.length})
-                </h3>
+                  <SectionCandle status={key} />
+                  <span style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '10px',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                  }}>
+                    {label} ({sectionItems.length})
+                  </span>
+                  <div style={{
+                    flex: 1, height: '1px',
+                    background: 'var(--elevated)', opacity: 0.35,
+                  }} />
+                </div>
                 {sectionItems.map((item) => (
                   <MojoWishlistItem key={item.id} item={item} />
                 ))}
