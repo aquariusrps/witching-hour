@@ -11,12 +11,16 @@ function navigateToFaceclaims() {
 
 export default function MojoFaceclaimRow({
   fc,
+  avatarToken,
 }: {
   fc: { id: string; name: string; resource_count: number; character_count: number }
+  avatarToken?: string | null
 }) {
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const avatarSrc = avatarToken ? `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/i/${avatarToken}.png` : null
 
   async function handleDelete() {
     setLoading(true)
@@ -55,21 +59,30 @@ export default function MojoFaceclaimRow({
           background: 'var(--raised)',
           flexShrink: 0,
         }}>
-          {/* Silhouette placeholder — no avatar data available at index level */}
-          <div style={{
-            width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: `
-              radial-gradient(ellipse at 50% 40%,
-                rgba(255,255,255,0.04) 0%, transparent 60%),
-              var(--raised)
-            `,
-          }}>
-            <svg viewBox="0 0 60 80" style={{ width: '50px', opacity: 0.15 }}>
-              <circle cx="30" cy="22" r="14" fill="currentColor" />
-              <ellipse cx="30" cy="64" rx="22" ry="18" fill="currentColor" />
-            </svg>
-          </div>
+          {avatarSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarSrc}
+              alt={fc.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            /* Silhouette placeholder — no avatar data available for this faceclaim */
+            <div style={{
+              width: '100%', height: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: `
+                radial-gradient(ellipse at 50% 40%,
+                  rgba(255,255,255,0.04) 0%, transparent 60%),
+                var(--raised)
+              `,
+            }}>
+              <svg viewBox="0 0 60 80" style={{ width: '50px', opacity: 0.15 }}>
+                <circle cx="30" cy="22" r="14" fill="currentColor" />
+                <ellipse cx="30" cy="64" rx="22" ry="18" fill="currentColor" />
+              </svg>
+            </div>
+          )}
 
           {/* Portrait frame SVG overlay */}
           <div style={{

@@ -72,7 +72,7 @@ export default async function MojoFaceclaimsPage() {
           }}
         >
           {faceclaims.map((fc) => (
-            <MojoFaceclaimRow key={fc.id} fc={fc} />
+            <MojoFaceclaimRow key={fc.id} fc={fc} avatarToken={fc.avatar_token} />
           ))}
         </div>
       )}

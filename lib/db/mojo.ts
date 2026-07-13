@@ -214,7 +214,7 @@ export async function getMojoThread(threadId: string): Promise<MojoThread | null
 }
 
 export async function getMojoFaceclaims(): Promise<
-  Array<MojoFaceclaim & { resource_count: number; character_count: number }>
+  Array<MojoFaceclaim & { resource_count: number; character_count: number; avatar_token: string | null }>
 > {
   const admin = getAdminClient()
 
@@ -248,10 +248,44 @@ export async function getMojoFaceclaims(): Promise<
     }
   }
 
+  const fcIds = faceclaims.map((fc) => fc.id)
+  const fcAvatarMap = new Map<string, string>()
+
+  if (fcIds.length > 0) {
+    const { data: chars } = await admin
+      .from('mojo_characters')
+      .select('id, faceclaim_id')
+      .in('faceclaim_id', fcIds)
+
+    const charIds = (chars ?? []).map((c) => c.id)
+    const charToFc = new Map(
+      (chars ?? [])
+        .filter((c): c is { id: string; faceclaim_id: string } => c.faceclaim_id !== null)
+        .map((c) => [c.id, c.faceclaim_id])
+    )
+
+    if (charIds.length > 0) {
+      const { data: avatars } = await admin
+        .from('mojo_avatars')
+        .select('character_id, token, created_at')
+        .in('character_id', charIds)
+        .order('created_at', { ascending: false })
+
+      for (const avatar of avatars ?? []) {
+        if (!avatar.character_id) continue
+        const fcId = charToFc.get(avatar.character_id)
+        if (fcId && !fcAvatarMap.has(fcId)) {
+          fcAvatarMap.set(fcId, avatar.token)
+        }
+      }
+    }
+  }
+
   return faceclaims.map((fc) => ({
     ...fc,
     resource_count: resourceCounts.get(fc.id) ?? 0,
     character_count: characterCounts.get(fc.id) ?? 0,
+    avatar_token: fcAvatarMap.get(fc.id) ?? null,
   }))
 }
 
