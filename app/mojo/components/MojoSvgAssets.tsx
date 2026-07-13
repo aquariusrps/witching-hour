@@ -319,6 +319,7 @@ export function SvgMoon({
         stroke="currentColor" strokeWidth="28"
         strokeOpacity="0.06"
         fill="none"
+        filter={`url(#${glowId})`}
       />
       {/* Secondary halo — tighter, slightly stronger */}
       <circle

@@ -461,11 +461,6 @@ body {
   50%       { filter: drop-shadow(0 0 8px rgba(192, 192, 200, 0.6)); }
 }
 
-@keyframes mojo-rune-fade {
-  0%, 100% { opacity: 0.04; }
-  50%       { opacity: 0.08; }
-}
-
 /* Mojo sidebar ember dot — RP color indicator */
 .mojo-rp-ember {
   display: inline-block;

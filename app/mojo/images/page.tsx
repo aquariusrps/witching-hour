@@ -1,7 +1,7 @@
 import { getMojoPersonalImages, getMojoImageFolders } from '@/lib/db/mojo'
 import MojoPersonalImageManager from '@/app/mojo/components/MojoPersonalImageManager'
 import {
-  SvgHangingPhotographs, SvgPageHeaderRule, SvgFiligreeRule,
+  SvgHangingPhotographs, SvgPageHeaderRule, SvgFiligreeRule, SvgDarkroomHeader,
 } from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoImagesPage() {
@@ -73,6 +73,19 @@ export default async function MojoImagesPage() {
         zIndex: 1,
       }}>
         <SvgFiligreeRule />
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          color: 'var(--mist)',
+          marginBottom: '12px',
+          opacity: 0.65,
+        }}
+      >
+        <SvgDarkroomHeader />
       </div>
 
       <div style={{ position: 'relative', zIndex: 1 }}>

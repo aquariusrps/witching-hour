@@ -175,11 +175,11 @@ export default function MojoAvatarCrop({
     ctx.fillRect(0, rect.y, rect.x, rect.h)
     ctx.fillRect(rect.x + rect.w, rect.y, cw - (rect.x + rect.w), rect.h)
 
-    ctx.strokeStyle = '#e0b028'
+    ctx.strokeStyle = '#a02840'
     ctx.lineWidth = 2
     ctx.strokeRect(rect.x, rect.y, rect.w, rect.h)
 
-    ctx.fillStyle = '#e0b028'
+    ctx.fillStyle = '#a02840'
     const hs = HANDLE_SIZE / 2
     const corners = [
       { x: rect.x, y: rect.y },
