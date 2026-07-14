@@ -1199,6 +1199,7 @@ export type Database = {
           last_poster: string | null
           manual_whose_turn: string | null
           partner_names: string | null
+          reply_order: string | null
           rp_id: string
           status: string
           title: string
@@ -1215,6 +1216,7 @@ export type Database = {
           last_poster?: string | null
           manual_whose_turn?: string | null
           partner_names?: string | null
+          reply_order?: string | null
           rp_id: string
           status?: string
           title: string
@@ -1231,6 +1233,7 @@ export type Database = {
           last_poster?: string | null
           manual_whose_turn?: string | null
           partner_names?: string | null
+          reply_order?: string | null
           rp_id?: string
           status?: string
           title?: string

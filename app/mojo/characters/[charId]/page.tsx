@@ -22,7 +22,7 @@ import {
   SvgCandleRealistic, SvgWaxSeal, SvgScrollEnd,
   SvgPageHeaderRule, SvgFiligreeRule,
 } from '@/app/mojo/components/MojoSvgAssets'
-import { deriveWhoseTurn, formatRelativeTime } from '@/lib/mojo/utils'
+import { deriveWhoseTurn, getWaitingOn, formatRelativeTime } from '@/lib/mojo/utils'
 
 export default async function MojoCharacterPage({
   params,
@@ -331,6 +331,7 @@ export default async function MojoCharacterPage({
                   .filter((t) => t.status === 'active')
                   .map((t) => {
                     const whoseTurn = deriveWhoseTurn(t, character.name)
+                    const waitingOn = getWaitingOn(t, character.name)
 
                     return (
                       <div key={t.id} className="mojo-thread-mini-card">
@@ -362,13 +363,17 @@ export default async function MojoCharacterPage({
                         <div style={{ marginBottom: '6px' }}>
                           <span className={[
                             'mojo-turn-badge',
-                            whoseTurn === 'mine' ? 'mojo-turn-mine' : '',
-                            whoseTurn === 'theirs' ? 'mojo-turn-theirs' : '',
-                            whoseTurn === 'unknown' ? 'mojo-turn-unknown' : '',
+                            whoseTurn === 'mine' ? 'mojo-turn-mine' :
+                            whoseTurn === 'theirs' && waitingOn ? 'mojo-turn-waiting' :
+                            whoseTurn === 'theirs' ? 'mojo-turn-theirs' :
+                            'mojo-turn-unknown',
                           ].filter(Boolean).join(' ')}
                             style={{ fontSize: '9px', padding: '2px 8px' }}
                           >
-                            {whoseTurn === 'mine' ? 'Your Turn' : whoseTurn === 'theirs' ? 'Their Turn' : 'Unknown'}
+                            {whoseTurn === 'mine' ? 'Your Turn' :
+                             whoseTurn === 'theirs' && waitingOn ? `Waiting on ${waitingOn}` :
+                             whoseTurn === 'theirs' ? 'Their Turn' :
+                             'Unknown'}
                           </span>
                         </div>
 

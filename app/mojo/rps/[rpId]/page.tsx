@@ -11,7 +11,7 @@ import {
   SvgCandleRealistic, SvgParchmentEdge,
   SvgPageHeaderRule, SvgFiligreeRule, SvgCornerBracket,
 } from '@/app/mojo/components/MojoSvgAssets'
-import { deriveWhoseTurn } from '@/lib/mojo/utils'
+import { deriveWhoseTurn, getWaitingOn } from '@/lib/mojo/utils'
 
 const STATUS_COLOR: Record<string, string> = {
   active: 'var(--moonstone)',
@@ -235,10 +235,12 @@ export default async function MojoRpDetailPage({
             ) : (
               orderedThreads.map((thread) => {
                 const whoseTurn = deriveWhoseTurn(thread, thread.character_name)
+                const waitingOn = getWaitingOn(thread, thread.character_name)
                 const turnClass =
                   whoseTurn === 'mine' ? 'mojo-thread-turn-mine'
-                    : whoseTurn === 'theirs' ? 'mojo-thread-turn-theirs'
-                      : 'mojo-thread-turn-unknown'
+                    : whoseTurn === 'theirs' && waitingOn ? 'mojo-turn-waiting'
+                      : whoseTurn === 'theirs' ? 'mojo-thread-turn-theirs'
+                        : 'mojo-thread-turn-unknown'
                 return (
                   <div key={thread.id} className="mojo-thread-card" style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -290,7 +292,7 @@ export default async function MojoRpDetailPage({
                         borderRadius: 2,
                         marginTop: 6,
                       }}>
-                        {whoseTurn === 'mine' ? 'Your turn' : 'Their turn'}
+                        {whoseTurn === 'mine' ? 'Your turn' : waitingOn ? `Waiting on ${waitingOn}` : 'Their turn'}
                       </span>
                     )}
 

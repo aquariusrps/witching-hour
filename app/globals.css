@@ -1655,3 +1655,12 @@ body {
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
+
+/* WAITING ON badge — same teal family as their-turn */
+.mojo-turn-waiting {
+  background: linear-gradient(135deg, #0a3535 0%, #1a7070 100%);
+  color: #e8f5f5;
+  box-shadow:
+    0 0 10px rgba(26, 112, 112, 0.30),
+    0 2px 6px rgba(0, 0, 0, 0.30);
+}

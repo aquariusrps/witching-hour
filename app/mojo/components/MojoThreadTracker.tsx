@@ -8,7 +8,7 @@ import {
   deleteMojoThread,
   updateMojoThreadWhoseTurn,
 } from '@/lib/actions/mojo'
-import { deriveWhoseTurn, detectPlatformClient, formatRelativeTime } from '@/lib/mojo/utils'
+import { deriveWhoseTurn, getWaitingOn, detectPlatformClient, formatRelativeTime } from '@/lib/mojo/utils'
 import type { Tables } from '@/types/database'
 
 type MojoThread = Tables<'mojo_threads'>
@@ -97,6 +97,7 @@ export default function MojoThreadTracker({
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
   const [partnerNames, setPartnerNames] = useState('')
+  const [replyOrder, setReplyOrder] = useState('')
   const [addLoading, setAddLoading] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
@@ -105,6 +106,7 @@ export default function MojoThreadTracker({
   const [editTitle, setEditTitle] = useState('')
   const [editUrl, setEditUrl] = useState('')
   const [editPartnerNames, setEditPartnerNames] = useState('')
+  const [editReplyOrder, setEditReplyOrder] = useState('')
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
 
@@ -141,6 +143,7 @@ export default function MojoThreadTracker({
       title,
       url,
       partner_names: partnerNames,
+      reply_order: replyOrder,
     })
 
     if ('error' in result) {
@@ -157,6 +160,7 @@ export default function MojoThreadTracker({
     setEditTitle(thread.title)
     setEditUrl(thread.url ?? '')
     setEditPartnerNames(thread.partner_names ?? '')
+    setEditReplyOrder(thread.reply_order ?? '')
     setEditError(null)
     setConfirmingDelete(null)
   }
@@ -169,6 +173,7 @@ export default function MojoThreadTracker({
       title: editTitle,
       url: editUrl || null,
       partner_names: editPartnerNames || null,
+      reply_order: editReplyOrder || null,
     })
 
     if ('error' in result) {
@@ -282,14 +287,22 @@ export default function MojoThreadTracker({
 
   function renderWhoseTurnBadge(thread: MojoThread) {
     const whoseTurn = deriveWhoseTurn(thread, characterName)
+    const waitingOn = getWaitingOn(thread, characterName)
+    const badgeClass = [
+      'mojo-turn-badge',
+      whoseTurn === 'mine' ? 'mojo-turn-mine' :
+      whoseTurn === 'theirs' && waitingOn ? 'mojo-turn-waiting' :
+      whoseTurn === 'theirs' ? 'mojo-turn-theirs' :
+      'mojo-turn-unknown',
+    ].filter(Boolean).join(' ')
+    const badgeLabel =
+      whoseTurn === 'mine' ? 'Your Turn' :
+      whoseTurn === 'theirs' && waitingOn ? `Waiting on ${waitingOn}` :
+      whoseTurn === 'theirs' ? 'Their Turn' :
+      'Unknown'
     return (
-      <span className={[
-        'mojo-turn-badge',
-        whoseTurn === 'mine' ? 'mojo-turn-mine' : '',
-        whoseTurn === 'theirs' ? 'mojo-turn-theirs' : '',
-        whoseTurn === 'unknown' ? 'mojo-turn-unknown' : '',
-      ].filter(Boolean).join(' ')}>
-        {whoseTurn === 'mine' ? 'Your Turn' : whoseTurn === 'theirs' ? 'Their Turn' : 'Unknown'}
+      <span className={badgeClass}>
+        {badgeLabel}
         {thread.manual_whose_turn && (
           <span style={{ opacity: 0.75, fontSize: '0.85em', marginLeft: 6, textTransform: 'none', letterSpacing: 'normal' }}>
             (manual)
@@ -423,6 +436,7 @@ export default function MojoThreadTracker({
             <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} style={INPUT_STYLE} placeholder="Thread title" />
             <input type="text" value={editUrl} onChange={(e) => setEditUrl(e.target.value)} style={INPUT_STYLE} placeholder="URL" />
             <input type="text" value={editPartnerNames} onChange={(e) => setEditPartnerNames(e.target.value)} style={INPUT_STYLE} placeholder="Partner(s)" />
+            <input type="text" value={editReplyOrder} onChange={(e) => setEditReplyOrder(e.target.value)} style={INPUT_STYLE} placeholder="Reply order (optional) — Remy, Johnny, Sue, Peter" />
           </div>
           <div style={{ marginTop: 10 }}>
             <button
@@ -623,6 +637,23 @@ export default function MojoThreadTracker({
           <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--faded)', margin: '4px 0 0' }}>
             Separate multiple partners with commas
           </p>
+        </div>
+        <div>
+          <label style={LABEL_STYLE}>
+            Reply Order
+            <span style={{
+              fontFamily: 'var(--f-body)',
+              fontStyle: 'italic',
+              textTransform: 'none',
+              letterSpacing: 0,
+              fontSize: '0.72rem',
+              marginLeft: 6,
+              opacity: 0.7,
+            }}>
+              (optional — for combat/ordered threads)
+            </span>
+          </label>
+          <input type="text" value={replyOrder} onChange={(e) => setReplyOrder(e.target.value)} style={INPUT_STYLE} placeholder="Remy, Johnny, Sue, Peter" />
         </div>
         <div>
           <button

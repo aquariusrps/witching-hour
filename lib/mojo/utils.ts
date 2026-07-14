@@ -32,6 +32,65 @@ export function deriveWhoseTurn(
   return 'mine'
 }
 
+// When a thread has reply_order set, determines the name of the
+// person who should post next after last_poster.
+//
+// Returns:
+//   null      — reply_order not set, or can't determine next person,
+//               or it's the caller's own turn (use deriveWhoseTurn)
+//   string    — the name of the person who should post next
+//               (from the reply_order list, as the operator typed it)
+export function getWaitingOn(
+  thread: {
+    reply_order?: string | null
+    last_poster?: string | null
+    manual_whose_turn?: string | null
+  },
+  myCharacterName: string
+): string | null {
+  // Manual override takes priority — don't second-guess it
+  if (thread.manual_whose_turn) return null
+
+  // No reply_order set → freeform mode → no "waiting on" info
+  if (!thread.reply_order?.trim()) return null
+
+  // No last_poster → can't determine position in order
+  if (!thread.last_poster?.trim()) return null
+
+  // Parse the order list
+  const order = thread.reply_order
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  if (order.length < 2) return null
+
+  const lowerPoster = thread.last_poster.toLowerCase()
+
+  // Find last poster in order (case-insensitive partial match)
+  const posterIdx = order.findIndex(
+    (name) =>
+      lowerPoster.includes(name.toLowerCase()) ||
+      name.toLowerCase().includes(lowerPoster)
+  )
+
+  // Last poster not found in order list → freeform fallback
+  if (posterIdx === -1) return null
+
+  // Next person in the cycle
+  const nextIdx = (posterIdx + 1) % order.length
+  const nextName = order[nextIdx]
+
+  // If next person is the caller themselves → their turn, not "waiting on"
+  const lowerMe = myCharacterName.toLowerCase()
+  const lowerNext = nextName.toLowerCase()
+  if (lowerNext.includes(lowerMe) || lowerMe.includes(lowerNext)) {
+    return null // deriveWhoseTurn handles the 'mine' case
+  }
+
+  return nextName
+}
+
 export function detectPlatformClient(url: string): string {
   try {
     const hostname = new URL(url).hostname.toLowerCase()
