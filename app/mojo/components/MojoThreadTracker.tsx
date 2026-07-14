@@ -542,7 +542,7 @@ export default function MojoThreadTracker({
                     disabled={statusLoadingId === thread.id}
                     style={{ ...ACTION_BTN_STYLE, color: 'var(--faded)' }}
                   >
-                    Archive
+                    Close
                   </button>
                   <span style={{ color: 'var(--faded)' }}> · </span>
                 </>
@@ -731,7 +731,7 @@ export default function MojoThreadTracker({
               marginBottom: showArchived ? 12 : 0,
             }}
           >
-            {showArchived ? '▼' : '▶'} Archived Threads ({archivedThreads.length})
+            {showArchived ? '▼' : '▶'} Closed Threads ({archivedThreads.length})
           </button>
 
           {showArchived && (

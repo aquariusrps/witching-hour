@@ -3434,3 +3434,278 @@ export function SvgOpenBook({ width = 52, height = 36 }: {
     </svg>
   )
 }
+
+// ── The Chronicle SVGs (MOJO-FIX-012a) ───────────────────
+
+export function SvgNavChronicle({ active = false }: {
+  active?: boolean
+}) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      {/* Left page */}
+      <path
+        d="M 1 2 C 1 1.5, 2 1, 6 1 L 7 1 L 7 13 C 5 13, 2 12.5, 1 12 Z"
+        fill="currentColor"
+        opacity={active ? 0.55 : 0.28}
+        stroke="currentColor"
+        strokeWidth={active ? 0.6 : 0.4}
+        strokeOpacity={active ? 0.8 : 0.5}
+      />
+      {/* Right page */}
+      <path
+        d="M 13 2 C 13 1.5, 12 1, 8 1 L 7 1 L 7 13 C 9 13, 12 12.5, 13 12 Z"
+        fill="currentColor"
+        opacity={active ? 0.40 : 0.18}
+        stroke="currentColor"
+        strokeWidth={active ? 0.6 : 0.4}
+        strokeOpacity={active ? 0.7 : 0.4}
+      />
+      {/* Spine */}
+      <line x1="7" y1="1" x2="7" y2="13"
+        stroke="currentColor" strokeWidth="0.8"
+        opacity={active ? 0.9 : 0.5} />
+      {/* Quill crossing the book */}
+      <path d="M 10 1 L 4 12"
+        stroke="currentColor" strokeWidth="0.8"
+        strokeLinecap="round"
+        opacity={active ? 0.85 : 0.45} />
+      {/* Quill nib */}
+      <path d="M 4 12 L 3.2 13.2 L 5 12.5 Z"
+        fill="currentColor"
+        opacity={active ? 0.80 : 0.40} />
+      {/* Quill feather tip */}
+      <path d="M 10 1 C 11 0.5, 12 0.8, 11.5 1.8"
+        stroke="currentColor" strokeWidth="0.7"
+        strokeLinecap="round" fill="none"
+        opacity={active ? 0.65 : 0.32} />
+    </svg>
+  )
+}
+
+export function SvgOpenLedger({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="100%"
+      height="180"
+      viewBox="0 0 900 180"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        <linearGradient id="ledger-left" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#ede4cc" stopOpacity="0.90" />
+          <stop offset="100%" stopColor="#f5f0e2" stopOpacity="0.95" />
+        </linearGradient>
+        <linearGradient id="ledger-right" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#f5f0e2" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#ede4cc" stopOpacity="0.88" />
+        </linearGradient>
+        <linearGradient id="ledger-spine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#2a1a0a" />
+          <stop offset="35%"  stopColor="#4a3020" />
+          <stop offset="50%"  stopColor="#c8a840" />
+          <stop offset="65%"  stopColor="#4a3020" />
+          <stop offset="100%" stopColor="#2a1a0a" />
+        </linearGradient>
+        <linearGradient id="shadow-l" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#0a0808" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#0a0808" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="shadow-r" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#0a0808" stopOpacity="0" />
+          <stop offset="100%" stopColor="#0a0808" stopOpacity="0.22" />
+        </linearGradient>
+      </defs>
+
+      {/* Book shadow beneath */}
+      <rect x="60" y="170" width="780" height="8" rx="2"
+        fill="#0a0808" opacity="0.28" />
+
+      {/* ── LEFT PAGE ── */}
+      <path
+        d="M 65 10 C 65 8, 100 5, 200 4 C 300 3, 380 4, 440 8
+           L 440 170 C 380 168, 300 168, 200 168 C 100 168, 65 168, 65 166 Z"
+        fill="url(#ledger-left)"
+      />
+      {/* Page curl top-left */}
+      <path d="M 65 10 C 70 8, 80 6, 75 15"
+        stroke="#c8b888" strokeWidth="0.6" opacity="0.40" fill="none" />
+      {/* Red margin line */}
+      <line x1="82" y1="8" x2="82" y2="168"
+        stroke="#8b1a1a" strokeWidth="0.6" opacity="0.20" />
+      {/* Ruled lines — left page */}
+      {[28,38,48,58,68,78,88,98,110,122,134,146].map((y, i) => (
+        <line key={`ll${i}`}
+          x1={90} y1={y} x2={420 - (i%4)*3} y2={y}
+          stroke="#2a2010" strokeWidth="0.35"
+          opacity={0.09 - i*0.004}
+        />
+      ))}
+      {/* Text entry blocks — column 1 */}
+      {[30,42,54,66,78,90,102,114,126,138].map((y,i) => (
+        <rect key={`lc1${i}`}
+          x="90" y={y+2} width={58+(i%5)*8} height="4"
+          fill="#2a2010" opacity={0.065+(i%3)*0.008} rx="0.5" />
+      ))}
+      {/* Text entry blocks — column 2 */}
+      {[30,42,54,66,78,90,102,114,126].map((y,i) => (
+        <rect key={`lc2${i}`}
+          x="200" y={y+2} width={48+(i%4)*6} height="4"
+          fill="#2a2010" opacity={0.055+(i%3)*0.008} rx="0.5" />
+      ))}
+      {/* Text entry blocks — column 3 (dates/numbers) */}
+      {[30,42,54,66,78,90,102,114].map((y,i) => (
+        <rect key={`lc3${i}`}
+          x="330" y={y+2} width={28+(i%3)*4} height="4"
+          fill="#2a2010" opacity={0.07} rx="0.5" />
+      ))}
+      {/* Tiny candle vignette — lower left margin */}
+      <g transform="translate(88 148)" opacity="0.22">
+        <rect x="0" y="5" width="5" height="12" rx="0.5" fill="#ede4cc" />
+        <ellipse cx="2.5" cy="3" rx="2.5" ry="1.4" fill="#e8820c" />
+        <ellipse cx="2.5" cy="3" rx="1.4" ry="0.8" fill="#fff4e0" />
+        <line x1="2.5" y1="5" x2="2.5" y2="6"
+          stroke="#1a1008" strokeWidth="0.8" />
+      </g>
+      {/* Page shadow at spine */}
+      <rect x="392" y="8" width="48" height="162"
+        fill="url(#shadow-l)" />
+
+      {/* ── SPINE ── */}
+      <rect x="435" y="4" width="30" height="172"
+        fill="url(#ledger-spine)" />
+      <line x1="435" y1="14" x2="465" y2="14"
+        stroke="#c8a840" strokeWidth="1.0" opacity="0.55" />
+      <line x1="435" y1="162" x2="465" y2="162"
+        stroke="#c8a840" strokeWidth="1.0" opacity="0.55" />
+      {/* Spine diamond ornament */}
+      <path d="M 450 86 L 456 95 L 450 104 L 444 95 Z"
+        fill="#c8a840" opacity="0.50" />
+
+      {/* ── RIGHT PAGE ── */}
+      <path
+        d="M 835 10 C 835 8, 800 5, 700 4 C 600 3, 520 4, 460 8
+           L 460 170 C 520 168, 600 168, 700 168 C 800 168, 835 168, 835 166 Z"
+        fill="url(#ledger-right)"
+      />
+      {/* Page curl top-right */}
+      <path d="M 835 10 C 830 8, 820 6, 825 15"
+        stroke="#c8b888" strokeWidth="0.6" opacity="0.40" fill="none" />
+      {/* Red margin line — right */}
+      <line x1="818" y1="8" x2="818" y2="168"
+        stroke="#8b1a1a" strokeWidth="0.6" opacity="0.20" />
+      {/* Ruled lines — right page */}
+      {[28,38,48,58,68,78,88,98,110,122,134,146].map((y,i) => (
+        <line key={`rl${i}`}
+          x1={480} y1={y} x2={812-(i%3)*4} y2={y}
+          stroke="#2a2010" strokeWidth="0.35"
+          opacity={0.08-i*0.003}
+        />
+      ))}
+      {/* Text entry blocks — right page */}
+      {[30,42,54,66,78,90,102,114,126,138].map((y,i) => (
+        <rect key={`rc1${i}`}
+          x="480" y={y+2} width={52+(i%4)*9} height="4"
+          fill="#2a2010" opacity={0.06+(i%3)*0.008} rx="0.5" />
+      ))}
+      {[30,42,54,66,78,90,102,114,126].map((y,i) => (
+        <rect key={`rc2${i}`}
+          x="608" y={y+2} width={44+(i%5)*7} height="4"
+          fill="#2a2010" opacity={0.055+(i%3)*0.008} rx="0.5" />
+      ))}
+      {[30,42,54,66,78,90,102].map((y,i) => (
+        <rect key={`rc3${i}`}
+          x="728" y={y+2} width={32+(i%3)*5} height="4"
+          fill="#2a2010" opacity={0.065} rx="0.5" />
+      ))}
+      {/* Tiny quill vignette — lower right margin */}
+      <g transform="translate(790 150)" opacity="0.22">
+        <path d="M 12 2 C 8 4, 4 10, 3 16"
+          stroke="#c8c0a8" strokeWidth="1.0"
+          strokeLinecap="round" fill="none" />
+        <path d="M 12 2 C 16 1, 18 4, 16 6"
+          stroke="#d8d0b8" strokeWidth="0.6"
+          strokeLinecap="round" fill="none" />
+        <path d="M 3 16 L 2 18 L 4 17 Z"
+          fill="#2a2018" opacity="0.80" />
+      </g>
+      {/* Page shadow at spine */}
+      <rect x="460" y="8" width="48" height="162"
+        fill="url(#shadow-r)" />
+
+      {/* ── RIBBON BOOKMARK ── */}
+      <path d="M 446 170 L 446 192 L 450 197 L 454 192 L 454 170"
+        fill="#6b1515" stroke="#4a0f0f" strokeWidth="0.4" />
+
+      {/* ── BOOK COVER BOTTOM EDGE ── */}
+      <rect x="60" y="168" width="780" height="9" rx="1"
+        fill="#3a2a1a" />
+      <line x1="60" y1="168" x2="840" y2="168"
+        stroke="#c8a840" strokeWidth="0.8" opacity="0.40" />
+    </svg>
+  )
+}
+
+export function SvgChronicleQuill({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="80"
+      height="24"
+      viewBox="0 0 80 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Quill spine */}
+      <path d="M 4 12 C 20 10, 45 11, 68 12"
+        stroke="#b0a890" strokeWidth="0.8"
+        strokeLinecap="round" fill="none" opacity="0.75" />
+      {/* Upper barbs */}
+      {[6,14,22,30,38,46,54,62].map((x,i) => (
+        <path key={`u${i}`}
+          d={`M ${x} ${12-i*0.08}
+              C ${x+2} ${7-i*0.1},
+                ${x+5} ${5},
+                ${x+4} ${8}`}
+          stroke="#d8d0b8"
+          strokeWidth={1.0-i*0.04}
+          strokeLinecap="round" fill="none"
+          opacity={0.65-i*0.03}
+        />
+      ))}
+      {/* Lower barbs */}
+      {[6,14,22,30,38,46,54,62].map((x,i) => (
+        <path key={`d${i}`}
+          d={`M ${x} ${12+i*0.08}
+              C ${x+2} ${17+i*0.1},
+                ${x+4} ${19},
+                ${x+3.5} ${16.5}`}
+          stroke="#c8c0a8"
+          strokeWidth={0.8-i*0.03}
+          strokeLinecap="round" fill="none"
+          opacity={0.55-i*0.025}
+        />
+      ))}
+      {/* Nib */}
+      <path d="M 68 12 C 72 11.5, 75 11, 76 12
+               C 75 13, 72 12.5, 68 12 Z"
+        fill="#2a2018" opacity="0.80" />
+      <line x1="68" y1="12" x2="76" y2="12"
+        stroke="#1a1008" strokeWidth="0.5" opacity="0.60" />
+      <circle cx="77" cy="12" r="1.2"
+        fill="#0a0808" opacity="0.75" />
+      {/* Feather tip */}
+      <path d="M 4 12 C 1 8, 0 5, 2 3 C 4 4, 5 7, 4 12"
+        fill="#f0ead8" opacity="0.68"
+        stroke="#c8c0a8" strokeWidth="0.4" />
+    </svg>
+  )
+}

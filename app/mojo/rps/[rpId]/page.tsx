@@ -236,11 +236,18 @@ export default async function MojoRpDetailPage({
               orderedThreads.map((thread) => {
                 const whoseTurn = deriveWhoseTurn(thread, thread.character_name)
                 const waitingOn = getWaitingOn(thread, thread.character_name)
-                const turnClass =
-                  whoseTurn === 'mine' ? 'mojo-thread-turn-mine'
-                    : whoseTurn === 'theirs' && waitingOn ? 'mojo-turn-waiting'
-                      : whoseTurn === 'theirs' ? 'mojo-thread-turn-theirs'
-                        : 'mojo-thread-turn-unknown'
+                const turnClass = [
+                  'mojo-turn-badge',
+                  whoseTurn === 'mine' ? 'mojo-turn-mine' :
+                  whoseTurn === 'theirs' && waitingOn ? 'mojo-turn-waiting' :
+                  whoseTurn === 'theirs' ? 'mojo-turn-theirs' :
+                  'mojo-turn-unknown',
+                ].filter(Boolean).join(' ')
+                const turnLabel =
+                  whoseTurn === 'mine' ? 'Your Turn' :
+                  whoseTurn === 'theirs' && waitingOn ? `Waiting on ${waitingOn}` :
+                  whoseTurn === 'theirs' ? 'Their Turn' :
+                  'Unknown'
                 return (
                   <div key={thread.id} className="mojo-thread-card" style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -282,19 +289,9 @@ export default async function MojoRpDetailPage({
                       </span>
                     </div>
 
-                    {whoseTurn !== 'unknown' && (
-                      <span className={turnClass} style={{
-                        display: 'inline-block',
-                        fontFamily: 'var(--f-ui)',
-                        fontSize: '0.6rem',
-                        letterSpacing: '0.04em',
-                        padding: '2px 8px',
-                        borderRadius: 2,
-                        marginTop: 6,
-                      }}>
-                        {whoseTurn === 'mine' ? 'Your turn' : waitingOn ? `Waiting on ${waitingOn}` : 'Their turn'}
-                      </span>
-                    )}
+                    <span className={turnClass} style={{ fontSize: '0.6rem', padding: '2px 8px', marginTop: 6 }}>
+                      {turnLabel}
+                    </span>
 
                     {thread.partner_names && (
                       <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.8rem', color: 'var(--mist)', margin: '4px 0 0' }}>

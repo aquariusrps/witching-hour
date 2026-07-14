@@ -16,6 +16,7 @@ import {
   SvgNavPartners,
   SvgNavStacks,
   SvgNavSearch,
+  SvgNavChronicle,
 } from './MojoSvgAssets'
 
 type MojoCharacter = {
@@ -42,6 +43,7 @@ const NAV_ITEMS = [
   { label: 'Wishlist', href: '/mojo/wishlist', Icon: SvgNavWishlist },
   { label: 'Partners', href: '/mojo/partners', Icon: SvgNavPartners },
   { label: 'Stacks', href: '/mojo/stacks', Icon: SvgNavStacks },
+  { label: 'Chronicle', href: '/mojo/threads', Icon: SvgNavChronicle },
   { label: 'Search', href: '/mojo/search', Icon: SvgNavSearch },
 ]
 

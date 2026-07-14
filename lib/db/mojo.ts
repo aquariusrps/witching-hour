@@ -250,6 +250,51 @@ export async function getMojoThread(threadId: string): Promise<MojoThread | null
   return data
 }
 
+export async function getMojoAllThreads() {
+  const admin = getAdminClient()
+
+  // Primary: fetch all threads
+  const { data: threads, error } = await admin
+    .from('mojo_threads')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error || !threads?.length) return []
+
+  // Secondary: fetch character + RP context for each thread
+  // Using two-query pattern (per MOJO_BRIEF §4 FK traversal rule)
+  const charIds = [...new Set(threads.map((t) => t.character_id))]
+
+  const { data: chars } = await admin
+    .from('mojo_characters')
+    .select('id, name, status, rp_id, faceclaim_id')
+    .in('id', charIds)
+
+  const rpIds = [...new Set((chars ?? []).map((c) => c.rp_id).filter(Boolean))]
+
+  const { data: rps } = await admin
+    .from('mojo_rps')
+    .select('id, name, color_hex')
+    .in('id', rpIds)
+
+  // Build lookup maps
+  const charMap = new Map((chars ?? []).map((c) => [c.id, c]))
+  const rpMap = new Map((rps ?? []).map((r) => [r.id, r]))
+
+  // Merge context onto each thread
+  return threads.map((t) => {
+    const char = charMap.get(t.character_id)
+    const rp = char ? rpMap.get(char.rp_id ?? '') : undefined
+    return {
+      ...t,
+      character_name: char?.name ?? null,
+      character_status: char?.status ?? null,
+      rp_name: rp?.name ?? null,
+      rp_color_hex: rp?.color_hex ?? '#a02840',
+    }
+  })
+}
+
 export async function getMojoFaceclaims(): Promise<
   Array<MojoFaceclaim & { resource_count: number; character_count: number; avatar_token: string | null }>
 > {
