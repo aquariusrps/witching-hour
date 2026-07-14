@@ -323,6 +323,16 @@ export default function MojoThreadTracker({
         </p>
       )
     }
+    if (thread.detected_platform === 'jcink' && thread.fetch_status === 'unsupported') {
+      return (
+        <p
+          style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--faded)', margin: '2px 0 0' }}
+          title="This board requires login to view. If credentials are configured, try refreshing. Otherwise use the Mine/Theirs buttons to track manually."
+        >
+          ↻ members only ⓘ
+        </p>
+      )
+    }
     if (thread.fetch_status === 'uncertain') {
       return (
         <p

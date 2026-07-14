@@ -122,10 +122,19 @@ export async function fetchJcink(url: string): Promise<FetchResult> {
   const platform = 'jcink'
 
   try {
+    // Authenticate as the operator's own JCINK account when configured.
+    // Server-side only — JCINK_MEMBER_ID / JCINK_PASS_HASH never reach the
+    // client. Optional: fetch proceeds unauthenticated if either is unset.
+    const memberId = process.env.JCINK_MEMBER_ID
+    const passHash = process.env.JCINK_PASS_HASH
+    const cookieHeader =
+      memberId && passHash ? `member_id=${memberId}; pass_hash=${passHash}` : undefined
+
     const response = await fetch(url, {
       headers: {
         // Identify as a standard browser to avoid bot blocks
         'User-Agent': 'Mozilla/5.0 (compatible; MojoDash/1.0; thread-tracker)',
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
       },
       signal: AbortSignal.timeout(10000),
     })
@@ -135,30 +144,72 @@ export async function fetchJcink(url: string): Promise<FetchResult> {
     }
 
     const html = await response.text()
-    const root = parse(html)
 
-    // JCINK/IPB uses consistent class names for post authors.
-    // Try selectors in order of confidence — most specific first.
-    // We want the LAST match (most recent post).
+    // JCINK returns HTTP 200 even when the requester lacks permission to
+    // view a topic (members-only boards) — the response is a "Board
+    // Message: You do not have permission to view this topic" page, not
+    // an HTTP error. Without this check the poster selectors below simply
+    // find nothing and the result is indistinguishable from a genuine
+    // scraper/skin mismatch. Confirmed live against marvellegacyu.jcink.net
+    // (MOJO-DIAG-001 / MOJO-FIX-009).
+    //
+    // Reuses 'unsupported' rather than a new status value: fetchJcink()
+    // never sets 'unsupported' for any other reason, so combined with
+    // detected_platform === 'jcink' this is unambiguous. There is no
+    // 'auth_required' value in mojo_threads_fetch_status_check and this
+    // fix does not add one.
+    const isAuthWall =
+      html.includes('do not have permission to view this topic') ||
+      html.includes('id="board-message"') ||
+      html.includes("id='board-message'")
 
-    const selectors = [
-      '.post_member_name', // most common in standard JCINK skins
-      '.normalname', // IPB default
-      '.member_name', // some skins
-      '[itemprop="author"]', // schema.org markup some skins use
-      '.postdetails .name', // IPB legacy
-    ]
+    if (isAuthWall) {
+      return { last_poster: null, fetch_status: 'unsupported', detected_platform: platform }
+    }
 
+    // This skin's post-author markup (`<div class="mpname"><a ...><span
+    // ...>NAME</a>`) leaves the inner <span> unclosed. node-html-parser's
+    // querySelectorAll returns 0 matches for '.mpname a' against this markup
+    // even though the elements are clearly present in the raw HTML —
+    // confirmed live. A regex against the raw string is tried first; the
+    // CSS-selector list below remains as a fallback for JCINK skins where
+    // DOM parsing succeeds.
     let lastPoster: string | null = null
 
-    for (const selector of selectors) {
-      const elements = root.querySelectorAll(selector)
-      if (elements.length > 0) {
-        // Take the last element's text (most recent post's author)
-        const text = elements[elements.length - 1].text?.trim()
-        if (text && text.length > 0 && text.length < 100) {
-          lastPoster = text
-          break
+    const mpnameMatches = [
+      ...html.matchAll(/<div class=["']mpname["']><a[^>]*>(?:<span[^>]*>)?([^<]+)<\/a>/gi),
+    ]
+    if (mpnameMatches.length > 0) {
+      const text = mpnameMatches[mpnameMatches.length - 1][1]?.trim()
+      if (text && text.length > 0 && text.length < 100) {
+        lastPoster = text
+      }
+    }
+
+    if (!lastPoster) {
+      const root = parse(html)
+
+      // JCINK/IPB uses consistent class names for post authors.
+      // Try selectors in order of confidence — most specific first.
+      // We want the LAST match (most recent post).
+
+      const selectors = [
+        '.post_member_name', // most common in standard JCINK skins
+        '.normalname', // IPB default
+        '.member_name', // some skins
+        '[itemprop="author"]', // schema.org markup some skins use
+        '.postdetails .name', // IPB legacy
+      ]
+
+      for (const selector of selectors) {
+        const elements = root.querySelectorAll(selector)
+        if (elements.length > 0) {
+          // Take the last element's text (most recent post's author)
+          const text = elements[elements.length - 1].text?.trim()
+          if (text && text.length > 0 && text.length < 100) {
+            lastPoster = text
+            break
+          }
         }
       }
     }
