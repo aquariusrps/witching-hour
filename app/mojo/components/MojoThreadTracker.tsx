@@ -124,6 +124,7 @@ export default function MojoThreadTracker({
 
   // Manual override state
   const [overrideLoadingId, setOverrideLoadingId] = useState<string | null>(null)
+  const [openOverride, setOpenOverride] = useState<string | null>(null)
 
   const activeThreads = threads.filter((t) => t.status === 'active')
   const archivedThreads = threads.filter((t) => t.status !== 'active')
@@ -281,22 +282,18 @@ export default function MojoThreadTracker({
 
   function renderWhoseTurnBadge(thread: MojoThread) {
     const whoseTurn = deriveWhoseTurn(thread, characterName)
-    if (whoseTurn === 'unknown') return null
-    const isMine = whoseTurn === 'mine'
     return (
-      <span style={{
-        display: 'inline-block',
-        background: isMine ? 'rgba(224,176,40,0.12)' : 'rgba(56,120,168,0.10)',
-        border: `1px solid ${isMine ? 'var(--gold-dim)' : 'var(--moon-dim)'}`,
-        color: isMine ? 'var(--gold)' : 'var(--moonstone)',
-        fontFamily: 'var(--f-ui)',
-        fontSize: '0.625rem',
-        padding: '2px 8px',
-        borderRadius: 2,
-      }}>
-        {isMine ? 'Your turn' : 'Their turn'}
+      <span className={[
+        'mojo-turn-badge',
+        whoseTurn === 'mine' ? 'mojo-turn-mine' : '',
+        whoseTurn === 'theirs' ? 'mojo-turn-theirs' : '',
+        whoseTurn === 'unknown' ? 'mojo-turn-unknown' : '',
+      ].filter(Boolean).join(' ')}>
+        {whoseTurn === 'mine' ? 'Your Turn' : whoseTurn === 'theirs' ? 'Their Turn' : 'Unknown'}
         {thread.manual_whose_turn && (
-          <span style={{ color: 'var(--faded)', fontSize: '0.55rem', marginLeft: 4 }}>(manual)</span>
+          <span style={{ opacity: 0.75, fontSize: '0.85em', marginLeft: 6, textTransform: 'none', letterSpacing: 'normal' }}>
+            (manual)
+          </span>
         )}
       </span>
     )
@@ -355,14 +352,28 @@ export default function MojoThreadTracker({
     return null
   }
 
-  function renderOverrideButtons(thread: MojoThread) {
+  function renderOverrideTrigger(thread: MojoThread) {
+    return (
+      <button
+        type="button"
+        className="mojo-override-trigger"
+        onClick={() => setOpenOverride(openOverride === thread.id ? null : thread.id)}
+        title="Manual whose-turn override"
+        aria-label="Override whose turn"
+      >
+        ···
+      </button>
+    )
+  }
+
+  function renderOverrideRow(thread: MojoThread) {
     const options: Array<{ key: 'auto' | 'mine' | 'theirs'; label: string; value: 'mine' | 'theirs' | null }> = [
       { key: 'auto', label: 'Auto', value: null },
       { key: 'mine', label: 'Mine', value: 'mine' },
       { key: 'theirs', label: 'Theirs', value: 'theirs' },
     ]
     return (
-      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+      <div className="mojo-override-row">
         {options.map((opt) => {
           const isActive = opt.key === 'auto' ? !thread.manual_whose_turn : thread.manual_whose_turn === opt.value
           return (
@@ -370,17 +381,12 @@ export default function MojoThreadTracker({
               key={opt.key}
               type="button"
               disabled={overrideLoadingId === thread.id}
-              onClick={() => handleSetWhoseTurn(thread.id, opt.value)}
-              style={{
-                fontFamily: 'var(--f-ui)',
-                fontSize: '0.625rem',
-                color: isActive ? 'var(--gold)' : 'var(--faded)',
-                background: isActive ? 'var(--elevated)' : 'var(--raised)',
-                border: `1px solid ${isActive ? 'var(--gold-dim)' : 'var(--elevated)'}`,
-                padding: '2px 8px',
-                borderRadius: 2,
-                cursor: overrideLoadingId === thread.id ? 'not-allowed' : 'pointer',
+              className={['mojo-override-btn', isActive ? 'mojo-override-btn-active' : ''].filter(Boolean).join(' ')}
+              onClick={() => {
+                handleSetWhoseTurn(thread.id, opt.value)
+                setOpenOverride(null)
               }}
+              style={{ cursor: overrideLoadingId === thread.id ? 'not-allowed' : 'pointer' }}
             >
               {opt.label}
             </button>
@@ -550,6 +556,12 @@ export default function MojoThreadTracker({
                 {isRefreshing ? '↻…' : '↻'}
               </button>
               <span style={{ color: 'var(--faded)' }}> · </span>
+              {!archived && (
+                <>
+                  {renderOverrideTrigger(thread)}
+                  <span style={{ color: 'var(--faded)' }}> · </span>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => { setConfirmingDelete(thread.id); setEditingThreadId(null) }}
@@ -574,7 +586,7 @@ export default function MojoThreadTracker({
         {renderLastPosterLine(thread)}
         {renderCheckedLine(thread)}
 
-        {!archived && renderOverrideButtons(thread)}
+        {!archived && openOverride === thread.id && renderOverrideRow(thread)}
 
         {rowHasError && (
           <p style={{ fontFamily: 'var(--f-body)', fontSize: '0.78rem', color: 'var(--ember)', margin: '6px 0 0' }}>

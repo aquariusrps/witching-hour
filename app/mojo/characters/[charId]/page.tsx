@@ -16,11 +16,13 @@ import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
 import MojoCharacterNotes from '@/app/mojo/components/MojoCharacterNotes'
 import MojoThreadTracker from '@/app/mojo/components/MojoThreadTracker'
 import MojoResourcesTab from '@/app/mojo/components/MojoResourcesTab'
+import MojoThreadAutoRefresh from '@/app/mojo/components/MojoThreadAutoRefresh'
 import {
   SvgIvyBorder, SvgDossierQuill, SvgOpenBook,
   SvgCandleRealistic, SvgWaxSeal, SvgScrollEnd,
   SvgPageHeaderRule, SvgFiligreeRule,
 } from '@/app/mojo/components/MojoSvgAssets'
+import { deriveWhoseTurn, formatRelativeTime } from '@/lib/mojo/utils'
 
 export default async function MojoCharacterPage({
   params,
@@ -50,6 +52,15 @@ export default async function MojoCharacterPage({
 
   return (
     <div style={{ position: 'relative' }}>
+      <MojoThreadAutoRefresh
+        threads={threads.map((t) => ({
+          id: t.id,
+          last_checked_at: t.last_checked_at,
+          fetch_status: t.fetch_status,
+          url: t.url,
+        }))}
+      />
+
       {/* The Dossier stamp */}
       <div
         aria-hidden="true"
@@ -191,7 +202,7 @@ export default async function MojoCharacterPage({
           borderRight: '1px solid rgba(255,255,255,0.05)',
           marginBottom: '24px',
         }}>
-          <div className="mojo-char-portrait-zone">
+          <div className="mojo-char-zone2-three-col">
 
             {/* LEFT: Primary portrait only — contained size */}
             <div style={{ flexShrink: 0 }}>
@@ -297,6 +308,91 @@ export default async function MojoCharacterPage({
                 />
               </div>
 
+            </div>
+
+            {/* RIGHT COLUMN: Active thread list */}
+            <div className="mojo-char-zone2-threads">
+              <div className="mojo-char-zone2-threads-heading">
+                Active Threads
+              </div>
+
+              {threads.filter((t) => t.status === 'active').length === 0 ? (
+                <p style={{
+                  fontFamily: 'EB Garamond, serif',
+                  fontSize: '13px',
+                  fontStyle: 'italic',
+                  color: 'var(--faded)',
+                  margin: 0,
+                }}>
+                  No active threads.
+                </p>
+              ) : (
+                threads
+                  .filter((t) => t.status === 'active')
+                  .map((t) => {
+                    const whoseTurn = deriveWhoseTurn(t, character.name)
+
+                    return (
+                      <div key={t.id} className="mojo-thread-mini-card">
+
+                        {/* Title — links to thread URL */}
+                        {t.url ? (
+                          <a
+                            href={t.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mojo-thread-mini-title"
+                          >
+                            {t.title}
+                          </a>
+                        ) : (
+                          <span className="mojo-thread-mini-title" style={{ color: 'var(--mist)' }}>
+                            {t.title}
+                          </span>
+                        )}
+
+                        {/* Partner */}
+                        {t.partner_names && (
+                          <div className="mojo-thread-mini-partner">
+                            with {t.partner_names}
+                          </div>
+                        )}
+
+                        {/* Whose-turn badge */}
+                        <div style={{ marginBottom: '6px' }}>
+                          <span className={[
+                            'mojo-turn-badge',
+                            whoseTurn === 'mine' ? 'mojo-turn-mine' : '',
+                            whoseTurn === 'theirs' ? 'mojo-turn-theirs' : '',
+                            whoseTurn === 'unknown' ? 'mojo-turn-unknown' : '',
+                          ].filter(Boolean).join(' ')}
+                            style={{ fontSize: '9px', padding: '2px 8px' }}
+                          >
+                            {whoseTurn === 'mine' ? 'Your Turn' : whoseTurn === 'theirs' ? 'Their Turn' : 'Unknown'}
+                          </span>
+                        </div>
+
+                        {/* Last poster + checked time */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}>
+                          {t.last_poster && (
+                            <span className="mojo-thread-mini-meta">
+                              ↳ {t.last_poster}
+                            </span>
+                          )}
+                          {t.last_checked_at && (
+                            <span className="mojo-thread-mini-meta" style={{ marginLeft: 'auto' }}>
+                              {formatRelativeTime(t.last_checked_at)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+              )}
             </div>
           </div>
         </div>

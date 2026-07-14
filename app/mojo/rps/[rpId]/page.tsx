@@ -6,6 +6,7 @@ import MojoAddCharacter from '@/app/mojo/components/MojoAddCharacter'
 import MojoCharacterStatusToggle from '@/app/mojo/components/MojoCharacterStatusToggle'
 import MojoWantedBoard from '@/app/mojo/components/MojoWantedBoard'
 import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
+import MojoThreadAutoRefresh from '@/app/mojo/components/MojoThreadAutoRefresh'
 import {
   SvgCandleRealistic, SvgParchmentEdge,
   SvgPageHeaderRule, SvgFiligreeRule, SvgCornerBracket,
@@ -47,6 +48,14 @@ export default async function MojoRpDetailPage({
 
   return (
     <div style={{ padding: '28px 32px 64px', position: 'relative', zIndex: 1 }}>
+      <MojoThreadAutoRefresh
+        threads={rp.threads.map((t) => ({
+          id: t.id,
+          last_checked_at: t.last_checked_at,
+          fetch_status: t.fetch_status,
+          url: t.url,
+        }))}
+      />
 
       {/* ════ ZONE 1: RP HEADER ════ */}
       <div
