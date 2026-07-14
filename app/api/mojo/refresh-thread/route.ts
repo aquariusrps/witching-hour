@@ -3,6 +3,7 @@ import { fetchThreadStatus } from '@/lib/mojo/thread-fetchers'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 import { getServerClient } from '@/lib/supabase/serverClient'
 import { isSuperAdmin } from '@/lib/permissions'
+import type { TablesUpdate } from '@/types/database'
 
 export async function POST(request: Request) {
   const supabase = await getServerClient()
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     const admin = getAdminClient()
     const { data: thread } = await admin
       .from('mojo_threads')
-      .select('id, url, character_id, thread_type')
+      .select('id, url, character_id, thread_type, last_poster')
       .eq('id', threadId)
       .single()
 
@@ -78,19 +79,31 @@ export async function POST(request: Request) {
       })
     }
 
+    const updatePayload: TablesUpdate<'mojo_threads'> = {
+      fetch_status: result.fetch_status,
+      detected_platform: result.detected_platform,
+      last_checked_at: lastCheckedAt,
+    }
+    // Only overwrite last_poster when the scrape returned a usable value —
+    // a failed/timed-out fetch returns null and must not destroy the last
+    // known-good poster (confirmed root cause: MOJO-DIAG-002/003).
+    if (result.last_poster) {
+      updatePayload.last_poster = result.last_poster
+    }
+
     await admin
       .from('mojo_threads')
-      .update({
-        last_poster: result.last_poster,
-        fetch_status: result.fetch_status,
-        detected_platform: result.detected_platform,
-        last_checked_at: lastCheckedAt,
-      })
+      .update(updatePayload)
       .eq('id', threadId)
+
+    // Report the preserved value back to the caller too — otherwise the
+    // client would overwrite its own local state with the failed scrape's
+    // null, reintroducing the same bug in the UI until the next page load.
+    const effectiveLastPoster = result.last_poster || thread.last_poster
 
     return NextResponse.json({
       success: true,
-      last_poster: result.last_poster,
+      last_poster: effectiveLastPoster,
       fetch_status: result.fetch_status,
       detected_platform: result.detected_platform,
       last_checked_at: lastCheckedAt,
