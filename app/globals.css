@@ -1664,3 +1664,100 @@ body {
     0 0 10px rgba(26, 112, 112, 0.30),
     0 2px 6px rgba(0, 0, 0, 0.30);
 }
+
+/* ═══════════════════════════════════════
+   THE CHRONICLE — MOJO-FIX-012b
+   ═══════════════════════════════════════ */
+
+.mojo-chronicle-page { position: relative; }
+
+.mojo-chronicle-header {
+  position: relative; z-index: 1;
+  text-align: center; padding: 20px 0 16px;
+}
+
+.mojo-thread-group { margin-bottom: 28px; }
+
+.mojo-thread-group-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+}
+
+.mojo-thread-group-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; color: var(--roseash);
+}
+
+.mojo-thread-group-rp {
+  font-family: 'EB Garamond', serif;
+  font-size: 13px; font-style: italic; color: var(--faded);
+}
+
+.mojo-thread-group-body {
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0 0 3px 3px; overflow: hidden;
+}
+
+.mojo-chronicle-add-form {
+  background: var(--raised);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 3px; padding: 20px 24px; margin-bottom: 24px;
+}
+
+.mojo-chronicle-add-toggle {
+  font-family: 'Cinzel', serif; font-size: 10px;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--faded); background: transparent;
+  border: 1px solid rgba(255,255,255,0.10); border-radius: 2px;
+  padding: 6px 16px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.mojo-chronicle-add-toggle:hover {
+  color: var(--roseash);
+  border-color: rgba(160,40,64,0.4);
+}
+
+.mojo-chronicle-archive { opacity: 0.65; }
+
+.mojo-chronicle-archive-heading {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+
+.mojo-thread-archived-card {
+  padding: 10px 14px; background: var(--raised);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 2px; margin-bottom: 6px;
+}
+
+.mojo-thread-archived-title {
+  font-family: 'EB Garamond', serif; font-size: 14px;
+  color: var(--mist); text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,0.15);
+}
+
+.mojo-thread-archived-meta {
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 0.12em; color: var(--faded); margin-top: 3px;
+}
+
+.mojo-chronicle-section-heading {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 20px; margin-top: 32px;
+}
+
+.mojo-chronicle-section-heading h2 {
+  font-family: 'Cormorant Upright', serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--gold); margin: 0; flex-shrink: 0;
+}
+
+.mojo-chronicle-section-rule {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--elevated), transparent);
+}
