@@ -11,7 +11,7 @@ import {
   SvgCandleRealistic, SvgParchmentEdge,
   SvgPageHeaderRule, SvgFiligreeRule, SvgCornerBracket,
 } from '@/app/mojo/components/MojoSvgAssets'
-import { deriveWhoseTurn, getWaitingOn } from '@/lib/mojo/utils'
+import { getThreadDisplayState, getWaitingOn, getDisplayBadge } from '@/lib/mojo/utils'
 
 const STATUS_COLOR: Record<string, string> = {
   active: 'var(--moonstone)',
@@ -234,20 +234,9 @@ export default async function MojoRpDetailPage({
               </p>
             ) : (
               orderedThreads.map((thread) => {
-                const whoseTurn = deriveWhoseTurn(thread, thread.character_name)
-                const waitingOn = getWaitingOn(thread, thread.character_name)
-                const turnClass = [
-                  'mojo-turn-badge',
-                  whoseTurn === 'mine' ? 'mojo-turn-mine' :
-                  whoseTurn === 'theirs' && waitingOn ? 'mojo-turn-waiting' :
-                  whoseTurn === 'theirs' ? 'mojo-turn-theirs' :
-                  'mojo-turn-unknown',
-                ].filter(Boolean).join(' ')
-                const turnLabel =
-                  whoseTurn === 'mine' ? 'Your Turn' :
-                  whoseTurn === 'theirs' && waitingOn ? `Waiting on ${waitingOn}` :
-                  whoseTurn === 'theirs' ? 'Their Turn' :
-                  'Unknown'
+                const state = getThreadDisplayState(thread, thread.character_name)
+                const waitingOn = state === 'waiting' ? getWaitingOn(thread, thread.character_name) : null
+                const { className: turnClass, label: turnLabel } = getDisplayBadge(state, waitingOn)
                 return (
                   <div key={thread.id} className="mojo-thread-card" style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>

@@ -12,8 +12,9 @@ import {
   SvgScrollEnd,
 } from '@/app/mojo/components/MojoSvgAssets'
 import {
-  deriveWhoseTurn,
+  getThreadDisplayState,
   getWaitingOn,
+  getDisplayBadge,
   formatRelativeTime,
 } from '@/lib/mojo/utils'
 
@@ -66,13 +67,15 @@ export default async function ChronicleThreadsPage() {
     groupMap.get(charId)!.threads.push(thread)
   }
 
-  const groups = Array.from(groupMap.values())
-    // Sort: characters with YOUR TURN threads first
-    .sort((a, b) => {
-      const aMine = a.threads.some((t) => deriveWhoseTurn(t, a.characterName) === 'mine')
-      const bMine = b.threads.some((t) => deriveWhoseTurn(t, b.characterName) === 'mine')
-      return (bMine ? 1 : 0) - (aMine ? 1 : 0)
+  // Groups needing action (your turn, awaiting starter, or due) sort first
+  const groupNeedsAction = (g: { characterName: string; threads: typeof activeThreads }) =>
+    g.threads.some((t) => {
+      const s = getThreadDisplayState(t, g.characterName)
+      return s === 'mine' || s === 'awaiting_start' || s === 'due'
     })
+
+  const groups = Array.from(groupMap.values())
+    .sort((a, b) => (groupNeedsAction(b) ? 1 : 0) - (groupNeedsAction(a) ? 1 : 0))
 
   return (
     <div className="mojo-chronicle-page">
@@ -186,22 +189,9 @@ export default async function ChronicleThreadsPage() {
               {/* Thread cards */}
               <div className="mojo-thread-group-body">
                 {group.threads.map((thread, i) => {
-                  const turn = deriveWhoseTurn(thread, group.characterName)
-                  const waitingOn = getWaitingOn(thread, group.characterName)
-
-                  const badgeClass = [
-                    'mojo-turn-badge',
-                    turn === 'mine' ? 'mojo-turn-mine' :
-                    turn === 'theirs' && waitingOn ? 'mojo-turn-waiting' :
-                    turn === 'theirs' ? 'mojo-turn-theirs' :
-                    'mojo-turn-unknown',
-                  ].filter(Boolean).join(' ')
-
-                  const badgeLabel =
-                    turn === 'mine' ? 'Your Turn' :
-                    turn === 'theirs' && waitingOn ? `Waiting on ${waitingOn}` :
-                    turn === 'theirs' ? 'Their Turn' :
-                    'Unknown'
+                  const state = getThreadDisplayState(thread, group.characterName)
+                  const waitingOn = state === 'waiting' ? getWaitingOn(thread, group.characterName) : null
+                  const { className: badgeClass, label: badgeLabel } = getDisplayBadge(state, waitingOn)
 
                   return (
                     <div
@@ -212,7 +202,7 @@ export default async function ChronicleThreadsPage() {
                         borderBottom: i < group.threads.length - 1
                           ? '1px solid rgba(255,255,255,0.04)'
                           : 'none',
-                        background: turn === 'mine'
+                        background: state === 'mine'
                           ? 'rgba(139,26,26,0.06)'
                           : 'transparent',
                       }}

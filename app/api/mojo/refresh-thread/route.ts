@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const admin = getAdminClient()
     const { data: thread } = await admin
       .from('mojo_threads')
-      .select('id, url, character_id')
+      .select('id, url, character_id, thread_type')
       .eq('id', threadId)
       .single()
 
@@ -44,8 +44,39 @@ export async function POST(request: Request) {
       })
     }
 
-    const result = await fetchThreadStatus(thread.url)
+    // Get character name for class thread completion detection
+    let characterName: string | null = null
+    if (thread.thread_type === 'class') {
+      const { data: char } = await admin
+        .from('mojo_characters')
+        .select('name')
+        .eq('id', thread.character_id)
+        .single()
+      characterName = char?.name ?? null
+    }
+
+    const result = await fetchThreadStatus(thread.url, characterName ?? undefined)
     const lastCheckedAt = new Date().toISOString()
+
+    // Class thread auto-archive: character's post detected among any
+    // author on the page — the assignment is submitted.
+    if (thread.thread_type === 'class' && result.my_post_found === true) {
+      await admin
+        .from('mojo_threads')
+        .update({
+          status: 'archived',
+          completed_at: lastCheckedAt,
+          fetch_status: 'success',
+          last_checked_at: lastCheckedAt,
+        })
+        .eq('id', threadId)
+
+      return NextResponse.json({
+        success: true,
+        completed: true,
+        message: 'Class thread auto-archived — submission detected',
+      })
+    }
 
     await admin
       .from('mojo_threads')

@@ -43,6 +43,8 @@ export default function MojoChronicleAddForm({
   const [url, setUrl] = useState('')
   const [partnerNames, setPartnerNames] = useState('')
   const [replyOrder, setReplyOrder] = useState('')
+  const [threadType, setThreadType] = useState<'rp' | 'class'>('rp')
+  const [dueDate, setDueDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,6 +54,8 @@ export default function MojoChronicleAddForm({
     setUrl('')
     setPartnerNames('')
     setReplyOrder('')
+    setThreadType('rp')
+    setDueDate('')
     setError(null)
   }
 
@@ -74,6 +78,8 @@ export default function MojoChronicleAddForm({
       url: url.trim() || undefined,
       partner_names: partnerNames.trim() || undefined,
       reply_order: replyOrder.trim() || undefined,
+      thread_type: threadType,
+      assignment_due_at: dueDate || null,
     })
 
     setSubmitting(false)
@@ -142,42 +148,84 @@ export default function MojoChronicleAddForm({
             />
           </div>
 
+          {/* Thread type */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={LABEL_STYLE}>Thread Type</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {(['rp', 'class'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setThreadType(type)}
+                  style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '10px',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    padding: '4px 12px',
+                    border: '1px solid',
+                    borderColor: threadType === type ? 'var(--gold)' : 'var(--elevated)',
+                    background: threadType === type ? 'rgba(160,40,64,0.12)' : 'transparent',
+                    color: threadType === type ? 'var(--gold)' : 'var(--faded)',
+                    cursor: 'pointer',
+                    borderRadius: '1px',
+                  }}
+                >
+                  {type === 'rp' ? 'RP Thread' : 'Class Assignment'}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Partners */}
           <div style={{ marginBottom: '12px' }}>
-            <label style={LABEL_STYLE}>Partner(s)</label>
+            <label style={LABEL_STYLE}>{threadType === 'class' ? 'Professor' : 'Partner(s)'}</label>
             <input
               type="text"
               value={partnerNames}
               onChange={(e) => setPartnerNames(e.target.value)}
-              placeholder="Separate multiple with commas"
+              placeholder={threadType === 'class' ? undefined : 'Separate multiple with commas'}
               style={INPUT_STYLE}
             />
           </div>
 
-          {/* Reply order */}
-          <div style={{ marginBottom: '18px' }}>
-            <label style={LABEL_STYLE}>
-              Reply Order
-              <span style={{
-                fontFamily: 'EB Garamond, serif',
-                fontStyle: 'italic',
-                textTransform: 'none',
-                letterSpacing: 0,
-                fontSize: '11px',
-                marginLeft: '6px',
-                opacity: 0.6,
-              }}>
-                (optional — for ordered threads)
-              </span>
-            </label>
-            <input
-              type="text"
-              value={replyOrder}
-              onChange={(e) => setReplyOrder(e.target.value)}
-              placeholder="Remy, Johnny, Sue"
-              style={INPUT_STYLE}
-            />
-          </div>
+          {threadType === 'class' ? (
+            /* Due date */
+            <div style={{ marginBottom: '18px' }}>
+              <label style={LABEL_STYLE}>Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                style={INPUT_STYLE}
+              />
+            </div>
+          ) : (
+            /* Reply order */
+            <div style={{ marginBottom: '18px' }}>
+              <label style={LABEL_STYLE}>
+                Reply Order
+                <span style={{
+                  fontFamily: 'EB Garamond, serif',
+                  fontStyle: 'italic',
+                  textTransform: 'none',
+                  letterSpacing: 0,
+                  fontSize: '11px',
+                  marginLeft: '6px',
+                  opacity: 0.6,
+                }}>
+                  (optional — for ordered threads)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={replyOrder}
+                onChange={(e) => setReplyOrder(e.target.value)}
+                placeholder="Remy, Johnny, Sue"
+                style={INPUT_STYLE}
+              />
+            </div>
+          )}
 
           {error && (
             <p style={{

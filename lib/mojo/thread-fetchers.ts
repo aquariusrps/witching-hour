@@ -4,6 +4,10 @@ export type FetchResult = {
   last_poster: string | null
   fetch_status: 'success' | 'failed' | 'unsupported' | 'uncertain'
   detected_platform: 'tumblr' | 'jcink' | 'generic' | 'unknown'
+  // Only present when a characterName was passed to fetchJcink() —
+  // true if that name was found among ANY post author on the page
+  // (not just the last poster). Used for class thread auto-archive.
+  my_post_found?: boolean
 }
 
 export function detectPlatform(
@@ -118,7 +122,10 @@ export async function fetchTumblr(url: string): Promise<FetchResult> {
   }
 }
 
-export async function fetchJcink(url: string): Promise<FetchResult> {
+export async function fetchJcink(
+  url: string,
+  characterName?: string
+): Promise<FetchResult> {
   const platform = 'jcink'
 
   try {
@@ -214,11 +221,59 @@ export async function fetchJcink(url: string): Promise<FetchResult> {
       }
     }
 
+    // ── CLASS THREAD: CHECK IF CHARACTER HAS POSTED ──
+    // Only runs when characterName is provided. Reuses the same two
+    // author-detection patterns as the last_poster logic above, but
+    // scans ALL matches instead of only the most recent one. Fully
+    // additive — existing behavior above and below is unchanged when
+    // characterName is not passed.
+    let my_post_found: boolean | undefined = undefined
+
+    if (characterName) {
+      const lowerName = characterName.toLowerCase().trim()
+      const allAuthors: string[] = []
+
+      // Pattern 1: mpname divs (same regex as last_poster detection above)
+      for (const m of html.matchAll(
+        /<div class=["']mpname["']><a[^>]*>(?:<span[^>]*>)?([^<]+)<\/a>/gi
+      )) {
+        const text = m[1]?.trim()
+        if (text && text.length > 0 && text.length < 100) allAuthors.push(text)
+      }
+
+      // Pattern 2: same CSS selector fallback list as last_poster detection above
+      if (allAuthors.length === 0) {
+        const root = parse(html)
+        const selectors = [
+          '.post_member_name',
+          '.normalname',
+          '.member_name',
+          '[itemprop="author"]',
+          '.postdetails .name',
+        ]
+        for (const selector of selectors) {
+          const elements = root.querySelectorAll(selector)
+          for (const el of elements) {
+            const text = el.text?.trim()
+            if (text && text.length > 0 && text.length < 100) allAuthors.push(text)
+          }
+          if (allAuthors.length > 0) break
+        }
+      }
+
+      my_post_found = allAuthors.some(
+        (author) =>
+          author.toLowerCase().includes(lowerName) ||
+          lowerName.includes(author.toLowerCase())
+      )
+    }
+
     if (!lastPoster) {
       return {
         last_poster: null,
         fetch_status: 'uncertain',
         detected_platform: platform,
+        ...(my_post_found !== undefined ? { my_post_found } : {}),
       }
     }
 
@@ -226,6 +281,7 @@ export async function fetchJcink(url: string): Promise<FetchResult> {
       last_poster: lastPoster,
       fetch_status: 'success',
       detected_platform: platform,
+      ...(my_post_found !== undefined ? { my_post_found } : {}),
     }
   } catch (err) {
     console.error('JCINK fetch error:', err)
@@ -312,7 +368,10 @@ export async function fetchGeneric(url: string): Promise<FetchResult> {
   }
 }
 
-export async function fetchThreadStatus(url: string): Promise<FetchResult> {
+export async function fetchThreadStatus(
+  url: string,
+  characterName?: string
+): Promise<FetchResult> {
   if (!url || url.trim() === '') {
     return {
       last_poster: null,
@@ -327,7 +386,7 @@ export async function fetchThreadStatus(url: string): Promise<FetchResult> {
     case 'tumblr':
       return fetchTumblr(url)
     case 'jcink':
-      return fetchJcink(url)
+      return fetchJcink(url, characterName)
     case 'generic':
       return fetchGeneric(url)
     default:

@@ -1761,3 +1761,12 @@ body {
   flex: 1; height: 1px;
   background: linear-gradient(90deg, var(--elevated), transparent);
 }
+
+/* Pending-action badge — amber — for DUE and AWAITING STARTER */
+.mojo-turn-pending {
+  background: linear-gradient(135deg, #5a3800 0%, #c87800 100%);
+  color: #fff8e0;
+  box-shadow:
+    0 0 12px rgba(200, 120, 0, 0.38),
+    0 2px 6px rgba(0, 0, 0, 0.32);
+}

@@ -91,6 +91,108 @@ export function getWaitingOn(
   return nextName
 }
 
+export type ThreadDisplayState =
+  | 'awaiting_start' // url is null — thread not yet started
+  | 'due' // class thread, not yet submitted
+  | 'submitted' // class thread, completed (archived)
+  | 'mine' // RP: your turn
+  | 'theirs' // RP: partner's turn (no specific name)
+  | 'waiting' // RP: ordered thread, specific next person
+  | 'unknown' // RP: cannot determine
+
+// Single source of truth for thread badge display state. Handles
+// all thread types and states. Call this instead of deriveWhoseTurn()
+// at display sites.
+export function getThreadDisplayState(
+  thread: {
+    url?: string | null
+    thread_type?: string | null
+    completed_at?: string | null
+    status?: string | null
+    manual_whose_turn?: string | null
+    last_poster?: string | null
+    reply_order?: string | null
+    partner_names?: string | null
+    fetch_status?: string | null
+  },
+  characterName: string
+): ThreadDisplayState {
+  // 1. No URL — thread not yet started (any type)
+  if (!thread.url?.trim()) return 'awaiting_start'
+
+  // 2. Class thread
+  if (thread.thread_type === 'class') {
+    if (thread.completed_at) return 'submitted'
+    return 'due'
+  }
+
+  // 3. RP thread — use existing logic
+  const base = deriveWhoseTurn(
+    {
+      last_poster: thread.last_poster ?? null,
+      fetch_status: thread.fetch_status ?? null,
+      manual_whose_turn: thread.manual_whose_turn ?? null,
+    },
+    characterName
+  )
+
+  if (base === 'mine') return 'mine'
+
+  if (base === 'theirs') {
+    const wo = getWaitingOn(thread, characterName)
+    return wo ? 'waiting' : 'theirs'
+  }
+
+  return 'unknown'
+}
+
+// Returns { className, label } for a given display state — the
+// single source of truth for badge rendering across all four
+// thread display surfaces.
+export function getDisplayBadge(
+  state: ThreadDisplayState,
+  waitingOn?: string | null
+): { className: string; label: string } {
+  switch (state) {
+    case 'awaiting_start':
+      return {
+        className: 'mojo-turn-badge mojo-turn-pending',
+        label: 'Awaiting Starter',
+      }
+    case 'due':
+      return {
+        className: 'mojo-turn-badge mojo-turn-pending',
+        label: 'Due',
+      }
+    case 'submitted':
+      return {
+        className: 'mojo-turn-badge mojo-turn-unknown',
+        label: 'Submitted',
+      }
+    case 'mine':
+      return {
+        className: 'mojo-turn-badge mojo-turn-mine',
+        label: 'Your Turn',
+      }
+    case 'waiting':
+      return {
+        className: 'mojo-turn-badge mojo-turn-waiting',
+        label: waitingOn ? `Waiting on ${waitingOn}` : 'Their Turn',
+      }
+    case 'theirs':
+      return {
+        className: 'mojo-turn-badge mojo-turn-theirs',
+        label: 'Their Turn',
+      }
+    case 'unknown':
+    default:
+      return {
+        className: 'mojo-turn-badge mojo-turn-unknown',
+        label: 'Unknown',
+      }
+  }
+}
+
 export function detectPlatformClient(url: string): string {
   try {
     const hostname = new URL(url).hostname.toLowerCase()

@@ -200,6 +200,8 @@ export async function createMojoThread(payload: {
   url?: string
   partner_names?: string
   reply_order?: string
+  thread_type?: 'rp' | 'class'
+  assignment_due_at?: string | null
 }): Promise<ActionError | { success: true; thread: MojoThread }> {
   const userId = await requireSuperAdmin()
   if (!userId) return { error: 'Unauthorized' }
@@ -220,6 +222,8 @@ export async function createMojoThread(payload: {
       url: payload.url?.trim() || null,
       partner_names: payload.partner_names?.trim() || null,
       reply_order: payload.reply_order?.trim() || null,
+      thread_type: payload.thread_type ?? 'rp',
+      assignment_due_at: payload.assignment_due_at ?? null,
     })
     .select()
     .single()
@@ -238,6 +242,8 @@ export async function updateMojoThread(
     url?: string | null
     partner_names?: string | null
     reply_order?: string | null
+    thread_type?: 'rp' | 'class'
+    assignment_due_at?: string | null
   }
 ): Promise<ActionError | { success: true }> {
   const userId = await requireSuperAdmin()

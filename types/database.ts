@@ -1189,7 +1189,9 @@ export type Database = {
       }
       mojo_threads: {
         Row: {
+          assignment_due_at: string | null
           character_id: string
+          completed_at: string | null
           created_at: string
           detected_platform: string | null
           display_order: number
@@ -1202,11 +1204,14 @@ export type Database = {
           reply_order: string | null
           rp_id: string
           status: string
+          thread_type: string
           title: string
           url: string | null
         }
         Insert: {
+          assignment_due_at?: string | null
           character_id: string
+          completed_at?: string | null
           created_at?: string
           detected_platform?: string | null
           display_order?: number
@@ -1219,11 +1224,14 @@ export type Database = {
           reply_order?: string | null
           rp_id: string
           status?: string
+          thread_type?: string
           title: string
           url?: string | null
         }
         Update: {
+          assignment_due_at?: string | null
           character_id?: string
+          completed_at?: string | null
           created_at?: string
           detected_platform?: string | null
           display_order?: number
@@ -1236,6 +1244,7 @@ export type Database = {
           reply_order?: string | null
           rp_id?: string
           status?: string
+          thread_type?: string
           title?: string
           url?: string | null
         }
