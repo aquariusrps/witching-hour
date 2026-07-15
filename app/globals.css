@@ -1848,3 +1848,401 @@ body {
   outline: none;
   border-color: rgba(160,40,64,0.35);
 }
+
+/* ═══════════════════════════════════════
+   THE FAMILIAR — FULL VISUAL SYSTEM — FIX-017b
+   ═══════════════════════════════════════ */
+
+/* ── PAGE LAYOUT ── */
+
+/* Two-column: sidebar + conversation */
+.mojo-familiar-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 120px);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .mojo-familiar-layout {
+    grid-template-columns: 1fr;
+  }
+  .mojo-familiar-sidebar {
+    display: none;
+  }
+  .mojo-familiar-sidebar.is-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--char);
+    padding: 20px;
+  }
+}
+
+/* ── MEMORY SIDEBAR ── */
+
+.mojo-familiar-sidebar {
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 16px 12px;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.mojo-familiar-sidebar-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--faded);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mojo-familiar-new-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faded);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.mojo-familiar-new-btn:hover {
+  color: var(--roseash);
+  border-color: rgba(160,40,64,0.35);
+}
+
+.mojo-familiar-conv-item {
+  position: relative;
+  padding: 7px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  margin-bottom: 2px;
+}
+
+.mojo-familiar-conv-item:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.mojo-familiar-conv-item.active {
+  border-left-color: rgba(160,40,64,0.60);
+  background: rgba(160,40,64,0.06);
+}
+
+.mojo-familiar-conv-title {
+  font-family: 'EB Garamond', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--mist);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 20px;
+  line-height: 1.3;
+}
+
+.mojo-familiar-conv-date {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.10em;
+  color: var(--faded);
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+.mojo-familiar-conv-delete {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--faded);
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.12s;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.mojo-familiar-conv-item:hover .mojo-familiar-conv-delete {
+  opacity: 0.55;
+}
+
+.mojo-familiar-conv-delete:hover {
+  opacity: 1 !important;
+  color: var(--roseash);
+}
+
+/* Rename input */
+.mojo-familiar-conv-rename {
+  font-family: 'EB Garamond', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--mist);
+  background: var(--elevated);
+  border: 1px solid rgba(160,40,64,0.35);
+  border-radius: 1px;
+  padding: 2px 6px;
+  width: 100%;
+  outline: none;
+}
+
+/* ── CONVERSATION AREA ── */
+
+.mojo-familiar-main {
+  padding: 0 24px 24px;
+  max-width: 720px;
+}
+
+/* Atmosphere: very subtle warm amber glow behind conversation */
+.mojo-familiar-conversation-wrap {
+  position: relative;
+}
+
+.mojo-familiar-conversation-wrap::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 200px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200,120,0,0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── MESSAGE BUBBLES ── */
+
+/* Override FIX-017a base styles with full treatment */
+.mojo-familiar-msg-user {
+  align-self: flex-end;
+  max-width: 72%;
+  padding: 10px 14px 10px 12px;
+  background: rgba(160,40,64,0.08);
+  border: 1px solid rgba(160,40,64,0.16);
+  border-right: 2px solid rgba(160,40,64,0.35);
+  border-radius: 3px 0 3px 3px;
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  color: var(--mist);
+  line-height: 1.55;
+}
+
+.mojo-familiar-msg-assistant {
+  align-self: flex-start;
+  max-width: 88%;
+  padding: 12px 16px 12px 14px;
+  background: rgba(200,120,0,0.04);
+  border: 1px solid rgba(200,120,0,0.12);
+  border-left: 2px solid rgba(200,120,0,0.28);
+  border-radius: 0 3px 3px 3px;
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  color: var(--roseash);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* Eye icon before Familiar messages */
+.mojo-familiar-msg-eye {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  vertical-align: middle;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+/* ── LOADING STATE ── */
+
+.mojo-familiar-loading {
+  align-self: flex-start;
+  padding: 10px 14px;
+  font-family: 'EB Garamond', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--faded);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes mojo-familiar-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.8; }
+}
+
+.mojo-familiar-loading-eye {
+  animation: mojo-familiar-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── PENDING CONFIRMATION CARD ── */
+
+.mojo-familiar-pending {
+  padding: 14px 18px;
+  background: rgba(200,120,0,0.06);
+  border: 1px solid rgba(200,120,0,0.22);
+  border-left: 3px solid rgba(200,120,0,0.50);
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+.mojo-familiar-pending-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(200,120,0,0.70);
+  margin-bottom: 6px;
+}
+
+.mojo-familiar-pending-desc {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--mist);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.mojo-familiar-confirm-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #6b0f0f, #c42020);
+  color: #f5f0e8;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 1px;
+  cursor: pointer;
+  margin-right: 8px;
+  box-shadow: 0 0 10px rgba(160,40,64,0.25);
+}
+
+.mojo-familiar-cancel-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--faded);
+  border: 1px solid var(--elevated);
+  padding: 6px 14px;
+  border-radius: 1px;
+  cursor: pointer;
+}
+
+/* ── EMPTY STATE ── */
+
+.mojo-familiar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 320px;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 12px;
+}
+
+.mojo-familiar-empty-star {
+  font-size: 18px;
+  color: var(--faded);
+  opacity: 0.45;
+}
+
+.mojo-familiar-empty-greeting {
+  font-family: 'Cormorant Upright', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.5;
+}
+
+.mojo-familiar-empty-hint {
+  font-family: 'EB Garamond', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--faded);
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+/* ── CANDLE CORNER ── */
+
+.mojo-familiar-candle-corner {
+  position: absolute;
+  bottom: 60px;
+  right: -10px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── INPUT AREA ── */
+
+/* Enhance the FIX-017a textarea with send button styling */
+.mojo-familiar-send-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: rgba(160,40,64,0.15);
+  color: var(--roseash);
+  border: 1px solid rgba(160,40,64,0.30);
+  border-radius: 2px;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: flex-end;
+  transition: background 0.15s, box-shadow 0.15s;
+  min-height: 48px;
+}
+
+.mojo-familiar-send-btn:hover:not(:disabled) {
+  background: rgba(160,40,64,0.25);
+  box-shadow: 0 0 12px rgba(160,40,64,0.20);
+}
+
+.mojo-familiar-send-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mojo-familiar-input-hint {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--faded);
+  opacity: 0.50;
+  margin-top: 4px;
+  text-align: right;
+}
