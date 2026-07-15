@@ -3790,3 +3790,170 @@ export function SvgChronicleQuill({ className = '' }: {
     </svg>
   )
 }
+
+// ── The Familiar (MOJO-FIX-017a) ──────────────────────────
+
+export function SvgNavFamiliar({ active = false }: {
+  active?: boolean
+}) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      {/* Outer eye oval */}
+      <ellipse cx="7" cy="7" rx="6" ry="4"
+        stroke="currentColor"
+        strokeWidth={active ? 1.0 : 0.7}
+        strokeOpacity={active ? 0.90 : 0.45}
+        fill="currentColor"
+        fillOpacity={active ? 0.12 : 0.06}
+      />
+      {/* Iris */}
+      <ellipse cx="7" cy="7" rx="3.5" ry="2.8"
+        fill="currentColor"
+        opacity={active ? 0.30 : 0.15}
+      />
+      {/* Slit pupil — vertical */}
+      <ellipse cx="7" cy="7" rx="1.0" ry="2.4"
+        fill="currentColor"
+        opacity={active ? 0.80 : 0.40}
+      />
+      {/* Eye corners — tapered ends */}
+      <path d="M 1 7 C 2 5.5, 3 5, 7 7 C 3 9, 2 8.5, 1 7 Z"
+        fill="currentColor" opacity={active ? 0.15 : 0.08} />
+      <path d="M 13 7 C 12 5.5, 11 5, 7 7 C 11 9, 12 8.5, 13 7 Z"
+        fill="currentColor" opacity={active ? 0.15 : 0.08} />
+      {/* Highlight — small white catch light */}
+      <circle cx="5.5" cy="5.8" r="0.8"
+        fill="currentColor" opacity={active ? 0.60 : 0.25} />
+    </svg>
+  )
+}
+
+export function SvgFamiliarPresence({ className = '' }: {
+  className?: string
+}) {
+  return (
+    <svg
+      width="180"
+      height="90"
+      viewBox="0 0 180 90"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Outer ambient glow */}
+        <radialGradient id="fp-glow" cx="50%" cy="50%" r="55%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.18" />
+          <stop offset="60%"  stopColor="#c87800" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#c87800" stopOpacity="0" />
+        </radialGradient>
+        {/* Iris gradient — warm amber layered */}
+        <radialGradient id="fp-iris" cx="40%" cy="35%" r="65%">
+          <stop offset="0%"   stopColor="#f5a623" stopOpacity="0.95" />
+          <stop offset="35%"  stopColor="#c87800" stopOpacity="0.90" />
+          <stop offset="70%"  stopColor="#8b5000" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#4a2800" stopOpacity="0.80" />
+        </radialGradient>
+        {/* Pupil gradient — deep dark with slight purple depth */}
+        <radialGradient id="fp-pupil" cx="50%" cy="40%" r="60%">
+          <stop offset="0%"   stopColor="#1a0820" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#0a0510" stopOpacity="1.00" />
+        </radialGradient>
+        {/* Limbal ring — darker edge of iris */}
+        <radialGradient id="fp-limbal" cx="50%" cy="50%" r="50%">
+          <stop offset="70%"  stopColor="#3a2000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#1a0800" stopOpacity="0.70" />
+        </radialGradient>
+        {/* Sclera — the whites, slightly warm */}
+        <radialGradient id="fp-sclera" cx="35%" cy="35%" r="70%">
+          <stop offset="0%"   stopColor="#d4c8b0" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#8a7860" stopOpacity="0.15" />
+        </radialGradient>
+        {/* Clip for eye shape */}
+        <clipPath id="fp-clip">
+          <ellipse cx="90" cy="45" rx="82" ry="36" />
+        </clipPath>
+      </defs>
+
+      {/* ── AMBIENT GLOW ── */}
+      <ellipse cx="90" cy="45" rx="88" ry="44"
+        fill="url(#fp-glow)" />
+
+      {/* ── SCLERA (eye whites) ── */}
+      <ellipse cx="90" cy="45" rx="82" ry="36"
+        fill="url(#fp-sclera)"
+        stroke="#6a5840" strokeWidth="0.8" strokeOpacity="0.40"
+      />
+
+      {/* ── IRIS ── */}
+      <ellipse cx="90" cy="45" rx="34" ry="32"
+        fill="url(#fp-iris)"
+        clipPath="url(#fp-clip)"
+      />
+      {/* Limbal ring */}
+      <ellipse cx="90" cy="45" rx="34" ry="32"
+        fill="url(#fp-limbal)"
+        clipPath="url(#fp-clip)"
+      />
+      {/* Iris texture — subtle radial lines suggesting fibers */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const angle = (i * 30) * Math.PI / 180
+        const x1 = 90 + 14 * Math.cos(angle)
+        const y1 = 45 + 13 * Math.sin(angle)
+        const x2 = 90 + 30 * Math.cos(angle)
+        const y2 = 45 + 28 * Math.sin(angle)
+        return (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke="#e8a020" strokeWidth="0.4"
+            strokeOpacity="0.18"
+            clipPath="url(#fp-clip)"
+          />
+        )
+      })}
+
+      {/* ── PUPIL (vertical slit) ── */}
+      <ellipse cx="90" cy="45" rx="7" ry="29"
+        fill="url(#fp-pupil)"
+        clipPath="url(#fp-clip)"
+      />
+      {/* Pupil taper — pointed ends */}
+      <path
+        d="M 90 16 C 92 22, 97 35, 97 45 C 97 55, 92 68, 90 74
+           C 88 68, 83 55, 83 45 C 83 35, 88 22, 90 16 Z"
+        fill="url(#fp-pupil)"
+        clipPath="url(#fp-clip)"
+      />
+
+      {/* ── CATCH LIGHTS (reflections) ── */}
+      {/* Primary — bright upper-left */}
+      <ellipse cx="78" cy="30" rx="5" ry="3.5"
+        fill="white" opacity="0.55"
+        transform="rotate(-20 78 30)"
+        clipPath="url(#fp-clip)"
+      />
+      {/* Secondary — smaller lower-right */}
+      <ellipse cx="100" cy="58" rx="2.5" ry="1.8"
+        fill="white" opacity="0.25"
+        transform="rotate(-20 100 58)"
+        clipPath="url(#fp-clip)"
+      />
+
+      {/* ── EYE OUTLINE ── */}
+      {/* Outer edge — tapered at corners */}
+      <path
+        d="M 8 45 C 20 20, 45 10, 90 10 C 135 10, 160 20, 172 45
+           C 160 70, 135 80, 90 80 C 45 80, 20 70, 8 45 Z"
+        stroke="#8a7060" strokeWidth="0.8" strokeOpacity="0.55"
+        fill="none"
+      />
+      {/* Inner lash line */}
+      <path
+        d="M 8 45 C 20 22, 45 12, 90 12 C 135 12, 160 22, 172 45"
+        stroke="#2a1808" strokeWidth="1.2" strokeOpacity="0.45"
+        fill="none"
+        clipPath="url(#fp-clip)"
+      />
+    </svg>
+  )
+}

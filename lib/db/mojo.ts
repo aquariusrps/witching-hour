@@ -1,5 +1,5 @@
 import { getAdminClient } from '@/lib/supabase/adminClient'
-import type { Tables } from '@/types/database'
+import type { Tables, Json } from '@/types/database'
 
 type MojoRp = Tables<'mojo_rps'>
 type MojoCharacter = Tables<'mojo_characters'>
@@ -928,4 +928,87 @@ export async function getMojoWanted(rpId: string): Promise<
       ? process.env.NEXT_PUBLIC_SITE_URL + '/i/' + item.image_token + '.png'
       : null,
   }))
+}
+
+// ── THE FAMILIAR: CONVERSATION HELPERS ──
+
+export async function getMojoFamiliarConversations() {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_familiar_conversations')
+    .select('id, title, created_at, updated_at')
+    .order('updated_at', { ascending: false })
+    .limit(50)
+  return data ?? []
+}
+
+export async function getMojoFamiliarMessages(
+  conversationId: string,
+  limit = 20,
+) {
+  const admin = getAdminClient()
+  const { data } = await admin
+    .from('mojo_familiar_messages')
+    .select('id, role, content, tool_calls, actions_taken, created_at')
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: true })
+    .limit(limit)
+  return data ?? []
+}
+
+export async function createMojoFamiliarConversation(
+  title = 'New Consultation',
+) {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('mojo_familiar_conversations')
+    .insert({ title })
+    .select('id, title, created_at, updated_at')
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function saveMojoFamiliarMessage(payload: {
+  conversationId: string
+  role: 'user' | 'assistant'
+  content: string
+  toolCalls?: unknown
+  actionsTaken?: unknown
+}) {
+  const admin = getAdminClient()
+  await admin.from('mojo_familiar_messages').insert({
+    conversation_id: payload.conversationId,
+    role: payload.role,
+    content: payload.content,
+    tool_calls: (payload.toolCalls ?? null) as Json,
+    actions_taken: (payload.actionsTaken ?? null) as Json,
+  })
+  // Touch updated_at on conversation
+  await admin
+    .from('mojo_familiar_conversations')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', payload.conversationId)
+}
+
+export async function updateMojoFamiliarConversationTitle(
+  conversationId: string,
+  title: string,
+) {
+  const admin = getAdminClient()
+  await admin
+    .from('mojo_familiar_conversations')
+    .update({ title })
+    .eq('id', conversationId)
+}
+
+export async function deleteMojoFamiliarConversation(
+  conversationId: string,
+) {
+  const admin = getAdminClient()
+  // Messages cascade delete via FK
+  await admin
+    .from('mojo_familiar_conversations')
+    .delete()
+    .eq('id', conversationId)
 }

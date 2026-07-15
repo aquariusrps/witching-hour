@@ -828,6 +828,65 @@ export type Database = {
         }
         Relationships: []
       }
+      mojo_familiar_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mojo_familiar_messages: {
+        Row: {
+          actions_taken: Json | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+          tool_calls: Json | null
+        }
+        Insert: {
+          actions_taken?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+          tool_calls?: Json | null
+        }
+        Update: {
+          actions_taken?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          tool_calls?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_familiar_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_familiar_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mojo_image_folders: {
         Row: {
           created_at: string

@@ -17,6 +17,7 @@ import {
   SvgNavStacks,
   SvgNavSearch,
   SvgNavChronicle,
+  SvgNavFamiliar,
 } from './MojoSvgAssets'
 
 type MojoCharacter = {
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
   { label: 'Stacks', href: '/mojo/stacks', Icon: SvgNavStacks },
   { label: 'Chronicle', href: '/mojo/threads', Icon: SvgNavChronicle },
   { label: 'Search', href: '/mojo/search', Icon: SvgNavSearch },
+  { label: 'The Familiar', href: '/mojo/familiar', Icon: SvgNavFamiliar },
 ]
 
 const SECTION_LABEL_STYLE: React.CSSProperties = {

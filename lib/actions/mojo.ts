@@ -6,6 +6,12 @@ import { getServerClient } from '@/lib/supabase/serverClient'
 import { revalidatePath } from 'next/cache'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database'
 import { registerImageToken, getProxyUrl } from '@/lib/mojo/proxy'
+import {
+  getMojoFamiliarConversations,
+  createMojoFamiliarConversation,
+  deleteMojoFamiliarConversation,
+  updateMojoFamiliarConversationTitle,
+} from '@/lib/db/mojo'
 
 type MojoRp = Tables<'mojo_rps'>
 type MojoCharacter = Tables<'mojo_characters'>
@@ -1846,4 +1852,41 @@ export async function registerWantedImage(payload: {
 
   revalidatePath('/mojo/rps/' + payload.rp_id)
   return { success: true as const, token, proxyUrl }
+}
+
+// ─── THE FAMILIAR: CONVERSATION ACTIONS ─────────────────────
+// Used by the chat UI for conversation management — not by the
+// agent route itself (the route uses the DB helpers directly).
+
+export async function listFamiliarConversations() {
+  const userId = await requireSuperAdmin()
+  if (!userId) return []
+  return getMojoFamiliarConversations()
+}
+
+export async function createFamiliarConversation(title?: string) {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+  const conv = await createMojoFamiliarConversation(title)
+  revalidatePath('/mojo/familiar')
+  return { success: true as const, conversation: conv }
+}
+
+export async function deleteFamiliarConversation(conversationId: string) {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+  await deleteMojoFamiliarConversation(conversationId)
+  revalidatePath('/mojo/familiar')
+  return { success: true as const }
+}
+
+export async function renameFamiliarConversation(
+  conversationId: string,
+  title: string,
+) {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+  await updateMojoFamiliarConversationTitle(conversationId, title)
+  revalidatePath('/mojo/familiar')
+  return { success: true as const }
 }
