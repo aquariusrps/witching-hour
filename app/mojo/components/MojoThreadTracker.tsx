@@ -12,6 +12,7 @@ import {
   getThreadDisplayState,
   getWaitingOn,
   getDisplayBadge,
+  getThreadStatePriority,
   detectPlatformClient,
   formatRelativeTime,
 } from '@/lib/mojo/utils'
@@ -798,10 +799,17 @@ export default function MojoThreadTracker({
           {(() => {
             const pendingThreads: MojoThread[] = []
             const passiveThreads: MojoThread[] = []
-            for (const t of activeThreads) {
+            const awaitingThreads: MojoThread[] = []
+            const sortedActive = [...activeThreads].sort((a, b) =>
+              getThreadStatePriority(getThreadDisplayState(a, characterName)) -
+              getThreadStatePriority(getThreadDisplayState(b, characterName))
+            )
+            for (const t of sortedActive) {
               const state = getThreadDisplayState(t, characterName)
-              if (state === 'mine' || state === 'awaiting_start' || state === 'due') {
+              if (state === 'due' || state === 'mine') {
                 pendingThreads.push(t)
+              } else if (state === 'awaiting_start') {
+                awaitingThreads.push(t)
               } else {
                 passiveThreads.push(t)
               }
@@ -830,6 +838,27 @@ export default function MojoThreadTracker({
                   </div>
                 )}
                 {passiveThreads.map((t) => renderThreadRow(t, false))}
+                {awaitingThreads.length > 0 && (pendingThreads.length > 0 || passiveThreads.length > 0) && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    margin: '16px 0 12px',
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: 'var(--elevated)' }} />
+                    <span style={{
+                      fontFamily: 'var(--f-ui)',
+                      fontSize: '0.65rem',
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: 'var(--faded)',
+                    }}>
+                      Awaiting Starter
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'var(--elevated)' }} />
+                  </div>
+                )}
+                {awaitingThreads.map((t) => renderThreadRow(t, false))}
               </>
             )
           })()}

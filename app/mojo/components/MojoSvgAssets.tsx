@@ -759,19 +759,49 @@ export function SvgMedallion({
 // ── Portrait Gallery SVGs (MOJO-7E) ──────────────────────
 
 export function SvgPortraitFrame({
-  width = 200,
-  height = 260,
-  color = 'currentColor',
-  idSuffix = 'fc',
+  width = 180,
+  height = 300,
+  idSuffix = 'frame',
 }: {
   width?: number
   height?: number
-  color?: string
+  color?: string    // kept for API compatibility — not used; frame uses
+                     // its own metallic palette (see MOJO-FIX-016)
   idSuffix?: string
 }) {
-  const strokeW = 1.2
-  const inset = 6   // inner rule inset from outer frame
-  const rosette = 8  // rosette radius at corners
+  // Confirmed Silver & Onyx hex values — grep -A 80
+  // 'data-theme="silver-onyx"' app/globals.css. Literal hex, not
+  // currentColor, so the frame reads as aged metal against any image.
+  const MIST = '#9c9ab8'    // --mist — brushed silver
+  const GOLD = '#a02840'    // --gold — dark garnet (not literal gold)
+  const ROSEASH = '#eae8f4' // --roseash — specular highlight
+  const FADED = '#5a5878'   // --faded — shadow falloff on the metal
+
+  const gId = `pf-glow-${idSuffix}`
+  const mId = `pf-metal-${idSuffix}`
+  const iId = `pf-inner-${idSuffix}`
+
+  // Corner arm lengths — proportional to frame size
+  const arm  = Math.min(width, height) * 0.18  // outer arm length
+  const arm2 = arm * 0.72                       // middle arm
+  const arm3 = arm * 0.48                       // inner arm
+  const gem  = Math.min(width, height) * 0.028  // gem half-size
+
+  // Corner positions + direction multipliers
+  const corners = [
+    { x: 0,     y: 0,      rx: 1,  ry: 1  },  // top-left
+    { x: width, y: 0,      rx: -1, ry: 1  },  // top-right
+    { x: 0,     y: height, rx: 1,  ry: -1 },  // bottom-left
+    { x: width, y: height, rx: -1, ry: -1 },  // bottom-right
+  ]
+
+  // Mid-point gem positions — top, bottom, left, right
+  const gems = [
+    { tx: width / 2, ty: 3,          opDeep: 0.75, opLight: 0.85, highlight: true },
+    { tx: width / 2, ty: height - 3, opDeep: 0.65, opLight: 0.75, highlight: false },
+    { tx: 3,          ty: height / 2, opDeep: 0.65, opLight: 0.75, highlight: false },
+    { tx: width - 3,  ty: height / 2, opDeep: 0.65, opLight: 0.75, highlight: false },
+  ]
 
   return (
     <svg
@@ -780,67 +810,118 @@ export function SvgPortraitFrame({
       viewBox={`0 0 ${width} ${height}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ pointerEvents: 'none' }}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
     >
-      {/* Outer frame rectangle */}
+      <defs>
+        {/* Outer glow — warm silver haze behind the frame */}
+        <filter id={gId} x="-8%" y="-8%" width="116%" height="116%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        {/* Brushed-metal gradient — specular highlight top, deep
+            shadow falloff toward the bottom, like real cast silver */}
+        <linearGradient id={mId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={ROSEASH} stopOpacity="0.85" />
+          <stop offset="18%"  stopColor={MIST}    stopOpacity="0.90" />
+          <stop offset="55%"  stopColor={MIST}    stopOpacity="0.65" />
+          <stop offset="100%" stopColor={FADED}   stopOpacity="0.55" />
+        </linearGradient>
+        {/* Inner bevel gradient */}
+        <linearGradient id={iId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={MIST}  stopOpacity="0.32" />
+          <stop offset="100%" stopColor={FADED} stopOpacity="0.18" />
+        </linearGradient>
+      </defs>
+
+      {/* ── OUTER FRAME EDGE ── */}
+      {/* Glow layer behind main frame */}
       <rect
-        x={2} y={2}
-        width={width - 4} height={height - 4}
-        stroke={color}
-        strokeWidth={strokeW}
-        opacity="0.55"
-        rx="1"
+        x="1" y="1" width={width - 2} height={height - 2}
+        stroke={MIST} strokeWidth="3" strokeOpacity="0.16"
+        fill="none" rx="1"
+        filter={`url(#${gId})`}
+      />
+      {/* Main outer frame line — brushed-metal gradient */}
+      <rect
+        x="1.5" y="1.5" width={width - 3} height={height - 3}
+        stroke={`url(#${mId})`} strokeWidth="1.3"
+        fill="none" rx="1"
       />
 
-      {/* Inner ruled line — the classic portrait frame double border */}
+      {/* ── INNER BEVEL LINE ── */}
       <rect
-        x={inset} y={inset}
-        width={width - inset * 2} height={height - inset * 2}
-        stroke={color}
-        strokeWidth={strokeW * 0.6}
-        opacity="0.30"
-        rx="0.5"
+        x="6" y="6" width={width - 12} height={height - 12}
+        stroke={`url(#${iId})`} strokeWidth="0.7"
+        fill="none" rx="0.5"
       />
 
-      {/* Corner rosettes — circular flourishes at all four corners */}
-      {/* Top-left */}
-      <circle cx={inset} cy={inset} r={rosette * 0.5}
-        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
-      <circle cx={inset} cy={inset} r={rosette * 0.2}
-        fill={color} opacity="0.30" />
-      {/* Top-right */}
-      <circle cx={width - inset} cy={inset} r={rosette * 0.5}
-        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
-      <circle cx={width - inset} cy={inset} r={rosette * 0.2}
-        fill={color} opacity="0.30" />
-      {/* Bottom-left */}
-      <circle cx={inset} cy={height - inset} r={rosette * 0.5}
-        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
-      <circle cx={inset} cy={height - inset} r={rosette * 0.2}
-        fill={color} opacity="0.30" />
-      {/* Bottom-right */}
-      <circle cx={width - inset} cy={height - inset} r={rosette * 0.5}
-        stroke={color} strokeWidth={strokeW * 0.5} opacity="0.45" />
-      <circle cx={width - inset} cy={height - inset} r={rosette * 0.2}
-        fill={color} opacity="0.30" />
+      {/* ── CORNER FLOURISHES — three nested L-shapes per corner ── */}
+      {corners.map((c, ci) => (
+        <g key={ci}>
+          {/* Outermost L — brightest, brushed silver */}
+          <path
+            d={`
+              M ${c.x + c.rx * 2} ${c.y + c.ry * (2 + arm)}
+              L ${c.x + c.rx * 2} ${c.y + c.ry * 2}
+              L ${c.x + c.rx * (2 + arm)} ${c.y + c.ry * 2}
+            `}
+            stroke={MIST} strokeWidth="1.4" strokeLinecap="round"
+            opacity="0.88"
+          />
+          {/* Second L — garnet accent */}
+          <path
+            d={`
+              M ${c.x + c.rx * 5} ${c.y + c.ry * (5 + arm2)}
+              L ${c.x + c.rx * 5} ${c.y + c.ry * 5}
+              L ${c.x + c.rx * (5 + arm2)} ${c.y + c.ry * 5}
+            `}
+            stroke={GOLD} strokeWidth="0.9" strokeLinecap="round"
+            opacity="0.72"
+          />
+          {/* Third L — innermost, thin garnet */}
+          <path
+            d={`
+              M ${c.x + c.rx * 8} ${c.y + c.ry * (8 + arm3)}
+              L ${c.x + c.rx * 8} ${c.y + c.ry * 8}
+              L ${c.x + c.rx * (8 + arm3)} ${c.y + c.ry * 8}
+            `}
+            stroke={GOLD} strokeWidth="0.6" strokeLinecap="round"
+            opacity="0.50"
+          />
+          {/* Corner tip curl — small garnet bead at the outermost L's end */}
+          <circle
+            cx={c.x + c.rx * (2 + arm)}
+            cy={c.y + c.ry * 2}
+            r="1.8"
+            fill={GOLD} opacity="0.65"
+          />
+          {/* Inner corner dot */}
+          <circle
+            cx={c.x + c.rx * 8}
+            cy={c.y + c.ry * 8}
+            r="1.0"
+            fill={GOLD} opacity="0.45"
+          />
+        </g>
+      ))}
 
-      {/* Mid-point ornaments on each side — small diamond pips */}
-      {/* Top center */}
-      <rect x={width/2 - 3} y={0} width={6} height={6}
-        transform={`rotate(45 ${width/2} 3)`}
-        fill={color} opacity="0.25" />
-      {/* Bottom center */}
-      <rect x={width/2 - 3} y={height - 6} width={6} height={6}
-        transform={`rotate(45 ${width/2} ${height - 3})`}
-        fill={color} opacity="0.25" />
-      {/* Left center */}
-      <rect x={0} y={height/2 - 3} width={6} height={6}
-        transform={`rotate(45 3 ${height/2})`}
-        fill={color} opacity="0.25" />
-      {/* Right center */}
-      <rect x={width - 6} y={height/2 - 3} width={6} height={6}
-        transform={`rotate(45 ${width - 3} ${height/2})`}
-        fill={color} opacity="0.25" />
+      {/* ── MID-POINT GEMS — garnet diamond set in silver ── */}
+      {gems.map((g, gi) => (
+        <g key={gi} transform={`translate(${g.tx} ${g.ty})`}>
+          <path
+            d={`M 0 ${-gem} L ${gem} 0 L 0 ${gem} L ${-gem} 0 Z`}
+            fill={GOLD} opacity={g.opDeep}
+          />
+          <path
+            d={`M 0 ${-gem * 0.5} L ${gem * 0.5} 0 L 0 ${gem * 0.5} L ${-gem * 0.5} 0 Z`}
+            fill={MIST} opacity={g.opLight}
+          />
+          {g.highlight && (
+            <circle cx={-gem * 0.2} cy={-gem * 0.3} r={gem * 0.2}
+              fill={ROSEASH} opacity="0.55" />
+          )}
+        </g>
+      ))}
     </svg>
   )
 }

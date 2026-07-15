@@ -22,7 +22,7 @@ import {
   SvgCandleRealistic, SvgWaxSeal, SvgScrollEnd,
   SvgPageHeaderRule, SvgFiligreeRule,
 } from '@/app/mojo/components/MojoSvgAssets'
-import { getThreadDisplayState, getWaitingOn, getDisplayBadge, formatRelativeTime } from '@/lib/mojo/utils'
+import { getThreadDisplayState, getWaitingOn, getDisplayBadge, getThreadStatePriority, formatRelativeTime } from '@/lib/mojo/utils'
 
 export default async function MojoCharacterPage({
   params,
@@ -209,7 +209,7 @@ export default async function MojoCharacterPage({
               <MojoPortraitCard
                 token={avatarToken}
                 alt={character.name}
-                size="md"
+                size="lg"
                 idSuffix={`char-primary-${character.id}`}
               />
             </div>
@@ -329,6 +329,10 @@ export default async function MojoCharacterPage({
               ) : (
                 threads
                   .filter((t) => t.status === 'active')
+                  .sort((a, b) =>
+                    getThreadStatePriority(getThreadDisplayState(a, character.name)) -
+                    getThreadStatePriority(getThreadDisplayState(b, character.name))
+                  )
                   .map((t) => {
                     const state = getThreadDisplayState(t, character.name)
                     const waitingOn = state === 'waiting' ? getWaitingOn(t, character.name) : null

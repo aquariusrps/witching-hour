@@ -277,9 +277,24 @@ export async function getMojoAllThreads() {
     .select('id, name, color_hex')
     .in('id', rpIds)
 
+  // Query 3: most recent avatar token per character
+  const { data: avatars } = await admin
+    .from('mojo_avatars')
+    .select('character_id, token, created_at')
+    .in('character_id', charIds)
+    .order('created_at', { ascending: false })
+
   // Build lookup maps
   const charMap = new Map((chars ?? []).map((c) => [c.id, c]))
   const rpMap = new Map((rps ?? []).map((r) => [r.id, r]))
+
+  // Build avatar map: character_id → most recent token
+  const avatarMap = new Map<string, string>()
+  for (const av of avatars ?? []) {
+    if (av.character_id && !avatarMap.has(av.character_id)) {
+      avatarMap.set(av.character_id, av.token)
+    }
+  }
 
   // Merge context onto each thread
   return threads.map((t) => {
@@ -291,6 +306,7 @@ export async function getMojoAllThreads() {
       character_status: char?.status ?? null,
       rp_name: rp?.name ?? null,
       rp_color_hex: rp?.color_hex ?? '#a02840',
+      character_avatar_token: avatarMap.get(t.character_id) ?? null,
     }
   })
 }

@@ -15,6 +15,7 @@ import {
   getThreadDisplayState,
   getWaitingOn,
   getDisplayBadge,
+  getThreadStatePriority,
   formatRelativeTime,
 } from '@/lib/mojo/utils'
 
@@ -50,6 +51,7 @@ export default async function ChronicleThreadsPage() {
     characterName: string
     rpName: string
     rpColorHex: string
+    avatarToken: string | null
     threads: typeof activeThreads
   }>()
 
@@ -61,21 +63,40 @@ export default async function ChronicleThreadsPage() {
         characterName: thread.character_name ?? 'Unknown',
         rpName: thread.rp_name ?? '',
         rpColorHex: thread.rp_color_hex ?? '#a02840',
+        // First thread in group carries the character's avatar token
+        // (all threads in a group have the same character_id).
+        avatarToken: thread.character_avatar_token ?? null,
         threads: [],
       })
     }
     groupMap.get(charId)!.threads.push(thread)
   }
 
-  // Groups needing action (your turn, awaiting starter, or due) sort first
-  const groupNeedsAction = (g: { characterName: string; threads: typeof activeThreads }) =>
-    g.threads.some((t) => {
-      const s = getThreadDisplayState(t, g.characterName)
-      return s === 'mine' || s === 'awaiting_start' || s === 'due'
-    })
-
   const groups = Array.from(groupMap.values())
-    .sort((a, b) => (groupNeedsAction(b) ? 1 : 0) - (groupNeedsAction(a) ? 1 : 0))
+
+  // Sort threads within each group by state priority (DUE first,
+  // AWAITING STARTER last)
+  for (const group of groups) {
+    group.threads.sort((a, b) =>
+      getThreadStatePriority(getThreadDisplayState(a, group.characterName)) -
+      getThreadStatePriority(getThreadDisplayState(b, group.characterName))
+    )
+  }
+
+  // Sort groups by their highest-priority (lowest number) thread state
+  groups.sort((a, b) => {
+    const aPriority = Math.min(
+      ...a.threads.map((t) =>
+        getThreadStatePriority(getThreadDisplayState(t, a.characterName))
+      )
+    )
+    const bPriority = Math.min(
+      ...b.threads.map((t) =>
+        getThreadStatePriority(getThreadDisplayState(t, b.characterName))
+      )
+    )
+    return aPriority - bPriority
+  })
 
   return (
     <div className="mojo-chronicle-page">
@@ -158,7 +179,7 @@ export default async function ChronicleThreadsPage() {
                 style={{ borderLeft: `3px solid ${group.rpColorHex}` }}
               >
                 <MojoPortraitCard
-                  token={null}
+                  token={group.avatarToken}
                   alt={group.characterName}
                   size="sm"
                   showFrame={false}

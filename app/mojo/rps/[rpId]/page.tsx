@@ -11,7 +11,7 @@ import {
   SvgCandleRealistic, SvgParchmentEdge,
   SvgPageHeaderRule, SvgFiligreeRule, SvgCornerBracket,
 } from '@/app/mojo/components/MojoSvgAssets'
-import { getThreadDisplayState, getWaitingOn, getDisplayBadge } from '@/lib/mojo/utils'
+import { getThreadDisplayState, getWaitingOn, getDisplayBadge, getThreadStatePriority } from '@/lib/mojo/utils'
 
 const STATUS_COLOR: Record<string, string> = {
   active: 'var(--moonstone)',
@@ -44,7 +44,11 @@ export default async function MojoRpDetailPage({
 
   const activeThreads = rp.threads.filter((t) => t.status === 'active')
   const archivedThreads = rp.threads.filter((t) => t.status !== 'active')
-  const orderedThreads = [...activeThreads, ...archivedThreads]
+  const sortedActiveThreads = [...activeThreads].sort((a, b) =>
+    getThreadStatePriority(getThreadDisplayState(a, a.character_name)) -
+    getThreadStatePriority(getThreadDisplayState(b, b.character_name))
+  )
+  const orderedThreads = [...sortedActiveThreads, ...archivedThreads]
 
   return (
     <div style={{ padding: '28px 32px 64px', position: 'relative', zIndex: 1 }}>

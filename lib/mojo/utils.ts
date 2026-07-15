@@ -193,6 +193,21 @@ export function getDisplayBadge(
   }
 }
 
+// Single source of truth for thread sort priority across all four
+// thread display surfaces. Lower number = higher priority (shown first).
+export function getThreadStatePriority(state: ThreadDisplayState): number {
+  switch (state) {
+    case 'due':            return 0
+    case 'mine':           return 1
+    case 'waiting':        return 2
+    case 'theirs':         return 3
+    case 'unknown':        return 4
+    case 'awaiting_start': return 5
+    case 'submitted':      return 6
+    default:               return 7
+  }
+}
+
 export function detectPlatformClient(url: string): string {
   try {
     const hostname = new URL(url).hostname.toLowerCase()
