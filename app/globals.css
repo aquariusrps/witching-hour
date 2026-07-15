@@ -2246,3 +2246,15 @@ body {
   margin-top: 4px;
   text-align: right;
 }
+
+/* ── MARKDOWN RENDERING (FIX-017c) ── */
+
+/* Remove default margin from last paragraph in Familiar messages */
+.mojo-familiar-msg-assistant p:last-child {
+  margin-bottom: 0;
+}
+
+/* Table row hover in Familiar messages */
+.mojo-familiar-msg-assistant tr:hover td {
+  background: rgba(255,255,255,0.02);
+}

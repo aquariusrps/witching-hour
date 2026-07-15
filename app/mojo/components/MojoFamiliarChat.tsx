@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { SvgCandleRealistic, SvgNavFamiliar } from './MojoSvgAssets'
 
 type FamiliarMessage = { role: 'user' | 'assistant'; content: string }
@@ -172,19 +174,132 @@ export default function MojoFamiliarChat({
           </div>
         ) : (
           <>
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={msg.role === 'user' ? 'mojo-familiar-msg-user' : 'mojo-familiar-msg-assistant'}
-              >
-                {msg.role === 'assistant' && (
-                  <span className="mojo-familiar-msg-eye">
+            {messages.map((msg, i) =>
+              msg.role === 'user' ? (
+                <div key={i} className="mojo-familiar-msg-user">
+                  {msg.content}
+                </div>
+              ) : (
+                <div
+                  key={i}
+                  className="mojo-familiar-msg-assistant"
+                  style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}
+                >
+                  <span className="mojo-familiar-msg-eye" style={{ marginTop: '2px' }}>
                     <SvgNavFamiliar active={false} />
                   </span>
-                )}
-                {msg.content}
-              </div>
-            ))}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        // Tables — styled to match Silver & Onyx
+                        table: ({ children }) => (
+                          <table style={{
+                            borderCollapse: 'collapse',
+                            width: '100%',
+                            marginTop: '8px',
+                            marginBottom: '8px',
+                            fontFamily: 'EB Garamond, serif',
+                            fontSize: '14px',
+                          }}>
+                            {children}
+                          </table>
+                        ),
+                        th: ({ children }) => (
+                          <th style={{
+                            fontFamily: 'Cinzel, serif',
+                            fontSize: '9px',
+                            letterSpacing: '0.15em',
+                            textTransform: 'uppercase',
+                            color: 'var(--faded)',
+                            borderBottom: '1px solid rgba(255,255,255,0.10)',
+                            padding: '4px 10px',
+                            textAlign: 'left',
+                            fontWeight: 'normal',
+                          }}>
+                            {children}
+                          </th>
+                        ),
+                        td: ({ children }) => (
+                          <td style={{
+                            color: 'var(--mist)',
+                            borderBottom: '1px solid rgba(255,255,255,0.04)',
+                            padding: '5px 10px',
+                          }}>
+                            {children}
+                          </td>
+                        ),
+                        // Paragraphs — preserve spacing
+                        p: ({ children }) => (
+                          <p style={{
+                            margin: '0 0 10px',
+                            lineHeight: '1.65',
+                          }}>
+                            {children}
+                          </p>
+                        ),
+                        // Strong/bold — render but don't make it feel like markdown
+                        strong: ({ children }) => (
+                          <span style={{ color: 'var(--roseash)', fontWeight: 'normal' }}>
+                            {children}
+                          </span>
+                        ),
+                        // Suppress headers — render as bold prose instead
+                        h1: ({ children }) => (
+                          <p style={{ margin: '10px 0 6px', color: 'var(--roseash)' }}>
+                            {children}
+                          </p>
+                        ),
+                        h2: ({ children }) => (
+                          <p style={{ margin: '10px 0 6px', color: 'var(--roseash)' }}>
+                            {children}
+                          </p>
+                        ),
+                        h3: ({ children }) => (
+                          <p style={{ margin: '8px 0 4px', color: 'var(--roseash)' }}>
+                            {children}
+                          </p>
+                        ),
+                        // Suppress horizontal rules entirely
+                        hr: () => <></>,
+                        // Lists — if they appear despite the system prompt
+                        ul: ({ children }) => (
+                          <ul style={{
+                            paddingLeft: '16px',
+                            margin: '6px 0',
+                            fontFamily: 'EB Garamond, serif',
+                          }}>
+                            {children}
+                          </ul>
+                        ),
+                        li: ({ children }) => (
+                          <li style={{
+                            marginBottom: '3px',
+                            color: 'var(--mist)',
+                          }}>
+                            {children}
+                          </li>
+                        ),
+                        // Code blocks — minimal styling
+                        code: ({ children }) => (
+                          <code style={{
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            background: 'rgba(255,255,255,0.06)',
+                            padding: '1px 4px',
+                            borderRadius: '2px',
+                          }}>
+                            {children}
+                          </code>
+                        ),
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )
+            )}
 
             {loading && (
               <div className="mojo-familiar-loading">
