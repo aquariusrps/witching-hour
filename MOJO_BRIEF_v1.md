@@ -1,8 +1,8 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.4.1
-### Last updated: July 2026 — through MOJO-FIX-001 (commit 9bf30fb)
-### BUILD STATUS: COMPLETE
+### Created: July 2026 | Current version: v1.5
+### Last updated: July 2026 — through MOJO-FIX-017c (commit 59439f5)
+### BUILD STATUS: ACTIVE MAINTENANCE
 
 This is the single authoritative document for the Mojo personal RP
 dashboard. It combines project brief, build governance, and roadmap.
@@ -41,6 +41,14 @@ Features include:
   resources, snippets, partners, personal images
 - Fully mobile-responsive — functional on iPhone and iPad from anywhere,
   with sidebar drawer navigation and touch-optimised layout
+- Wishlist image upload — optional reference image per desire card
+- Thread system overhaul — class/assignment threads, awaiting-starter
+  state, auto-archive on submission detection, reply order cycling,
+  WAITING ON [name] badge, auto-refresh on page load
+- The Chronicle (/mojo/threads) — master thread tracker across all
+  characters and RPs, grouped by character, sorted by urgency
+- The Familiar (/mojo/familiar) — AI companion with conversation memory,
+  internal data tools, web search, creative writing generation
 
 Mojo is operator-only. No public registration. No other users.
 Auth is the existing TWH super admin session.
@@ -85,6 +93,13 @@ Mojo has its own:
 - External image fetch API: app/api/mojo/fetch-image/route.ts
 - Image processing API: app/api/mojo/process-image/route.ts
 - Thread refresh API: app/api/mojo/refresh-thread/route.ts (MOJO-5)
+- Familiar agent API: app/api/mojo/familiar/route.ts (FIX-017a)
+- Familiar autotitle API: app/api/mojo/familiar/autotitle/route.ts
+- Familiar messages API: app/api/mojo/familiar/messages/route.ts
+
+Additional packages installed (post-build):
+- react-markdown@10.1.0 + remark-gfm@4.0.1 — markdown rendering
+  in The Familiar chat (FIX-017c)
 
 ---
 
@@ -327,6 +342,45 @@ next.config.js does not exist. Always reference next.config.ts when
 adding rewrites, redirects, or other Next.js configuration.
 Confirmed: MOJO-FIX-001 Q2.
 
+### Route Handler Auth Pattern (NOT requireSuperAdmin)
+Route Handlers (app/api/**) cannot use requireSuperAdmin() —
+it redirects, which breaks JSON APIs. Use this pattern instead:
+  const supabase = await getServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const isAdmin = await isSuperAdmin(user.id)
+  if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+Confirmed pattern: used in refresh-thread, familiar, and all
+other mojo API routes. Never redirect() from a Route Handler.
+
+### createMojoThread — Required Fields (confirmed FIX-012b Q5)
+createMojoThread requires BOTH rp_id AND character_id.
+All parameters are snake_case, not camelCase.
+Signature: { rp_id, character_id, title, url?, partner_names?,
+  reply_order?, thread_type?, assignment_due_at? }
+The add forms derive rp_id from the selected character's rp_id —
+it is never asked for separately.
+
+### Forms Use Controlled State, Not FormData (confirmed FIX-011 Q4)
+Thread add/edit forms and The Familiar add form use React useState
+for all fields and pass typed objects to server actions.
+NOT FormData. The confirmed pattern:
+  const [title, setTitle] = useState('')
+  await createMojoThread({ title, url, ... })
+Exception: createMojoCharacter and createMojoRp still use FormData
+(confirmed FIX-017a Q-items — adapt accordingly).
+
+### eslint-plugin-react-hooks@7.1.1 Rules (confirmed FIX-017b Q4)
+This project's bundled react-hooks plugin enforces two new rules:
+1. function-declared-before-use in effects — declare functions
+   before the useEffect that calls them
+2. set-state-in-effect — calling a setState-invoking function
+   directly in an effect body requires scoped eslint-disable:
+   // eslint-disable-next-line react-hooks/set-state-in-effect
+Both MojoFamiliarChat and MojoFamiliarSidebar use this pattern.
+Consistent with existing exhaustive-deps disable precedent in
+MojoThreadAutoRefresh.tsx.
+
 ### No New npm Packages in Visual Passes
 All visual work in 7B–7K uses: CSS, inline SVG in JSX, canvas.
 No additional npm packages in any visual pass prompt.
@@ -381,9 +435,17 @@ Applied migrations:
   mojo_005a_thread_manual_override — ALTER TABLE mojo_threads adds
     manual_whose_turn text CHECK (mine/theirs), nullable (MOJO-5)
   mojo_005_personal_images — mojo_image_folders, mojo_personal_images (MOJO-6C)
+  mojo_006_wanted — mojo_wanted table (MOJO-7A)
+  mojo_007_wishlist_image — adds image_token text to mojo_wishlist (FIX-005)
+  mojo_008_thread_reply_order — adds reply_order text to mojo_threads (FIX-011)
+  mojo_009_thread_type_and_class — adds thread_type text NOT NULL DEFAULT 'rp'
+    CHECK ('rp','class'), assignment_due_at timestamptz, completed_at timestamptz
+    to mojo_threads (FIX-013)
+  mojo_010_familiar — creates mojo_familiar_conversations and
+    mojo_familiar_messages tables (FIX-017a)
 
 Pending migrations:
-  (none — all planned migrations applied through MOJO-7A)
+  (none)
 
 ---
 
@@ -431,12 +493,21 @@ mojo_threads:
   display_order integer DEFAULT 0, created_at timestamptz,
   -- Auto-fetch columns (added mojo_002):
   detected_platform text CHECK (tumblr/jcink/generic/unknown),
-  last_poster text,
+  last_poster text,  -- NEVER overwritten when scrape returns null (FIX-015)
   fetch_status text CHECK (success/failed/unsupported/pending/uncertain),
   last_checked_at timestamptz,
   -- Manual whose_turn override (added mojo_005a):
   manual_whose_turn text CHECK (mine/theirs)  -- NULL = use auto-detection
+  -- Reply order for ordered/combat threads (added mojo_008):
+  reply_order text,  -- comma-separated names, NULL = freeform mode
+  -- Thread type and class assignment tracking (added mojo_009):
+  thread_type text NOT NULL DEFAULT 'rp' CHECK (thread_type IN ('rp','class')),
+  assignment_due_at timestamptz,  -- optional due date for class threads
+  completed_at timestamptz,       -- set when class submission detected
   -- Indexes: rp_id, character_id, status
+  -- NOTE: url IS NULL = 'awaiting_start' state (thread not yet begun)
+  -- NOTE: fetch_status='unsupported' + detected_platform='jcink' =
+  --   JCINK auth wall — board requires login (FIX-009)
 
 mojo_avatars:
   id uuid PK, character_id uuid FK mojo_characters SET NULL,
@@ -485,7 +556,10 @@ mojo_wishlist:
   notes text,  -- HTML (rich text) from MOJO-6A
   type text CHECK (character_concept/plot_idea/fandom/other) DEFAULT plot_idea,
   status text CHECK (idea/active/shelved) DEFAULT idea,
+  image_token text,  -- optional reference image (added mojo_007, FIX-005)
   display_order integer DEFAULT 0, created_at timestamptz
+  -- image_token: same cleanup pattern as mojo_wanted.image_token
+  -- On delete: clean up mojo_image_tokens + storage, then row
 
 mojo_partners:
   id uuid PK, handle text NOT NULL, sites text,
@@ -531,6 +605,21 @@ mojo_wanted (created mojo_006, MOJO-7A, commit 3976a2e):
   -- image_token is a raw token string, NOT a FK to mojo_image_tokens
   -- Wanted images use registerImageToken() → token stored directly
   -- On delete: clean up mojo_image_tokens row + storage file manually
+
+mojo_familiar_conversations (created mojo_010, FIX-017a):
+  id uuid PK, title text NOT NULL DEFAULT 'New Consultation',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+
+mojo_familiar_messages (created mojo_010, FIX-017a):
+  id uuid PK,
+  conversation_id uuid NOT NULL FK mojo_familiar_conversations CASCADE,
+  role text NOT NULL CHECK (role IN ('user','assistant')),
+  content text NOT NULL,
+  tool_calls jsonb,      -- tools called (for display/audit)
+  actions_taken jsonb,   -- write actions executed (for audit)
+  created_at timestamptz NOT NULL DEFAULT now()
+  -- Index: (conversation_id, created_at)
 
 ---
 
@@ -665,19 +754,47 @@ in both Server Components and Client Components.
 
 Exports:
   deriveWhoseTurn(thread, characterName) → 'mine' | 'theirs' | 'unknown'
+    Two-arg signature confirmed (FIX-010 Q1).
     Manual override takes priority over auto-detection.
-    If last_poster equals characterName (case-insensitive): 'theirs'
-    (you were last to post → their turn now).
-    Else: 'mine'. Unknown if fetch_status is uncertain/failed/unsupported.
-    Tumblr limitation: blog name never matches character name → always
-    returns 'mine' unless manual override is set.
+    Short-circuits to 'unknown' for fetch_status in
+    ['uncertain','failed','unsupported','pending',null,''].
+    If last_poster equals characterName (case-insensitive partial): 'theirs'.
+    Else: 'mine'. Tumblr: always 'mine' unless manual override set.
+
+  getWaitingOn(thread, characterName) → string | null  (added FIX-011)
+    Returns the name of the next person in reply_order after last_poster.
+    Null if reply_order not set, last_poster unknown, or it's caller's turn.
+    Bidirectional partial match (case-insensitive).
+    Cycles via modulo — last person in order wraps back to first.
+    Manual override takes priority — returns null if override set.
+
+  getThreadDisplayState(thread, characterName) → ThreadDisplayState  (FIX-013)
+    Single source of truth for badge display. Handles all thread types.
+    Priority order:
+      1. url IS NULL → 'awaiting_start'
+      2. thread_type === 'class' + completed_at set → 'submitted'
+      3. thread_type === 'class' → 'due'
+      4. deriveWhoseTurn → 'mine'
+      5. deriveWhoseTurn + getWaitingOn → 'waiting'
+      6. deriveWhoseTurn → 'theirs'
+      7. 'unknown'
+
+  getDisplayBadge(state, waitingOn?) → { className, label }  (FIX-013)
+    Maps ThreadDisplayState to CSS class + display label.
+    Badge classes: mojo-turn-mine (garnet gradient), mojo-turn-theirs
+    (teal gradient), mojo-turn-waiting (teal, shows waiting-on name),
+    mojo-turn-pending (amber — DUE + AWAITING STARTER), mojo-turn-unknown.
+
+  getThreadStatePriority(state) → number  (FIX-016)
+    Sort helper. due=0, mine=1, waiting=2, theirs=3, unknown=4,
+    awaiting_start=5, submitted=6. Lower = more urgent.
 
   detectPlatformClient(url) → 'tumblr' | 'jcink' | 'generic' | 'unknown'
-    Client-safe URL-based platform detection. Mirrors the server-side
-    detectPlatform() in lib/mojo/thread-fetchers.ts.
-
   formatRelativeTime(isoString) → string
-    Human-readable relative time: "just now", "3m ago", "2h ago", "3d ago".
+
+ThreadDisplayState type (FIX-013):
+  'mine' | 'theirs' | 'waiting' | 'unknown' |
+  'awaiting_start' | 'due' | 'submitted'
 
 Why separate from thread-fetchers.ts:
   lib/mojo/thread-fetchers.ts uses process.env and Node.js APIs —
@@ -714,8 +831,14 @@ app/
       MojoCharacterNotes.tsx, MojoCharacterAvatarTabs.tsx
       -- Thread tracker
       MojoThreadTracker.tsx
+      MojoThreadAutoRefresh.tsx  (FIX-010 — 'use client', fires on mount,
+        retries failed/uncertain/pending immediately, 15-min threshold
+        for 'success' only, skips 'unsupported' and url-null threads,
+        calls router.refresh() once after all parallel fetches complete)
       -- Faceclaims
-      MojoFaceclaimAssign.tsx, MojoCreateFaceclaim.tsx
+      MojoFaceclaimAssign.tsx  (FIX-003 — now supports inline creation:
+        type name → "+ Create '[name]' as new faceclaim" option appears)
+      MojoCreateFaceclaim.tsx
       MojoFaceclaimRow.tsx, MojoFaceclaimNameEdit.tsx
       MojoFaceclaimAvatars.tsx, MojoQuickCopyPanel.tsx
       -- Resources
@@ -742,23 +865,53 @@ app/
       MojoPersonalImageManager.tsx  (NOTE: this component contains the
         actual two-column folder+grid layout, not images/page.tsx —
         confirmed MOJO-7O Q1. Responsive layout classes applied here.)
+      -- Portrait cards
+      MojoPortraitCard.tsx  (FIX-004 — shared tarot-card portrait display,
+        props: token, alt, size sm/md/lg, idSuffix, showFrame, className;
+        3:5 aspect ratio, max 500px, SvgPortraitFrame overlay)
+      -- RP note panels
+      MojoRpNotePanel.tsx  (FIX-007b — per-field RP note card, 'use client',
+        props: rpId, label, field, initialValue; replaces MojoRpNotes
+        on the RP detail page for three separate always-visible panels)
+      -- Character avatar strip
+      MojoCharacterAvatarStrip.tsx  (FIX-008 — 'use client', secondary
+        avatar display + upload button; primary portrait rendered directly
+        on page, not in this component — confirmed FIX-008 Q1)
+      -- Chronicle
+      MojoChronicleAddForm.tsx  (FIX-012b — 'use client', thread add form
+        with character selector dropdown; uses controlled useState, NOT
+        FormData; derives rp_id from selected character's rp_id)
+      -- The Familiar
+      MojoFamiliarChat.tsx  (FIX-017a/b — 'use client', full chat UI with
+        message bubbles, loading states, pending confirmation card,
+        auto-scroll, ReactMarkdown rendering for assistant messages)
+      MojoFamiliarSidebar.tsx  (FIX-017b — 'use client', conversation
+        history list, new/delete/rename, active highlighting)
+      MojoFamiliarWrapper.tsx  (FIX-017b — 'use client', thin coordinator
+        managing activeConvId + chatKey between sidebar and chat;
+        chatKey increment forces MojoFamiliarChat remount on conv switch)
       -- Rich text
       MojoRichTextEditor.tsx  (outer — readonly gate, no hooks)
       MojoRichTextEditorInner (inner — always calls useEditor, edit only)
       -- Visual design assets (MOJO-7B onward)
-      MojoSvgAssets.tsx  (SVG component library — all decorative SVGs)
+      MojoSvgAssets.tsx  (SVG component library — 57 exports as of FIX-017b)
       MojoMoonPhases.tsx  (MOJO-7C — live lunar phase calculator + display)
     rps/page.tsx (redirect), rps/[rpId]/page.tsx, rps/[rpId]/edit/page.tsx
-    characters/[charId]/page.tsx  (has Suspense boundary for useSearchParams)
+      (RP detail page: single-page layout, character portrait spread,
+       candle-flanked threads, three MojoRpNotePanel cards — FIX-007/007b)
+    characters/[charId]/page.tsx
+      (single-page dossier: Zone 2 two-column portrait+meta, Zone 3
+       three-column Journal/Correspondence/Archive — FIX-008/008b)
     faceclaims/page.tsx, faceclaims/[fcId]/page.tsx
     avatars/page.tsx
-    stacks/page.tsx
+    stacks/page.tsx  (accepts ?character_id= filter — MOJO-7L)
     library/page.tsx
     wishlist/page.tsx
     partners/page.tsx
     images/page.tsx  (built MOJO-6C)
     search/page.tsx  (full global search — built MOJO-7A; awaits searchParams)
-    stacks/page.tsx  (now accepts ?character_id= filter — MOJO-7L)
+    threads/page.tsx  (The Chronicle — FIX-012b)
+    familiar/page.tsx  (The Familiar — FIX-017a/b; thin shell, uses Wrapper)
   i/[token]/route.ts  (public, no auth)
   api/mojo/
     fetch-image/route.ts
@@ -767,17 +920,30 @@ app/
 
 lib/
   mojo/
-    proxy.ts          -- token registration + proxy URL helpers
-    thread-fetchers.ts -- platform detection + 3 fetch strategies (SERVER ONLY)
-    utils.ts          -- client-safe utilities (see §8b below)
-  actions/mojo.ts  (52 actions as of MOJO-7A)
+    proxy.ts           -- token registration + proxy URL helpers
+    thread-fetchers.ts -- platform detection + fetch strategies (SERVER ONLY)
+                          JCINK: authenticated via JCINK_MEMBER_ID +
+                          JCINK_PASS_HASH cookie headers (FIX-009)
+                          Class thread mode: scans ALL post authors for
+                          characterName, returns my_post_found boolean
+    utils.ts           -- client-safe utilities (see §8b)
+  actions/mojo.ts  (59 actions as of FIX-017a)
   db/mojo.ts
+app/api/mojo/
+  fetch-image/route.ts
+  process-image/route.ts
+  refresh-thread/route.ts
+    (FIX-015: last_poster only written when result.last_poster is
+     non-null/truthy — preserves last known good value on scrape failure)
+  familiar/route.ts        (FIX-017a — The Familiar agent)
+  familiar/autotitle/route.ts  (FIX-017a — background title generation)
+  familiar/messages/route.ts   (FIX-017b — load conversation history)
 
 ---
 
 ## 10. Navigation
 
-Sidebar nav order (final — as of MOJO-7O):
+Sidebar nav order (as of FIX-017a):
   1. Dashboard → /mojo
   2. Images → /mojo/images
   3. Faceclaims → /mojo/faceclaims
@@ -785,7 +951,9 @@ Sidebar nav order (final — as of MOJO-7O):
   5. Wishlist → /mojo/wishlist
   6. Partners → /mojo/partners
   7. Stacks → /mojo/stacks
-  8. Search → /mojo/search  (global search — complete MOJO-7A)
+  8. The Chronicle → /mojo/threads  (FIX-012a — between Stacks and Search)
+  9. Search → /mojo/search
+  10. The Familiar → /mojo/familiar  (FIX-017a — at end, special tool)
 
 ---
 
@@ -831,8 +999,9 @@ Hiatus and Ended: collapsed section at bottom, same structure, muted.
 No separate /mojo/roleplays route. Dashboard IS the roleplays page.
 
 Visual elements added in MOJO-7C (The Sanctum):
-- SvgMoon (320px) — position absolute top-right, partially clipped,
-  mojo-moon-breathe animation, z-index 0 behind all content
+- SvgLargeCrescent (260px) — replaced SvgMoon (FIX-006); crescent
+  with atmospheric halos, star catch-lights, glowing amber glow filter;
+  position absolute top-right, partially clipped, mojo-moon-breathe
 - MojoMoonPhases — live lunar phase calculator, 8-phase SVG row,
   current phase highlighted with mojo-moon-breathe pulse
 - SvgCandle (pair) — flanking the "Active Roleplays" heading, left
@@ -842,8 +1011,11 @@ Visual elements added in MOJO-7C (The Sanctum):
   · ☿ Snippets · ♆ Partners · ⬡ Stacks (via watermark prop, 7% opacity)
 - SvgCornerBracket (×4 per RP panel) — L-shaped accents in rp.color_hex
   inset 2px (overflow: hidden preserved for border-radius clipping)
-- Circular avatar vignette with silver ring overlay in MojoDashboardCharCard
-- Whose-turn badge upgraded to circular wax-seal (22px, border-radius 50%)
+- MojoPortraitCard (size="sm") tarot card portraits in character row
+  (FIX-004 — replaced circular medallion everywhere site-wide)
+- Whose-turn badge: unified gradient badge system (FIX-010/013)
+  mojo-turn-mine (garnet), mojo-turn-theirs (teal), mojo-turn-pending
+  (amber for DUE/AWAITING STARTER), mojo-turn-unknown (faded)
 - SvgFiligreeRule divider above collapsed RPs section
 
 ---
@@ -914,6 +1086,7 @@ NULL = use auto-detection. 'mine' / 'theirs' = persistent override.
 Server action: updateMojoThreadWhoseTurn(threadId, 'mine'|'theirs'|null)
 
 node-html-parser package installed for HTML scraping (v9.0.0+).
+react-markdown@10.1.0 + remark-gfm@4.0.1 installed (FIX-017c).
 
 deriveWhoseTurn() — pure function in lib/mojo/utils.ts (NOT thread-fetchers).
 Tumblr limitation: last_poster is a blog name, not a character name.
@@ -922,9 +1095,47 @@ override. UI shows tooltip explaining this on Tumblr-detected threads.
 
 API route: app/api/mojo/refresh-thread/route.ts — POST, auth required.
   Body: { threadId: string }
-  Updates: last_poster, fetch_status, last_checked_at, detected_platform
+  Updates: fetch_status, last_checked_at, detected_platform always.
+  last_poster: ONLY updated when result.last_poster is non-null (FIX-015).
+  Preserves last known good value on scrape failure — prevents flip-flopping.
+  Class thread mode: if thread_type='class', fetches character name,
+  passes to scraper, auto-archives if my_post_found=true (FIX-013).
 
-Refresh all: sequential (not parallel) to avoid Tumblr rate limits.
+Refresh all: parallel (Promise.allSettled) — FIX-010 changed from
+  sequential. Failed individual refreshes don't block others.
+
+Auto-refresh on page load (MojoThreadAutoRefresh — FIX-010/014):
+  'use client' component placed on character page, RP page, Chronicle.
+  Fires on mount. Retry logic:
+    fetch_status in ['failed','uncertain','pending',null,''] → retry immediately
+    fetch_status 'success' → retry only if last_checked_at > 15 minutes old
+    fetch_status 'unsupported' → never retry (structural failure)
+    url IS NULL → never retry (no URL to scrape)
+  All retries via parallel fetch() to refresh-thread route.
+  Single router.refresh() call after all complete.
+
+JCINK authenticated scraping (FIX-009):
+  Cookie header sent: member_id=JCINK_MEMBER_ID; pass_hash=JCINK_PASS_HASH
+  Auth-wall detection: fetch_status='unsupported' when "do not have
+    permission" page returned (HTTP 200 false positive).
+  Selector confirmed for marvellegacyu skin: showuser link regex.
+  JCINK_PASS_HASH stored as decoded bcrypt ($2y$11$...) — NOT URL-encoded.
+
+Thread type system (FIX-013):
+  thread_type='rp' (default): standard back-and-forth, whose-turn
+    detection via scraper last-poster comparison.
+  thread_type='class': assignment thread. Scraper scans ALL post
+    authors for character name. On detection → auto-archive +
+    completed_at = now(). Badge shows 'DUE' (amber) until submitted.
+  url IS NULL: 'awaiting_start' state — thread not yet begun.
+    Badge shows 'AWAITING STARTER' (amber). Never auto-refreshed.
+
+Reply order cycling (FIX-011):
+  reply_order: optional comma-separated list e.g. "Remy, Johnny, Sue".
+  getWaitingOn() finds last_poster in list, returns next person's name.
+  Cycles: last person wraps to first (modulo).
+  Badge shows "WAITING ON [name]" instead of generic "THEIR TURN".
+  Freeform (reply_order NULL): existing mine/theirs/unknown logic.
 
 ---
 
@@ -956,6 +1167,62 @@ has grouped character select + alphabetical faceclaim select.
 
 ---
 
+## 14b. Thread Display System (FIX-010 through FIX-016)
+
+### Unified Badge System
+All thread badges use one CSS class family:
+  .mojo-turn-badge (base) + one state class:
+  .mojo-turn-mine     — garnet gradient, YOUR TURN
+  .mojo-turn-theirs   — teal gradient, THEIR TURN
+  .mojo-turn-waiting  — teal gradient, WAITING ON [name]
+  .mojo-turn-pending  — amber gradient, DUE or AWAITING STARTER
+  .mojo-turn-unknown  — faded, UNKNOWN
+
+Old flat-color family (.mojo-thread-turn-*) still in globals.css
+but no longer used anywhere — retired FIX-012a.
+
+### Thread Sort Priority
+getThreadStatePriority() values (lower = more urgent):
+  due=0, mine=1, waiting=2, theirs=3, unknown=4,
+  awaiting_start=5, submitted=6
+
+Active threads sorted by this priority at all four display surfaces:
+  MojoThreadTracker (character page Correspondence column)
+  Character page Zone 2 mini-cards
+  RP page thread list
+  The Chronicle (/mojo/threads)
+
+### Manual Override (··· Collapse — FIX-010)
+The Auto/Mine/Theirs override buttons are hidden by default.
+A ··· trigger in the thread card action row toggles an inline
+override row per thread. openOverride state keyed by thread ID.
+Clicking an option sets the override and collapses the row.
+
+### The Chronicle (/mojo/threads — FIX-012)
+Master thread tracker across all characters and RPs.
+Theme: scriptorium — parchment, leather, quill, candlelight.
+Header: SvgOpenLedger (grand open ledger illustration, 180px tall).
+
+getMojoAllThreads(): three-query pattern:
+  1. All threads (select *)
+  2. Characters by character_id (id, name, status, rp_id)
+  3. RPs by rp_id (id, name, color_hex)
+  4. Avatars by character_id (most recent token per character)
+  Returns merged: character_name, character_status, rp_name,
+    rp_color_hex, character_avatar_token on each thread.
+
+Page layout (top to bottom):
+  Zone 1: SvgOpenLedger header, "The Chronicle" / subtitle
+  Zone 2: MojoChronicleAddForm (character selector + all fields)
+  Zone 3: Active Correspondence — grouped by character, candle heading,
+    sorted by state priority, YOUR TURN groups first
+  Zone 4: Closed Correspondence — archived threads, wax seal heading,
+    dimmed 0.65 opacity, SvgChronicleQuill + SvgScrollEnd at bottom
+
+Auto-refresh: MojoThreadAutoRefresh fires on mount.
+
+---
+
 ## 15. Wanted / Connections Board (COMPLETE — MOJO-7A, commit 3976a2e)
 
 Per-RP section on the RP detail page (/mojo/rps/[rpId]).
@@ -975,6 +1242,69 @@ Wanted reference images: registerImageToken() stores token in
   mojo_wanted.image_token. NOT a mojo_personal_images entry.
   Storage path prefix: 'wanted/'
   On delete: clean up mojo_image_tokens + storage file, then row.
+
+---
+
+## 15b. The Familiar (/mojo/familiar — FIX-017)
+
+### Identity
+The Familiar is an AI companion — devoted, intimate, mystical,
+efficient. Keeper of Mojo's characters, stories, and secrets.
+Page theme: candlelit, private, amber-warm. SvgFamiliarPresence
+(cat's eye illustration) watches over the conversation.
+
+### Architecture
+Three layers:
+  1. Chat UI — MojoFamiliarChat.tsx ('use client')
+  2. Agent route — /api/mojo/familiar/route.ts (Route Handler)
+  3. Memory — mojo_familiar_conversations + mojo_familiar_messages
+
+### Agent Route (/api/mojo/familiar/route.ts)
+Model: claude-sonnet-4-6 | max_tokens: 8000 (FIX-017c)
+Tools (15 total):
+  Read (4): get_characters, get_rps, get_active_threads, get_faceclaims
+  Generate (3): generate_biography, generate_wanted_ad,
+    generate_thread_starter (each triggers a secondary focused
+    Claude call at max_tokens: 1000 — not the main 8000 limit)
+  Write (6): create_character, create_rp, create_thread,
+    create_faceclaim, assign_faceclaim, archive_thread
+  Web search (1): web_search_20250305 (Anthropic first-party tool,
+    requires 'anthropic-beta': 'web-search-2025-03-05' header)
+
+Write tools require confirmation:
+  Route returns pendingAction object, does NOT execute.
+  Client shows Confirm/Cancel card.
+  On confirm: client sends { confirm: true, pendingAction } back.
+  Route executes and reports result.
+
+Read and generate tools execute immediately in a loop (max 6 iterations).
+
+### System Prompt (FIX-017c)
+Key directives:
+  - Address Mojo as "Mojo" (he/him pronouns)
+  - Write in prose, not structured documents
+  - No emoji, no ### headers, no --- rules in conversational responses
+  - Tables acceptable for data (character rosters, thread lists)
+  - Context snapshot injected at end: current characters, RPs,
+    threads needing response
+  - Write creative content with craft and atmosphere
+  - Search before speculating on canon
+
+### Memory
+Conversation history: last 20 messages loaded per API call.
+Auto-titling: after first exchange, background fetch to
+  /api/mojo/familiar/autotitle fires (non-blocking, .catch(()=>{})).
+  Claude generates a 3-5 word title at max_tokens: 30.
+Conversation switching: chatKey pattern — incrementing integer
+  as React key forces MojoFamiliarChat remount on conversation
+  change, cleanly resetting all internal state.
+sidebarRefreshKey: separate counter bumped by onTitleUpdated
+  callback to trigger sidebar reload after auto-title (FIX-017b Q2).
+
+### Environment Variables Required
+ANTHROPIC_API_KEY — Anthropic API key, server-side only.
+  Set in Vercel environment variables AND .env.local.
+  Never hardcoded in any source file.
 
 ---
 
@@ -1042,11 +1372,24 @@ TD-13: .mojo-folder-tab CSS class defined in globals.css (MOJO-7O)
   in the MOJO-7O authorized file list. Low priority future enhancement:
   apply mojo-folder-tab className to folder item elements.
 
+TD-14: Avatar "Set Primary" scoped to stacks only (confirmed FIX-008 Q1,
+  FIX-017a Q-items). setCharacterPrimaryStack targets mojo_image_stacks,
+  not raw mojo_avatars. No per-avatar set-primary action exists. The
+  primary portrait display uses primary_stack_id → most recent avatar
+  fallback priority. To promote a raw avatar to primary, it must first
+  be added to a stack.
+
+TD-15: Primary portrait in Zone 2 (character page) is server-rendered
+  from avatarToken but MojoCharacterAvatarStrip's "Set Primary" only
+  updates client-side strip state. After clicking Set Primary, the large
+  portrait in the left column won't update until page reload. Fix: lift
+  primaryToken state into a shared client wrapper around Zone 2.
+
 ---
 
 ## 17. Server Actions Reference (lib/actions/mojo.ts)
 
-Total as of MOJO-7A: 52 actions (requireSuperAdmin count = 52)
+Total as of FIX-017a: 59 actions (requireSuperAdmin count = 59)
 
 Built:
   RP: createMojoRp, updateMojoRp
@@ -1074,8 +1417,27 @@ Built:
   updateMojoImageStack extended in MOJO-7A to accept character_id
     and faceclaim_id (payload extension, not a new action)
 
+  FIX-003: createAndAssignFaceclaim(name, characterId) — creates
+    faceclaim (or finds existing by case-insensitive name match via
+    .maybeSingle()) and immediately assigns to character. Revalidates
+    both /mojo/faceclaims and /mojo/characters/[charId].
+
+  FIX-005: registerWishlistImage, removeWishlistImage — P-DC pattern
+    for wishlist reference images. Storage prefix: 'wishlist/'.
+    deleteMojoWishlistItem extended with cleanup logic.
+    createMojoWishlistItem + updateMojoWishlistItem accept image_token.
+
+  FIX-011: createMojoThread + updateMojoThread extended with
+    reply_order (text | null).
+  FIX-013: createMojoThread + updateMojoThread extended with
+    thread_type ('rp'|'class') and assignment_due_at (timestamptz|null).
+
+  FIX-017a (Familiar): listFamiliarConversations,
+    createFamiliarConversation, deleteFamiliarConversation,
+    renameFamiliarConversation
+
 To be built:
-  (none — all planned actions complete)
+  (none)
 
 ---
 
@@ -1095,8 +1457,30 @@ Built:
   getMojoWanted (MOJO-7A — returns open items first, then filled,
     with character_name and proxy_url merged per row)
 
+  FIX-002: getMojoFaceclaims() extended — third query fetches most
+    recent avatar token per faceclaim via characters → avatars join.
+    Returns avatar_token: string | null merged per faceclaim.
+
+  FIX-007: getMojoRpCharacters(rpId) — characters for a specific RP
+    with avatar_token (most recent avatar per character). Used on RP
+    detail page for the character portrait spread.
+
+  FIX-012a: getMojoAllThreads() — cross-character master helper.
+    Three-query pattern: threads → characters → RPs + avatar tokens.
+    Returns each thread with: character_name, character_status,
+    rp_name, rp_color_hex, character_avatar_token merged.
+    Used by The Chronicle page and the agent context snapshot.
+
+  FIX-017a (Familiar DB helpers): getMojoFamiliarConversations(),
+    getMojoFamiliarMessages(conversationId, limit=20),
+    createMojoFamiliarConversation(title?),
+    saveMojoFamiliarMessage({ conversationId, role, content,
+      toolCalls?, actionsTaken? }),
+    updateMojoFamiliarConversationTitle(conversationId, title),
+    deleteMojoFamiliarConversation(conversationId)
+
 To be built:
-  (none — all planned helpers complete)
+  (none)
 
 ---
 
@@ -1126,6 +1510,12 @@ Additional grep for visual pass prompts (7B through 7K):
     app/mojo/page.tsx app/mojo/components/
   # All purely decorative elements must have pointer-events: none
   # Can be set on the SVG component itself rather than every call site
+
+Additional check for Route Handlers:
+  grep -rn "requireSuperAdmin\|redirect" \
+    --include="*.ts" app/api/mojo/
+  # Expected: 0 — Route Handlers must use isSuperAdmin + 401 JSON,
+  # never requireSuperAdmin() (redirects) or redirect()
 
 Additional checks for Next.js 16 patterns:
   # searchParams must be awaited in Server Components
@@ -1177,6 +1567,27 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-BRIEF v1.3 | ✅ Complete | 9672fa2 | Brief updated through MOJO-7D |
 | MOJO-BRIEF v1.4 | ✅ Complete | a694004 | Brief updated through MOJO-7O — BUILD COMPLETE |
 | MOJO-FIX-001    | ✅ Complete | 9bf30fb | Proxy URL .png extension — third-party site compatibility |
+| MOJO-FIX-002    | ✅ Complete | faa8c60 | Faceclaim gallery pulls avatar from assigned characters |
+| MOJO-FIX-003    | ✅ Complete | 76c302d | Inline faceclaim creation on character page |
+| MOJO-FIX-004    | ✅ Complete | 437c1b9 | MojoPortraitCard tarot system — site-wide avatar display |
+| MOJO-FIX-005    | ✅ Complete | 5cb265d | Wishlist image upload — mojo_007 migration |
+| MOJO-FIX-006    | ✅ Complete | ad5681d | SvgLargeCrescent replaces SvgMoon on dashboard |
+| MOJO-FIX-007    | ✅ Complete | 8958e12 | RP detail page single-page layout |
+| MOJO-FIX-007b/008b | ✅ Complete | 9444681 | RP notes as separate cards; character portrait zone two-column |
+| MOJO-FIX-008    | ✅ Complete | fe9fdba | Character page single-page dossier layout |
+| MOJO-FIX-009    | ✅ Complete | 28f79d2 | JCINK auth wall detection + session cookie + skin selector |
+| MOJO-FIX-010    | ✅ Complete | 1c39d01 | Auto thread refresh on page load, badge redesign, ··· override collapse, Zone 2 thread list |
+| MOJO-FIX-011    | ✅ Complete | 7c1e51c | reply_order for ordered threads, WAITING ON badge, mojo_008 migration |
+| MOJO-FIX-012a   | ✅ Complete | aa564a3 | Chronicle infrastructure — SVGs, nav, DB helper, Archive→Close, badge unification |
+| MOJO-FIX-012b   | ✅ Complete | fbfd872 | The Chronicle page + MojoChronicleAddForm |
+| MOJO-FIX-013    | ✅ Complete | 936a76d | Class threads, awaiting starter, auto-archive, unified display state, mojo_009 |
+| MOJO-FIX-014    | ✅ Complete | c648ad9 | Failed scrape retry immediately on page load |
+| MOJO-FIX-015    | ✅ Complete | aa640a7 | Preserve last_poster on failed scrape |
+| MOJO-FIX-016    | ✅ Complete | 48ac136 | Thread sort order, Chronicle avatars, portrait lg, ornate SvgPortraitFrame |
+| MOJO-FIX-017a   | ✅ Complete | aedf4a2 | The Familiar — agent route, conversation memory, chat UI, SVGs |
+| MOJO-FIX-017b   | ✅ Complete | 6262d27 | The Familiar — full visual treatment, memory sidebar, auto-titling |
+| MOJO-FIX-017c   | ✅ Complete | 59439f5 | The Familiar — voice rewrite (he/him), markdown rendering, max_tokens 8000 |
+| MOJO-BRIEF v1.5 | ✅ Complete | [hash]  | Brief updated through FIX-017c |
 
 ---
 
@@ -1206,6 +1617,23 @@ In addition to the six existing TWH env vars:
   app/mojo/search/page.tsx (image thumbnails), MojoPersonalImageCard.tsx.
   Must be set in .env.local and Vercel. Value: https://atwitchinghour.com
 
+  JCINK_MEMBER_ID — JCINK numeric member ID for authenticated scraping.
+  Value: 37 (operator's account ID on marvellegacyu.jcink.net).
+  Set in .env.local and Vercel. Used in Cookie header by thread-fetchers.ts.
+
+  JCINK_PASS_HASH — JCINK bcrypt password hash for session cookie auth.
+  Format: decoded bcrypt starting with $2y$11$ (NOT URL-encoded).
+  URL-encoded form (%24 = $, %2F = /) will NOT work — must be decoded.
+  Set in .env.local and Vercel. Used alongside JCINK_MEMBER_ID.
+  Cookie sent: member_id=JCINK_MEMBER_ID; pass_hash=JCINK_PASS_HASH
+
+  ANTHROPIC_API_KEY — Anthropic API key for The Familiar AI companion.
+  Server-side only. Never exposed to client or committed to git.
+  Set in .env.local and Vercel environment variables.
+  Required for: /api/mojo/familiar/route.ts (main agent, max_tokens 8000),
+    /api/mojo/familiar/autotitle/route.ts (max_tokens 30),
+    generate tool secondary calls inside familiar route (max_tokens 1000).
+
 ---
 
 Version history:
@@ -1231,6 +1659,20 @@ Version history:
     search complete, TD-2/TD-6/TD-7 resolved, TD-10/TD-11 added,
     server actions updated to 52, getMojoWanted added, build status
     expanded through MOJO-7L, file structure updated with new components
+  v1.5 — through FIX-017c: thread system overhaul (reply order, class
+    threads, awaiting starter, auto-archive, auto-refresh, WAITING ON
+    badge, badge unification, ··· override collapse), The Chronicle
+    master tracker page, The Familiar AI companion (agent route,
+    conversation memory, markdown rendering, voice rewrite), RP detail
+    and character page single-page layouts, MojoPortraitCard tarot
+    system site-wide, JCINK authenticated scraping, SvgLargeCrescent,
+    SvgPortraitFrame redesign, 12 new SVGs (57 total), new navigation
+    items, mojo_007–mojo_010 migrations, 7 new server actions (59 total),
+    new DB helpers (getMojoAllThreads, getMojoRpCharacters, 6 Familiar
+    helpers), route Handler auth pattern documented, new env vars
+    (JCINK_MEMBER_ID, JCINK_PASS_HASH, ANTHROPIC_API_KEY), TD-14/TD-15
+    added, build status table extended through FIX-017c.
+
   v1.4.1 — patch — MOJO-FIX-001: proxy URL .png extension convention
     documented in §7, next.config.ts filename corrected in §4,
     build status table updated, 10 files confirmed updated.
@@ -1318,9 +1760,57 @@ Mobile (MOJO-7O):
   .mojo-folder-panel, .mojo-gallery-grid, .mojo-botanical-corner,
   .mojo-bowl-wrapper, .mojo-rich-text-toolbar, .mojo-sidebar-width*,
   .mojo-folder-tab* (* = defined but not yet wired — see TD-12, TD-13)
+Portrait card system (FIX-004):
+  .mojo-portrait-frame, .mojo-portrait-card-wrap, .mojo-portrait-placeholder,
+  .mojo-portrait-sm, .mojo-portrait-md, .mojo-portrait-lg
+Thread badge system (FIX-010/013):
+  .mojo-turn-badge, .mojo-turn-mine, .mojo-turn-theirs,
+  .mojo-turn-waiting, .mojo-turn-pending, .mojo-turn-unknown
+Thread override (FIX-010):
+  .mojo-override-trigger, .mojo-override-row, .mojo-override-btn,
+  .mojo-override-btn-active
+Thread mini-cards / Zone 2 (FIX-010):
+  .mojo-thread-mini-card, .mojo-thread-mini-title, .mojo-thread-mini-partner,
+  .mojo-thread-mini-meta
+Character page layout (FIX-008b):
+  .mojo-char-portrait-zone, .mojo-char-portrait-meta,
+  .mojo-char-zone2-three-col, .mojo-char-columns
+Avatar strip (FIX-008):
+  .mojo-avatar-strip-card, .mojo-avatar-set-primary
+RP note panels (FIX-007b):
+  .mojo-rp-note-panel, .mojo-rp-note-header, .mojo-rp-note-label,
+  .mojo-rp-note-body, .mojo-rp-columns, .mojo-rp-side-panel,
+  .mojo-rp-banner, .mojo-rp-banner-bar, .mojo-character-spread,
+  .mojo-thread-card, .mojo-candle-heading
+The Chronicle (FIX-012b):
+  .mojo-chronicle-page, .mojo-chronicle-header, .mojo-thread-group,
+  .mojo-thread-group-header, .mojo-thread-group-name,
+  .mojo-thread-group-rp, .mojo-thread-group-body,
+  .mojo-chronicle-add-form, .mojo-chronicle-add-toggle,
+  .mojo-chronicle-archive, .mojo-chronicle-archive-heading,
+  .mojo-thread-archived-card, .mojo-thread-archived-title,
+  .mojo-thread-archived-meta, .mojo-chronicle-section-heading,
+  .mojo-chronicle-section-rule
+The Familiar (FIX-017a/b):
+  .mojo-familiar-layout, .mojo-familiar-sidebar,
+  .mojo-familiar-sidebar-heading, .mojo-familiar-new-btn,
+  .mojo-familiar-conv-item, .mojo-familiar-conv-title,
+  .mojo-familiar-conv-date, .mojo-familiar-conv-delete,
+  .mojo-familiar-conv-rename, .mojo-familiar-main,
+  .mojo-familiar-conversation-wrap, .mojo-familiar-messages,
+  .mojo-familiar-msg-user, .mojo-familiar-msg-assistant,
+  .mojo-familiar-msg-eye, .mojo-familiar-loading,
+  .mojo-familiar-loading-eye, .mojo-familiar-pending,
+  .mojo-familiar-pending-label, .mojo-familiar-pending-desc,
+  .mojo-familiar-confirm-btn, .mojo-familiar-cancel-btn,
+  .mojo-familiar-empty, .mojo-familiar-empty-star,
+  .mojo-familiar-empty-greeting, .mojo-familiar-empty-hint,
+  .mojo-familiar-candle-corner, .mojo-familiar-input-area,
+  .mojo-familiar-textarea, .mojo-familiar-send-btn,
+  .mojo-familiar-input-hint
 
 ### SVG Asset Library (app/mojo/components/MojoSvgAssets.tsx)
-All reusable SVG decorative components. 45 exports — COMPLETE.
+All reusable SVG decorative components. 57 exports as of FIX-017b.
 All are inline JSX — no external SVG files. Append-only: never
 modify existing exports.
 
@@ -1386,6 +1876,45 @@ Images — The Darkroom (MOJO-7J — +4):
 Search — The Oracle (MOJO-7K — +1):
   SvgScryingBowl(size, idSuffix) — concentric rings, dark water fill,
     moon reflection dot, glow filter on outermost halo
+
+Dashboard fix (FIX-006 — +1):
+  SvgLargeCrescent(size, idSuffix, className) — glowing crescent moon
+    with atmospheric halos, star catch-lights, amber glow; replaces
+    SvgMoon on dashboard. --char hex (#0c0c14) cut-circle technique.
+
+RP page (FIX-007 — +3 realistic colors):
+  SvgCandleRealistic(height, idSuffix, flameDelay) — fully illustrated
+    candle with ivory/cream wax, amber/gold/white flame layers, drips,
+    pewter holder; replaces SvgCandle for themed page headings
+  SvgParchmentEdge(width) — torn deckled paper edge, parchment tones,
+    age spot; decorative top of thread cards
+  SvgWaxSeal(size, idSuffix) — crimson wax seal with 5-point star
+    impression, realistic radial gradient, wax flow marks
+
+Character page (FIX-008 — +3 realistic colors):
+  SvgIvyBorder(width, height, flip) — lush illustrated ivy with forest
+    green leaves, vein detail, cream wildflowers with gold centers,
+    tendrils and berries; replaces SvgIvyTrail on character page header
+  SvgDossierQuill(className) — realistic feather quill with barb detail,
+    dark nib, ink bead; decorative header accent
+  SvgOpenBook(width, height) — illustrated open book, warm parchment
+    pages, leather spine, ribbon bookmark; Resources column heading
+
+The Chronicle (FIX-012a — +3):
+  SvgNavChronicle(active) — 14px sidebar glyph: open book with
+    crossing quill; currentColor
+  SvgOpenLedger(className) — grand open ledger 100% width × 180px;
+    two parchment pages with ruled lines and entry blocks, leather
+    spine with gilt, ribbon bookmark; page header illustration
+  SvgChronicleQuill(className) — horizontal decorative quill, 80×24px;
+    realistic ivory barbs, dark nib, ink drop; section end ornament
+
+The Familiar (FIX-017a — +2):
+  SvgNavFamiliar(active) — 14px sidebar glyph: stylized cat's eye with
+    vertical slit pupil and catch-light; currentColor
+  SvgFamiliarPresence(className) — cat's eye 180×90px; layered amber
+    iris gradient, vertical slit pupil with tapered ends, two catch-
+    light reflections, limbal ring, ambient glow filter; page header
 
 MojoMoonPhases.tsx (MOJO-7C) — Client Component:
   getLunarPhaseIndex() → 0-7 based on real synodic month calculation
