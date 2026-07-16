@@ -1587,7 +1587,7 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-FIX-017a   | ✅ Complete | aedf4a2 | The Familiar — agent route, conversation memory, chat UI, SVGs |
 | MOJO-FIX-017b   | ✅ Complete | 6262d27 | The Familiar — full visual treatment, memory sidebar, auto-titling |
 | MOJO-FIX-017c   | ✅ Complete | 59439f5 | The Familiar — voice rewrite (he/him), markdown rendering, max_tokens 8000 |
-| MOJO-BRIEF v1.5 | ✅ Complete | [hash]  | Brief updated through FIX-017c |
+| MOJO-BRIEF v1.5 | ✅ Complete | 6e322ce | Brief updated through FIX-017c |
 
 ---
 
