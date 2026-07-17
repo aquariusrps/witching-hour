@@ -4469,12 +4469,6 @@ export function SvgLibraryBookshelf({
           <stop offset="40%" stopColor="#1e1008" />
           <stop offset="100%" stopColor="#140c04" />
         </linearGradient>
-        {/* Ambient candlelight — warm glow from center-right */}
-        <radialGradient id={gId('glow')} cx="72%" cy="55%" r="45%">
-          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.18" />
-          <stop offset="50%"  stopColor="#c87800" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#c87800" stopOpacity="0" />
-        </radialGradient>
         {/* Cobweb gradient */}
         <radialGradient id={gId('web')} cx="0%" cy="0%" r="100%">
           <stop offset="0%"   stopColor="#b0a890" stopOpacity="0.30" />
@@ -4486,18 +4480,6 @@ export function SvgLibraryBookshelf({
           <stop offset="50%"  stopColor="#f0d060" stopOpacity="0.95" />
           <stop offset="100%" stopColor="#a08020" stopOpacity="0.70" />
         </linearGradient>
-        {/* Flame gradient */}
-        <radialGradient id={gId('flame')} cx="50%" cy="80%" r="60%">
-          <stop offset="0%"   stopColor="#fff4c0" stopOpacity="1" />
-          <stop offset="40%"  stopColor="#f0a020" stopOpacity="0.95" />
-          <stop offset="80%"  stopColor="#c06010" stopOpacity="0.80" />
-          <stop offset="100%" stopColor="#800800" stopOpacity="0" />
-        </radialGradient>
-        <filter id={gId('candle-glow')}
-          x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
       </defs>
 
       {/* ── BACKGROUND WOOD PANEL ── */}
@@ -4568,36 +4550,6 @@ export function SvgLibraryBookshelf({
       <line x1="0" y1={SHELF_Y2} x2={SHELF_W} y2={SHELF_Y2}
         stroke="#4a2808" strokeWidth="1.0" opacity="0.60" />
 
-      {/* ── BRASS CANDLESTICK — between books on shelf 1 ── */}
-      {/* Position: x=430 (gap between books) */}
-      <g transform="translate(425 60)">
-        {/* Candle flame glow */}
-        <ellipse cx="8" cy="6" rx="10" ry="14"
-          fill={`url(#${gId('flame')})`}
-          filter={`url(#${gId('candle-glow')})`}
-          className="mojo-flame-main"
-        />
-        {/* Inner flame */}
-        <ellipse cx="8" cy="8" rx="5" ry="8"
-          fill="#fff4c0" opacity="0.90"
-          className="mojo-flame-inner"
-        />
-        {/* Candle body — cream/ivory */}
-        <rect x="4" y="22" width="8" height="28" rx="1"
-          fill="#ede0c4" />
-        {/* Drip */}
-        <path d="M 4 26 C 3 28, 2 32, 3 34" stroke="#d8c8a8"
-          strokeWidth="2" fill="none" opacity="0.60" />
-        {/* Wick */}
-        <line x1="8" y1="22" x2="8" y2="18"
-          stroke="#1a1008" strokeWidth="1.0" />
-        {/* Brass holder */}
-        <rect x="2" y="50" width="12" height="4" rx="0.5"
-          fill="#b88820" />
-        <rect x="0" y="54" width="16" height="2" rx="1"
-          fill="#a07818" />
-      </g>
-
       {/* ── COBWEBS — upper corners ── */}
       {/* Left corner cobweb */}
       <g opacity="0.28">
@@ -4623,48 +4575,6 @@ export function SvgLibraryBookshelf({
             stroke="#b0a890" strokeWidth="0.5" opacity="0.35" />
         ))}
       </g>
-
-      {/* ── IVY — growing from left, threading through books ── */}
-      {/* Main vine */}
-      <path
-        d="M 0 50 C 20 45, 40 55, 60 48 C 80 42, 95 52, 115 46
-           C 135 40, 148 50, 165 44 C 182 38, 195 48, 210 42"
-        stroke="#2a4a1a" strokeWidth="2.5"
-        strokeLinecap="round" fill="none" opacity="0.85"
-      />
-      {/* Ivy leaves along vine */}
-      {[
-        [30, 44, 0], [55, 38, -15], [80, 48, 10],
-        [105, 42, -8], [130, 36, 12], [155, 46, -5],
-        [180, 40, 8], [205, 34, -10],
-      ].map(([x, y, rot], i) => (
-        <ellipse key={i}
-          cx={x} cy={y}
-          rx={8 + (i%3)*2} ry={5 + (i%2)*1.5}
-          fill="#2a5a18"
-          transform={`rotate(${rot} ${x} ${y})`}
-          opacity={0.75 - (i * 0.04)}
-        />
-      ))}
-      {/* Secondary vine tendrils */}
-      <path d="M 60 48 C 62 60, 58 72, 55 85"
-        stroke="#2a4a1a" strokeWidth="1.5" fill="none" opacity="0.55" />
-      <path d="M 115 46 C 118 58, 114 68, 112 80"
-        stroke="#2a4a1a" strokeWidth="1.2" fill="none" opacity="0.45" />
-      {/* Small leaves on tendrils */}
-      <ellipse cx="54" cy="72" rx="5" ry="3.5" fill="#2a5818"
-        transform="rotate(-20 54 72)" opacity="0.55" />
-      <ellipse cx="112" cy="68" rx="4" ry="3" fill="#2a5818"
-        transform="rotate(15 112 68)" opacity="0.50" />
-      {/* Small white wildflowers on some leaves */}
-      <circle cx="82" cy="38" r="2.5" fill="#f0ece0" opacity="0.55" />
-      <circle cx="82" cy="38" r="1.0" fill="#e8c840" opacity="0.70" />
-      <circle cx="132" cy="32" r="2.0" fill="#f0ece0" opacity="0.45" />
-      <circle cx="132" cy="32" r="0.8" fill="#e8c840" opacity="0.60" />
-
-      {/* ── AMBIENT CANDLELIGHT WASH ── */}
-      <rect x="0" y="0" width="600" height="220"
-        fill={`url(#${gId('glow')})`} />
 
       {/* ── BOTTOM EDGE — shelf base ── */}
       <rect x="0" y="210" width="600" height="10"
@@ -4996,6 +4906,427 @@ export function SvgLibraryStudy({
       <circle cx="223" cy="170" r="2.5" fill="#f0ece0" opacity="0.50" />
       <circle cx="223" cy="170" r="1.0" fill="#e8c840" opacity="0.65" />
       <circle cx="226" cy="110" r="2.0" fill="#f0ece0" opacity="0.45" />
+    </svg>
+  )
+}
+
+// ─── MOJO-FIX-022: The Library — candelabra + ivy columns ───
+
+export function SvgCandelabra({
+  height = 200,
+  idSuffix = 'cdlb',
+  flameDelay = '0s',
+}: {
+  height?: number
+  idSuffix?: string
+  flameDelay?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+  // Scale factor — all coordinates are in 70×200 space
+  const sx = height / 200
+
+  return (
+    <svg
+      width={Math.round(70 * sx)}
+      height={height}
+      viewBox="0 0 70 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Iron gradient — dark with warm highlight */}
+        <linearGradient id={gId('iron')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#1a1408" />
+          <stop offset="40%"  stopColor="#2a2010" />
+          <stop offset="60%"  stopColor="#3a2c18" />
+          <stop offset="100%" stopColor="#1a1408" />
+        </linearGradient>
+        {/* Candle wax gradient */}
+        <linearGradient id={gId('wax')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#f0e8d0" />
+          <stop offset="100%" stopColor="#d8c8a8" />
+        </linearGradient>
+        {/* Flame gradients — three flames, slight color variations */}
+        <radialGradient id={gId('flame-c')} cx="50%" cy="80%" r="55%">
+          <stop offset="0%"   stopColor="#fff8e0" stopOpacity="1" />
+          <stop offset="35%"  stopColor="#f0a020" stopOpacity="0.95" />
+          <stop offset="75%"  stopColor="#c06010" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#800800" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={gId('flame-l')} cx="50%" cy="80%" r="55%">
+          <stop offset="0%"   stopColor="#fff4d0" stopOpacity="1" />
+          <stop offset="35%"  stopColor="#e89818" stopOpacity="0.90" />
+          <stop offset="75%"  stopColor="#b05808" stopOpacity="0.70" />
+          <stop offset="100%" stopColor="#700800" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={gId('flame-r')} cx="50%" cy="80%" r="55%">
+          <stop offset="0%"   stopColor="#fff4c8" stopOpacity="1" />
+          <stop offset="35%"  stopColor="#e8a020" stopOpacity="0.92" />
+          <stop offset="75%"  stopColor="#b86010" stopOpacity="0.72" />
+          <stop offset="100%" stopColor="#780800" stopOpacity="0" />
+        </radialGradient>
+        {/* Glow filter for flames */}
+        <filter id={gId('flame-glow')}
+          x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        {/* Drip path clip — keep drips within candle body */}
+        <clipPath id={gId('drip-c')}>
+          <rect x="32" y="60" width="6" height="70" />
+        </clipPath>
+        <clipPath id={gId('drip-l')}>
+          <rect x="8" y="75" width="6" height="60" />
+        </clipPath>
+        <clipPath id={gId('drip-r')}>
+          <rect x="56" y="75" width="6" height="60" />
+        </clipPath>
+      </defs>
+
+      {/* ═══════════════════════════════
+          IRON STRUCTURE
+          ═══════════════════════════════ */}
+
+      {/* ── MAIN SHAFT ── */}
+      {/* Lower shaft — tapered */}
+      <path d="M 32 155 L 30 185 L 40 185 L 38 155"
+        fill={`url(#${gId('iron')})`} />
+      {/* Shaft ring detail */}
+      <ellipse cx="35" cy="155" rx="5" ry="2"
+        fill={`url(#${gId('iron')})`}
+        stroke="#3a2c18" strokeWidth="0.6" />
+      {/* Upper shaft */}
+      <rect x="32" y="90" width="6" height="68"
+        fill={`url(#${gId('iron')})`} />
+      {/* Shaft highlight */}
+      <rect x="34" y="90" width="1.5" height="68"
+        fill="#4a3820" opacity="0.50" />
+
+      {/* ── DRIP PAN — base disc ── */}
+      <ellipse cx="35" cy="185" rx="18" ry="4"
+        fill={`url(#${gId('iron')})`}
+        stroke="#3a2818" strokeWidth="0.8" />
+      {/* Foot */}
+      <path d="M 17 185 L 14 193 L 56 193 L 53 185"
+        fill={`url(#${gId('iron')})`} />
+      <ellipse cx="35" cy="193" rx="21" ry="3.5"
+        fill={`url(#${gId('iron')})`}
+        stroke="#3a2818" strokeWidth="0.8" />
+
+      {/* ── CRESCENT MOON in base foot ── */}
+      {/* Outer circle */}
+      <circle cx="35" cy="191" r="5"
+        stroke="#5a4028" strokeWidth="0.7"
+        fill="none" opacity="0.65" />
+      {/* Inner circle offset to create crescent */}
+      <circle cx="37" cy="191" r="4"
+        fill="#1a1408" opacity="0.80" />
+
+      {/* ── LEFT ARM — S-curve from shaft to left candle ── */}
+      {/* The arm curves out and up from the shaft */}
+      <path
+        d="M 33 110 C 28 108, 20 108, 16 112
+           C 12 116, 11 120, 11 128"
+        stroke={`url(#${gId('iron')})`}
+        strokeWidth="4" strokeLinecap="round" fill="none"
+      />
+      {/* Arm highlight */}
+      <path
+        d="M 33 110 C 28 108, 20 108, 16 112
+           C 12 116, 11 120, 11 128"
+        stroke="#3a2c18"
+        strokeWidth="1.5" strokeLinecap="round" fill="none"
+        opacity="0.55"
+      />
+      {/* Decorative flourish at arm bend */}
+      <circle cx="16" cy="113" r="2.5"
+        fill={`url(#${gId('iron')})`}
+        stroke="#4a3820" strokeWidth="0.6" />
+      {/* Drip pan for left candle */}
+      <ellipse cx="11" cy="128" rx="7" ry="1.8"
+        fill={`url(#${gId('iron')})`} />
+
+      {/* ── RIGHT ARM ── (mirror of left) */}
+      <path
+        d="M 37 110 C 42 108, 50 108, 54 112
+           C 58 116, 59 120, 59 128"
+        stroke={`url(#${gId('iron')})`}
+        strokeWidth="4" strokeLinecap="round" fill="none"
+      />
+      <path
+        d="M 37 110 C 42 108, 50 108, 54 112
+           C 58 116, 59 120, 59 128"
+        stroke="#3a2c18"
+        strokeWidth="1.5" strokeLinecap="round" fill="none"
+        opacity="0.55"
+      />
+      <circle cx="54" cy="113" r="2.5"
+        fill={`url(#${gId('iron')})`}
+        stroke="#4a3820" strokeWidth="0.6" />
+      <ellipse cx="59" cy="128" rx="7" ry="1.8"
+        fill={`url(#${gId('iron')})`} />
+
+      {/* ── SOCKET RINGS — where candles meet arms ── */}
+      {/* Center socket */}
+      <ellipse cx="35" cy="90" rx="5" ry="2"
+        fill={`url(#${gId('iron')})`}
+        stroke="#4a3820" strokeWidth="0.7" />
+      {/* Left socket */}
+      <ellipse cx="11" cy="132" rx="4" ry="1.5"
+        fill={`url(#${gId('iron')})`}
+        stroke="#4a3820" strokeWidth="0.6" />
+      {/* Right socket */}
+      <ellipse cx="59" cy="132" rx="4" ry="1.5"
+        fill={`url(#${gId('iron')})`}
+        stroke="#4a3820" strokeWidth="0.6" />
+
+      {/* ═══════════════════════════════
+          CANDLES
+          ═══════════════════════════════ */}
+
+      {/* ── CENTER CANDLE — tallest ── */}
+      <rect x="32" y="60" width="6" height="32"
+        fill={`url(#${gId('wax')})`} rx="0.5" />
+      {/* Drip down center candle */}
+      <path d="M 35 72 C 34 76, 33 80, 33 86"
+        stroke="#d8c8a8" strokeWidth="2" fill="none"
+        strokeLinecap="round"
+        clipPath={`url(#${gId('drip-c')})`} />
+      {/* Wick */}
+      <line x1="35" y1="60" x2="35" y2="56"
+        stroke="#2a1808" strokeWidth="0.8" />
+
+      {/* ── LEFT CANDLE — slightly shorter ── */}
+      <rect x="8" y="75" width="6" height="28"
+        fill={`url(#${gId('wax')})`} rx="0.5" />
+      {/* Drip */}
+      <path d="M 11 82 C 10 86, 9 90, 9 96"
+        stroke="#d8c8a8" strokeWidth="1.8" fill="none"
+        strokeLinecap="round"
+        clipPath={`url(#${gId('drip-l')})`} />
+      <line x1="11" y1="75" x2="11" y2="71"
+        stroke="#2a1808" strokeWidth="0.8" />
+
+      {/* ── RIGHT CANDLE ── */}
+      <rect x="56" y="75" width="6" height="28"
+        fill={`url(#${gId('wax')})`} rx="0.5" />
+      {/* Drip */}
+      <path d="M 59 83 C 60 87, 60 91, 59 97"
+        stroke="#d8c8a8" strokeWidth="1.8" fill="none"
+        strokeLinecap="round"
+        clipPath={`url(#${gId('drip-r')})`} />
+      <line x1="59" y1="75" x2="59" y2="71"
+        stroke="#2a1808" strokeWidth="0.8" />
+
+      {/* ═══════════════════════════════
+          FLAMES — three staggered
+          ═══════════════════════════════ */}
+
+      {/* ── CENTER FLAME — brightest, tallest ── */}
+      <g style={{ animationDelay: flameDelay }}>
+        {/* Outer glow */}
+        <ellipse cx="35" cy="50" rx="9" ry="13"
+          fill={`url(#${gId('flame-c')})`}
+          filter={`url(#${gId('flame-glow')})`}
+          className="mojo-flame-main"
+          opacity="0.85"
+        />
+        {/* Inner flame */}
+        <ellipse cx="35" cy="53" rx="5" ry="8"
+          fill={`url(#${gId('flame-c')})`}
+          className="mojo-flame-inner"
+          opacity="0.95"
+        />
+        {/* White hot core */}
+        <ellipse cx="35" cy="57" rx="2.5" ry="4"
+          fill="#fff8e0" opacity="0.80"
+          className="mojo-flame-inner"
+        />
+      </g>
+
+      {/* ── LEFT FLAME — slightly cooler color, different delay ── */}
+      <g style={{ animationDelay: `calc(${flameDelay} + 0.4s)` }}>
+        <ellipse cx="11" cy="65" rx="7" ry="11"
+          fill={`url(#${gId('flame-l')})`}
+          filter={`url(#${gId('flame-glow')})`}
+          className="mojo-flame-main"
+          opacity="0.80"
+        />
+        <ellipse cx="11" cy="68" rx="4" ry="7"
+          fill={`url(#${gId('flame-l')})`}
+          className="mojo-flame-inner"
+          opacity="0.90"
+        />
+        <ellipse cx="11" cy="71" rx="2" ry="3.5"
+          fill="#fff4d0" opacity="0.75"
+          className="mojo-flame-inner"
+        />
+      </g>
+
+      {/* ── RIGHT FLAME — slightly warmer, third delay ── */}
+      <g style={{ animationDelay: `calc(${flameDelay} + 0.7s)` }}>
+        <ellipse cx="59" cy="65" rx="7" ry="11"
+          fill={`url(#${gId('flame-r')})`}
+          filter={`url(#${gId('flame-glow')})`}
+          className="mojo-flame-main"
+          opacity="0.78"
+        />
+        <ellipse cx="59" cy="68" rx="4" ry="7"
+          fill={`url(#${gId('flame-r')})`}
+          className="mojo-flame-inner"
+          opacity="0.88"
+        />
+        <ellipse cx="59" cy="71" rx="2" ry="3.5"
+          fill="#fff4c8" opacity="0.72"
+          className="mojo-flame-inner"
+        />
+      </g>
+    </svg>
+  )
+}
+
+export function SvgIvyColumn({
+  height = 600,
+  flip = false,
+  idSuffix = 'ivy',
+  className = '',
+}: {
+  height?: number
+  flip?: boolean
+  idSuffix?: string
+  className?: string
+}) {
+  // Leaf data: [yPercent, xOffset, rotation, width, height]
+  // yPercent: 0-100 along the height
+  // xOffset: how far left (-) or right (+) the leaf extends from vine
+  // Pattern: alternating left/right, irregular spacing
+  const leaves: Array<[number, number, number, number, number]> = [
+    [4,   -14,  20, 18, 11],
+    [9,    12, -18, 14,  9],
+    [14,  -16,  25, 20, 12],
+    [19,   10, -15, 16, 10],
+    [24,  -12,  22, 15,  9],
+    [29,   14, -20, 19, 11],
+    [34,  -15,  18, 17, 10],
+    [39,   11, -22, 15,  9],
+    [44,  -18,  28, 21, 13],
+    [49,   12, -16, 16, 10],
+    [54,  -14,  20, 18, 11],
+    [59,   15, -24, 20, 12],
+    [64,  -12,  18, 15,  9],
+    [69,   10, -18, 17, 10],
+    [74,  -16,  24, 19, 12],
+    [79,   12, -20, 15,  9],
+    [84,  -14,  22, 18, 11],
+    [89,   11, -15, 16, 10],
+    [94,  -16,  26, 20, 12],
+    [98,   10, -18, 14,  9],
+  ]
+
+  // Wildflower positions: yPercent
+  const flowers = [12, 32, 52, 72, 91]
+
+  // Vine x center — always at x=12 in viewBox
+  const VINE_X = 12
+  const VIEW_W = 28
+
+  return (
+    <svg
+      width={VIEW_W}
+      height={height}
+      viewBox={`0 0 ${VIEW_W} 100`}
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{
+        pointerEvents: 'none',
+        transform: flip ? 'scaleX(-1)' : undefined,
+      }}
+    >
+      {/* Main vine — gentle S-curve running full height */}
+      <path
+        d={`M ${VINE_X} 0
+            C ${VINE_X-2} 15, ${VINE_X+2} 30, ${VINE_X} 40
+            C ${VINE_X-2} 50, ${VINE_X+2} 65, ${VINE_X} 75
+            C ${VINE_X-1} 85, ${VINE_X+1} 92, ${VINE_X} 100`}
+        stroke="#2a4a1a"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.80"
+      />
+
+      {/* Leaves */}
+      {leaves.map(([yp, xOff, rot, lw, lh], i) => {
+        const cx = VINE_X + xOff * 0.5
+        const cy = yp
+        return (
+          <g key={i}>
+            {/* Small stem to leaf */}
+            <path
+              d={`M ${VINE_X} ${cy} L ${cx} ${cy}`}
+              stroke="#2a4a1a" strokeWidth="0.8"
+              opacity="0.55"
+            />
+            {/* Leaf ellipse */}
+            <ellipse
+              cx={cx}
+              cy={cy}
+              rx={lw * 0.4}
+              ry={lh * 0.4}
+              fill="#2a5a18"
+              transform={`rotate(${rot} ${cx} ${cy})`}
+              opacity={0.72 - (i % 4) * 0.04}
+            />
+            {/* Leaf vein */}
+            <line
+              x1={cx - Math.cos((rot * Math.PI) / 180) * lw * 0.3}
+              y1={cy - Math.sin((rot * Math.PI) / 180) * lh * 0.3}
+              x2={cx + Math.cos((rot * Math.PI) / 180) * lw * 0.3}
+              y2={cy + Math.sin((rot * Math.PI) / 180) * lh * 0.3}
+              stroke="#1a4010"
+              strokeWidth="0.5"
+              opacity="0.40"
+            />
+          </g>
+        )
+      })}
+
+      {/* Wildflowers */}
+      {flowers.map((yp, i) => {
+        const fx = VINE_X + (i % 2 === 0 ? -8 : 9)
+        return (
+          <g key={i}>
+            {/* Stem to flower */}
+            <path
+              d={`M ${VINE_X} ${yp} L ${fx} ${yp - 2}`}
+              stroke="#2a4a1a" strokeWidth="0.7"
+              opacity="0.50"
+            />
+            {/* Petals */}
+            <circle cx={fx} cy={yp - 2} r="2.8"
+              fill="#f0ece0" opacity="0.55" />
+            {/* Center */}
+            <circle cx={fx} cy={yp - 2} r="1.1"
+              fill="#e8c840" opacity="0.70" />
+          </g>
+        )
+      })}
+
+      {/* Tendrils — small curling vine tips */}
+      {[20, 45, 68, 88].map((yp, i) => (
+        <path key={i}
+          d={`M ${VINE_X} ${yp}
+              C ${VINE_X + (i%2===0?4:-4)} ${yp+3},
+                ${VINE_X + (i%2===0?6:-6)} ${yp+6},
+                ${VINE_X + (i%2===0?5:-5)} ${yp+9}`}
+          stroke="#2a4a1a" strokeWidth="0.8"
+          strokeLinecap="round" fill="none"
+          opacity="0.45"
+        />
+      ))}
     </svg>
   )
 }

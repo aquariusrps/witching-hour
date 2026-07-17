@@ -4,7 +4,9 @@ import MojoLibraryTabs from '@/app/mojo/components/MojoLibraryTabs'
 import MojoAddResource from '@/app/mojo/components/MojoAddResource'
 import MojoLibraryResources from '@/app/mojo/components/MojoLibraryResources'
 import {
-  SvgBookshelf,
+  SvgLibraryBookshelf,
+  SvgCandelabra,
+  SvgIvyColumn,
   SvgFiligreeRule,
   SvgPageHeaderRule,
   SvgCrescent,
@@ -30,6 +32,32 @@ export default async function MojoLibraryPage() {
 
   return (
     <div style={{ position: 'relative', maxWidth: 820, margin: '0 auto', padding: '32px 28px 64px' }}>
+      {/* Left ivy column */}
+      <div style={{
+        position: 'absolute',
+        left: '-28px',
+        top: 0,
+        bottom: 0,
+        width: '24px',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+      }} aria-hidden="true">
+        <SvgIvyColumn height={9999} flip={false} idSuffix="lib-ivy-l" />
+      </div>
+
+      {/* Right ivy column */}
+      <div style={{
+        position: 'absolute',
+        right: '-28px',
+        top: 0,
+        bottom: 0,
+        width: '24px',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+      }} aria-hidden="true">
+        <SvgIvyColumn height={9999} flip={true} idSuffix="lib-ivy-r" />
+      </div>
+
       <div
         aria-hidden="true"
         style={{
@@ -75,11 +103,27 @@ export default async function MojoLibraryPage() {
         style={{
           position: 'relative',
           zIndex: 1,
-          color: 'var(--mist)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          gap: 0,
           marginBottom: '8px',
         }}
       >
-        <SvgBookshelf />
+        {/* Left candelabra */}
+        <div style={{ flexShrink: 0 }}>
+          <SvgCandelabra height={180} idSuffix="lib-left" flameDelay="0s" />
+        </div>
+
+        {/* Illustrated bookshelf — fills available width */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <SvgLibraryBookshelf idSuffix="lib-shelf" />
+        </div>
+
+        {/* Right candelabra — mirror of left */}
+        <div style={{ flexShrink: 0, transform: 'scaleX(-1)' }}>
+          <SvgCandelabra height={180} idSuffix="lib-right" flameDelay="0.3s" />
+        </div>
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, color: 'var(--elevated)', marginBottom: '16px' }}>
