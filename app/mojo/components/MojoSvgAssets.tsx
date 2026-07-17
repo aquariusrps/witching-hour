@@ -7352,3 +7352,611 @@ export function SvgGrimoire({
     </svg>
   )
 }
+
+// ─── MOJO-FIX-027: SvgWitchesAttic — The Atelier preview for Images ───
+
+type HerbBundle = [number, number, number, number, string, string]
+type AtticBottle = [number, number, number, number, string, string]
+type DustMote = [number, number, number, number]
+
+const ATTIC_HERBS: HerbBundle[] = [
+  [240, 32, 14, 32, '#8a7080', '#6a5060'],
+  [310, 32, 18, 42, '#6a7850', '#4a5830'],
+  [400, 32, 12, 28, '#7a7040', '#5a5020'],
+  [500, 32, 16, 38, '#8a7080', '#6a5060'],
+  [590, 32, 14, 30, '#6a7850', '#4a5830'],
+  [660, 32, 20, 44, '#7a6840', '#5a4820'],
+  [130, 78, 16, 36, '#8a7080', '#6a5060'],
+  [290, 78, 14, 30, '#6a6040', '#4a4020'],
+  [680, 78, 18, 40, '#7a7050', '#5a5030'],
+  [780, 78, 12, 26, '#8a7080', '#6a5060'],
+]
+
+const ATTIC_BOTTLES: AtticBottle[] = [
+  [62, 120, 8, 38, '#1a3818', '#2a5828'],
+  [72, 120, 12, 28, '#8a5010', '#b07020'],
+  [86, 120, 9, 34, '#a8b8c0', '#d0e0e8'],
+  [97, 120, 7, 22, '#1a1410', '#2a2418'],
+  [106, 120, 11, 30, '#2a4820', '#3a6030'],
+]
+
+const ATTIC_MOTES: DustMote[] = [
+  [438, 118, 1.2, 0.28],
+  [462, 125, 0.9, 0.22],
+  [445, 138, 1.4, 0.20],
+  [470, 132, 0.8, 0.25],
+  [432, 148, 1.0, 0.18],
+  [458, 155, 1.3, 0.22],
+  [442, 162, 0.7, 0.16],
+  [465, 144, 0.9, 0.20],
+  [448, 172, 1.1, 0.15],
+]
+
+const ATTIC_TRUNK_CORNERS = [
+  { cx: 0, cy: 0, xDir: 1, yDir: 1 },
+  { cx: 84, cy: 0, xDir: -1, yDir: 1 },
+  { cx: 0, cy: 34, xDir: 1, yDir: -1 },
+  { cx: 84, cy: 34, xDir: -1, yDir: -1 },
+]
+
+export function SvgWitchesAttic({
+  className = '',
+  idSuffix = 'wa',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  return (
+    <svg
+      width="100%"
+      height="220"
+      viewBox="0 0 900 220"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        <linearGradient id={gId('wall')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#0e0c0a" />
+          <stop offset="100%" stopColor="#141008" />
+        </linearGradient>
+
+        <radialGradient id={gId('moon')} cx="50%" cy="40%" r="55%">
+          <stop offset="0%"   stopColor="#b8c8e0" stopOpacity="0.22" />
+          <stop offset="40%"  stopColor="#a0b8d8" stopOpacity="0.10" />
+          <stop offset="100%" stopColor="#8090b0" stopOpacity="0" />
+        </radialGradient>
+
+        <radialGradient id={gId('window')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#d8e8f8" stopOpacity="0.85" />
+          <stop offset="60%"  stopColor="#b0c8e8" stopOpacity="0.60" />
+          <stop offset="100%" stopColor="#8090b0" stopOpacity="0.30" />
+        </radialGradient>
+
+        <radialGradient id={gId('lantern')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.70" />
+          <stop offset="35%"  stopColor="#c87000" stopOpacity="0.30" />
+          <stop offset="70%"  stopColor="#b06000" stopOpacity="0.10" />
+          <stop offset="100%" stopColor="#a05000" stopOpacity="0" />
+        </radialGradient>
+
+        <radialGradient id={gId('lantern-glass')} cx="40%" cy="35%" r="55%">
+          <stop offset="0%"   stopColor="#f8c840" stopOpacity="0.95" />
+          <stop offset="50%"  stopColor="#e09020" stopOpacity="0.80" />
+          <stop offset="100%" stopColor="#a06000" stopOpacity="0.60" />
+        </radialGradient>
+
+        <linearGradient id={gId('beam')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#3a2010" />
+          <stop offset="50%"  stopColor="#2a1808" />
+          <stop offset="100%" stopColor="#1e1004" />
+        </linearGradient>
+
+        <linearGradient id={gId('floor')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#2a1c10" />
+          <stop offset="100%" stopColor="#1a1008" />
+        </linearGradient>
+
+        <linearGradient id={gId('trunk')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#2a1c10" />
+          <stop offset="100%" stopColor="#180e06" />
+        </linearGradient>
+
+        <radialGradient id={gId('spectral')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#c0d8f8" stopOpacity="0.55" />
+          <stop offset="60%"  stopColor="#a0c0f0" stopOpacity="0.20" />
+          <stop offset="100%" stopColor="#80a0e0" stopOpacity="0" />
+        </radialGradient>
+
+        <radialGradient id={gId('vignette')} cx="50%" cy="50%" r="60%">
+          <stop offset="45%"  stopColor="#000000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.72" />
+        </radialGradient>
+
+        <radialGradient id={gId('cobweb-l')} cx="0%" cy="0%" r="100%">
+          <stop offset="0%"   stopColor="#c0b8a8" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#c0b8a8" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={gId('cobweb-r')} cx="100%" cy="0%" r="100%">
+          <stop offset="0%"   stopColor="#c0b8a8" stopOpacity="0.24" />
+          <stop offset="100%" stopColor="#c0b8a8" stopOpacity="0" />
+        </radialGradient>
+
+        <clipPath id={gId('scene-clip')}>
+          <rect x="0" y="0" width="900" height="220" />
+        </clipPath>
+      </defs>
+
+      {/* ── LAYER 1 — BACKGROUND VOID ── */}
+      <rect x="0" y="0" width="900" height="220" fill="#080604" />
+
+      {/* ── LAYER 2 — BACK WALL ── */}
+      <path
+        d="M 180 28 L 720 28 L 820 192 L 80 192 Z"
+        fill={`url(#${gId('wall')})`}
+      />
+      {[50, 80, 110, 140, 165].map((y, i) => (
+        <line key={i}
+          x1={180 + (820 - 180) * ((y - 28) / (192 - 28)) * 0.1}
+          y1={y}
+          x2={720 - (720 - 180) * ((y - 28) / (192 - 28)) * 0.1}
+          y2={y}
+          stroke="#181410" strokeWidth="0.8" opacity="0.35"
+        />
+      ))}
+
+      {/* ── LAYER 3 — CIRCULAR WINDOW ── */}
+      <circle cx="450" cy="88" r="34"
+        fill="#1a1610" stroke="#2a2018" strokeWidth="2"
+      />
+      <circle cx="450" cy="88" r="26"
+        fill={`url(#${gId('window')})`}
+      />
+      <line x1="450" y1="62" x2="450" y2="114"
+        stroke="#2a2018" strokeWidth="1.5" opacity="0.70"
+      />
+      <line x1="424" y1="88" x2="476" y2="88"
+        stroke="#2a2018" strokeWidth="1.5" opacity="0.70"
+      />
+      <circle cx="450" cy="88" r="30"
+        stroke="#242018" strokeWidth="1.0"
+        fill="none" opacity="0.60"
+      />
+      {Array.from({ length: 8 }, (_, i) => {
+        const a = (i * 45 * Math.PI) / 180
+        return (
+          <circle key={i}
+            cx={450 + 32 * Math.cos(a)}
+            cy={88 + 32 * Math.sin(a)}
+            r="2"
+            fill="#2a2018" opacity="0.65"
+          />
+        )
+      })}
+
+      {/* ── LAYER 4 — MOONLIGHT CONE ── */}
+      <path
+        d="M 424 114 L 330 192 L 570 192 L 476 114"
+        fill="#a0b8d0" opacity="0.05"
+      />
+      <rect x="0" y="0" width="900" height="220"
+        fill={`url(#${gId('moon')})`}
+      />
+
+      {/* ── LAYER 5 — ROOF STRUCTURE (BEAMS) ── */}
+      <path d="M 0 105 L 450 0"
+        stroke={`url(#${gId('beam')})`}
+        strokeWidth="9" strokeLinecap="square" />
+      <path d="M 900 105 L 450 0"
+        stroke={`url(#${gId('beam')})`}
+        strokeWidth="9" strokeLinecap="square" />
+
+      <path d="M 100 105 L 350 32"
+        stroke="#261a0a" strokeWidth="5"
+        strokeLinecap="square" opacity="0.90" />
+      <path d="M 800 105 L 550 32"
+        stroke="#261a0a" strokeWidth="5"
+        strokeLinecap="square" opacity="0.90" />
+
+      <rect x="180" y="28" width="540" height="9"
+        fill={`url(#${gId('beam')})`} />
+      {[32, 35, 37].map((y, i) => (
+        <line key={i} x1="185" y1={y} x2="715" y2={y}
+          stroke="#1a1006" strokeWidth="0.6" opacity="0.30" />
+      ))}
+
+      <rect x="60" y="76" width="780" height="12"
+        fill={`url(#${gId('beam')})`} />
+      {[79, 82, 85].map((y, i) => (
+        <line key={i} x1="65" y1={y} x2="835" y2={y}
+          stroke="#1a1006" strokeWidth="0.6" opacity="0.28" />
+      ))}
+      <rect x="60" y="88" width="780" height="3"
+        fill="#000000" opacity="0.20" />
+
+      <rect x="0" y="104" width="900" height="14"
+        fill={`url(#${gId('beam')})`} />
+      {[107, 111, 115].map((y, i) => (
+        <line key={i} x1="0" y1={y} x2="900" y2={y}
+          stroke="#1a1006" strokeWidth="0.7" opacity="0.25" />
+      ))}
+
+      {[[100, 105], [350, 32], [550, 32], [800, 105]].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="5"
+          fill="#1e1206" stroke="#2a1a08" strokeWidth="1"
+          opacity="0.80"
+        />
+      ))}
+
+      {/* ── LAYER 6 — HANGING HERB BUNDLES ── */}
+      {ATTIC_HERBS.map(([bx, by, w, h, col, stemCol], i) => {
+        const cx = bx
+        const bundleTop = by + 6
+        const bundleBot = by + h
+        const halfW = w / 2
+
+        return (
+          <g key={i}>
+            <line x1={cx} y1={by}
+              x2={cx} y2={bundleTop}
+              stroke="#8a7050" strokeWidth="0.8" opacity="0.55"
+            />
+            <path
+              d={`M ${cx} ${bundleTop}
+                  C ${cx - halfW * 0.6} ${bundleTop + 4},
+                    ${cx - halfW} ${bundleTop + h * 0.3},
+                    ${cx - halfW * 0.8} ${bundleBot}
+                  C ${cx - halfW * 0.3} ${bundleBot + 4},
+                    ${cx + halfW * 0.3} ${bundleBot + 4},
+                    ${cx + halfW * 0.8} ${bundleBot}
+                  C ${cx + halfW} ${bundleTop + h * 0.3},
+                    ${cx + halfW * 0.6} ${bundleTop + 4},
+                    ${cx} ${bundleTop} Z`}
+              fill={col}
+              opacity="0.75"
+            />
+            <ellipse cx={cx} cy={bundleTop + h * 0.25}
+              rx={halfW * 0.4} ry={3}
+              fill="#8a7050" opacity="0.65"
+            />
+            {Array.from({ length: 5 }, (_, si) => {
+              const sx = cx - halfW * 0.5 + si * (w * 0.22)
+              return (
+                <line key={si}
+                  x1={sx} y1={bundleBot}
+                  x2={sx + (si % 2 - 0.5) * 3}
+                  y2={bundleBot + 8 + si * 1.5}
+                  stroke={stemCol}
+                  strokeWidth="0.8"
+                  opacity="0.50"
+                />
+              )
+            })}
+          </g>
+        )
+      })}
+
+      {/* ── LAYER 7 — BIRDCAGE ── */}
+      <g transform="translate(570 32)">
+        <line x1="15" y1="0" x2="15" y2="6"
+          stroke="#3a3028" strokeWidth="0.8" opacity="0.60"
+        />
+        <ellipse cx="15" cy="10" rx="14" ry="4"
+          stroke="#2a2418" strokeWidth="1.2"
+          fill="#1a1810" opacity="0.85"
+        />
+        {Array.from({ length: 8 }, (_, i) => {
+          const a = (i * 45 * Math.PI) / 180
+          const topX = 15 + 14 * Math.cos(a)
+          const topY = 10 + 4 * Math.sin(a)
+          return (
+            <path key={i}
+              d={`M ${topX} ${topY} Q 15 ${10 + 22 * (1 + 0.3 * Math.abs(Math.cos(a)))} 15 44`}
+              stroke="#2a2418" strokeWidth="0.8"
+              fill="none" opacity="0.70"
+            />
+          )
+        })}
+        <ellipse cx="15" cy="28" rx="13" ry="3.5"
+          stroke="#2a2418" strokeWidth="0.8"
+          fill="none" opacity="0.60"
+        />
+        <ellipse cx="15" cy="44" rx="12" ry="3"
+          stroke="#2a2418" strokeWidth="1.0"
+          fill="#1a1810" opacity="0.80"
+        />
+        <ellipse cx="15" cy="28" rx="9" ry="14"
+          fill={`url(#${gId('spectral')})`}
+        />
+        <line x1="6" y1="34" x2="24" y2="34"
+          stroke="#2a2418" strokeWidth="1.0" opacity="0.55"
+        />
+      </g>
+
+      {/* ── LAYER 8 — SHELF + BOTTLES ── */}
+      <rect x="55" y="118" width="70" height="5"
+        fill="#2a1c0c" stroke="#1a1006" strokeWidth="0.6"
+      />
+      <path d="M 60 118 L 60 130 L 55 130"
+        stroke="#2a1c0c" strokeWidth="3"
+        strokeLinecap="round" fill="none" opacity="0.70"
+      />
+
+      {ATTIC_BOTTLES.map(([bx, by, bw, bh, col, hi], i) => {
+        const cx = bx + bw / 2
+        return (
+          <g key={i}>
+            <rect x={bx} y={by - bh} width={bw} height={bh}
+              rx="1.5" fill={col} opacity="0.85"
+            />
+            <rect x={cx - bw * 0.25} y={by - bh - 6}
+              width={bw * 0.5} height="7"
+              rx="1" fill={col} opacity="0.85"
+            />
+            {i % 2 === 0 && (
+              <rect x={cx - bw * 0.2} y={by - bh - 9}
+                width={bw * 0.4} height="4"
+                rx="0.5" fill="#6a4820" opacity="0.80"
+              />
+            )}
+            <line
+              x1={bx + bw * 0.25} y1={by - bh + 4}
+              x2={bx + bw * 0.25} y2={by - 4}
+              stroke={hi} strokeWidth="1.0" opacity="0.45"
+            />
+            <rect x={bx + 2} y={by - 2} width={bw} height="3"
+              fill="#000000" opacity="0.20" rx="1"
+            />
+          </g>
+        )
+      })}
+
+      {/* ── LAYER 9 — FLOOR ── */}
+      <rect x="0" y="192" width="900" height="28"
+        fill={`url(#${gId('floor')})`}
+      />
+      {[195, 199, 204, 209, 214].map((y, i) => (
+        <line key={i} x1="0" y1={y} x2="900" y2={y}
+          stroke="#1a1006" strokeWidth="0.8" opacity="0.45"
+        />
+      ))}
+      {[120, 240, 370, 500, 630, 760].map((x, i) => (
+        <line key={i} x1={x} y1="192" x2={x + (i % 2) * 8} y2="220"
+          stroke="#140c04" strokeWidth="1.0" opacity="0.40"
+        />
+      ))}
+
+      {/* ── LAYER 10 — LARGE TRUNK ── */}
+      <g transform="translate(180 152)">
+        <rect x="0" y="0" width="90" height="40" rx="2"
+          fill={`url(#${gId('trunk')})`}
+          stroke="#3a2010" strokeWidth="1.0"
+        />
+        <line x1="0" y1="14" x2="90" y2="14"
+          stroke="#2a1808" strokeWidth="1.0" opacity="0.70"
+        />
+        {ATTIC_TRUNK_CORNERS.map((c, i) => {
+          const hx = c.xDir > 0 ? c.cx : c.cx - 6
+          const vy = c.yDir > 0 ? c.cy : c.cy - 6
+          return (
+            <g key={i}>
+              <rect x={hx} y={c.cy} width="6" height="2"
+                fill="#a07828" opacity="0.75" />
+              <rect x={c.cx} y={vy} width="2" height="6"
+                fill="#a07828" opacity="0.75" />
+            </g>
+          )
+        })}
+        <rect x="40" y="10" width="10" height="8" rx="1"
+          fill="#8a6018" opacity="0.70"
+        />
+        <line x1="2" y1="7" x2="88" y2="7"
+          stroke="#8a6018" strokeWidth="1.5" opacity="0.45"
+        />
+        <ellipse cx="45" cy="42" rx="44" ry="3"
+          fill="#000000" opacity="0.30"
+        />
+      </g>
+
+      {/* ── LAYER 11 — SMALL OPEN TRUNK ── */}
+      <g transform="translate(640 162)">
+        <rect x="0" y="0" width="65" height="30" rx="2"
+          fill="#1e1408"
+          stroke="#2a1808" strokeWidth="1.0"
+        />
+        <path d="M 0 0 L 65 0 L 65 -22 L 0 -22 Z"
+          fill="#241810"
+          stroke="#2a1808" strokeWidth="1.0"
+          transform="skewX(-8) translate(0 -2)"
+        />
+        <rect x="4" y="4" width="57" height="22"
+          fill="#6a5840" opacity="0.75" rx="1"
+        />
+        <path d="M 4 14 C 20 12, 45 16, 61 13"
+          stroke="#7a6850" strokeWidth="1.2"
+          fill="none" opacity="0.60"
+        />
+        <ellipse cx="32" cy="32" rx="32" ry="2.5"
+          fill="#000000" opacity="0.25"
+        />
+      </g>
+
+      {/* ── LAYER 12 — SPINNING WHEEL (partially off-canvas right) ── */}
+      <g transform="translate(808 115)" opacity="0.80">
+        <circle cx="45" cy="45" r="42"
+          stroke="#2a1c10" strokeWidth="3"
+          fill="none"
+        />
+        {Array.from({ length: 6 }, (_, i) => {
+          const a = (i * 60 * Math.PI) / 180
+          return (
+            <line key={i}
+              x1="45" y1="45"
+              x2={45 + 39 * Math.cos(a)}
+              y2={45 + 39 * Math.sin(a)}
+              stroke="#2a1c10" strokeWidth="1.5"
+              opacity="0.80"
+            />
+          )
+        })}
+        <circle cx="45" cy="45" r="5"
+          fill="#2a1c10" opacity="0.85"
+        />
+        <line x1="45" y1="45" x2="0" y2="25"
+          stroke="#241808" strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        <circle cx="0" cy="25" r="4"
+          fill="#241808" opacity="0.80"
+        />
+        <ellipse cx="22" cy="52" rx="22" ry="6"
+          stroke="#3a2810" strokeWidth="1.0"
+          fill="none" opacity="0.55"
+        />
+        <line x1="22" y1="88" x2="22" y2="25"
+          stroke="#2a1c10" strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <line x1="0" y1="88" x2="65" y2="88"
+          stroke="#2a1c10" strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </g>
+
+      {/* ── LAYER 13 — SCROLLS + BOOKS ── */}
+      <g>
+        <rect x="55" y="168" width="45" height="24" rx="1"
+          fill="#1e1010" stroke="#2a1410" strokeWidth="0.8"
+        />
+        <rect x="58" y="155" width="40" height="14" rx="1"
+          fill="#10181a" stroke="#182028" strokeWidth="0.8"
+        />
+        <rect x="60" y="145" width="42" height="11" rx="1"
+          fill="#1a1810" stroke="#281c08" strokeWidth="0.8"
+        />
+        <line x1="62" y1="173" x2="90" y2="173"
+          stroke="#c8a840" strokeWidth="0.6" opacity="0.45"
+        />
+        <line x1="61" y1="160" x2="88" y2="160"
+          stroke="#c8a840" strokeWidth="0.5" opacity="0.40"
+        />
+        <rect x="55" y="134" width="35" height="10" rx="4"
+          fill="#d8c8a0" stroke="#b8a880" strokeWidth="0.7"
+          opacity="0.80"
+        />
+        <ellipse cx="55" cy="139" rx="5" ry="5"
+          fill="#c8b890" opacity="0.85"
+        />
+        <ellipse cx="90" cy="139" rx="5" ry="5"
+          fill="#c8b890" opacity="0.85"
+        />
+        <line x1="72" y1="134" x2="72" y2="144"
+          stroke="#8a7040" strokeWidth="1.5" opacity="0.60"
+        />
+        <rect x="96" y="148" width="10" height="40" rx="4"
+          fill="#d4c498" stroke="#b4a878" strokeWidth="0.7"
+          opacity="0.75"
+          transform="rotate(12 101 168)"
+        />
+      </g>
+
+      {/* ── LAYER 14 — BRASS LANTERN ── */}
+      <g transform="translate(240 128)">
+        <ellipse cx="18" cy="18" rx="55" ry="40"
+          fill={`url(#${gId('lantern')})`}
+        />
+        <rect x="4" y="44" width="28" height="4" rx="1"
+          fill="#8a6018" opacity="0.90"
+        />
+        <path d="M 8 12 L 28 12 L 32 44 L 4 44 Z"
+          fill={`url(#${gId('lantern-glass')})`}
+          opacity="0.85"
+        />
+        <line x1="8" y1="12" x2="4" y2="44"
+          stroke="#7a5010" strokeWidth="1.5" opacity="0.80"
+        />
+        <line x1="28" y1="12" x2="32" y2="44"
+          stroke="#7a5010" strokeWidth="1.5" opacity="0.80"
+        />
+        <path d="M 6 12 L 18 2 L 30 12 Z"
+          fill="#8a6018" opacity="0.85"
+        />
+        <ellipse cx="18" cy="2" rx="4" ry="2"
+          stroke="#a07828" strokeWidth="1.2"
+          fill="none" opacity="0.75"
+        />
+        <rect x="10" y="15" width="5" height="26" rx="1"
+          fill="#f8e080" opacity="0.30"
+        />
+        <line x1="4" y1="28" x2="32" y2="28"
+          stroke="#7a5010" strokeWidth="1.0" opacity="0.65"
+        />
+        <ellipse cx="18" cy="49" rx="16" ry="3"
+          fill="#000000" opacity="0.35"
+        />
+      </g>
+
+      {/* ── LAYER 15 — COBWEBS ── */}
+      <g opacity="0.32">
+        <path d="M 0 0 L 70 0 L 0 55 Z"
+          fill={`url(#${gId('cobweb-l')})`}
+        />
+        {[8, 18, 28, 38, 48, 60].map((x, i) => (
+          <line key={i}
+            x1="0" y1={i * 9} x2={x} y2="0"
+            stroke="#c0b8a8" strokeWidth="0.5" opacity="0.40"
+          />
+        ))}
+        {[8, 18, 28, 40, 52].map((y, i) => (
+          <path key={i}
+            d={`M 0 ${y} C ${y * 0.35} ${y - 2}, ${y * 0.7} ${y * 0.35}, ${y} 0`}
+            stroke="#c0b8a8" strokeWidth="0.4"
+            fill="none" opacity="0.28"
+          />
+        ))}
+      </g>
+      <g opacity="0.26" transform="translate(900 0) scale(-1 1)">
+        <path d="M 0 0 L 55 0 L 0 42 Z"
+          fill={`url(#${gId('cobweb-r')})`}
+        />
+        {[6, 14, 22, 32, 42, 52].map((x, i) => (
+          <line key={i}
+            x1="0" y1={i * 7} x2={x} y2="0"
+            stroke="#c0b8a8" strokeWidth="0.5" opacity="0.38"
+          />
+        ))}
+      </g>
+      <path
+        d="M 350 32 C 370 50, 400 60, 420 55"
+        stroke="#c0b8a8" strokeWidth="0.5"
+        fill="none" opacity="0.22"
+      />
+
+      {/* ── LAYER 16 — DUST MOTES ── */}
+      {ATTIC_MOTES.map(([mx, my, r, op], i) => (
+        <circle key={i}
+          cx={mx} cy={my} r={r}
+          fill="#c8d8f0" opacity={op}
+        />
+      ))}
+
+      {/* ── LAYER 17 — ATMOSPHERIC OVERLAYS (rendered last) ── */}
+      <rect x="0" y="0" width="900" height="220"
+        fill={`url(#${gId('vignette')})`}
+      />
+      <path d="M 0 0 L 180 28 L 80 192 L 0 192 Z"
+        fill="#000000" opacity="0.45"
+      />
+      <path d="M 900 0 L 720 28 L 820 192 L 900 192 Z"
+        fill="#000000" opacity="0.40"
+      />
+      <rect x="80" y="188" width="740" height="6"
+        fill="#000000" opacity="0.30"
+      />
+    </svg>
+  )
+}

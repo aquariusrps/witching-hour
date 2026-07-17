@@ -27,6 +27,11 @@ const DESIGNS = [
     title: 'Chronicle — The Grimoire',
     description: 'An open ancient spell book — occult wheel diagram, dense text, botanical illustration, wax seal on the left page; a moon phase circle and dark quill with wet ink on the right. Proposed header for The Grimoire (Chronicle) page.',
   },
+  {
+    slug: 'witches-attic',
+    title: 'Images — The Witch\'s Attic',
+    description: 'A candlelit witch\'s attic — peaked beams, moonlit circular window, hanging herb bundles, birdcage with spectral glow, brass lantern, glass bottles, old trunks, spinning wheel, books and scrolls. Proposed replacement for The Darkroom on the Images page.',
+  },
 ]
 
 export default function DesignIndexPage() {
