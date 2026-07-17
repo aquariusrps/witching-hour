@@ -5873,6 +5873,31 @@ export function SvgHallOfMirrors({
 
             {/* Ghost shapes — different from left side */}
             {i === 0 && (
+              /* Right mirror 1: faint center glow — matches set */
+              <ellipse
+                cx={m.midX}
+                cy={(m.tl.y + m.bl.y) / 2}
+                rx={m.mirW * 0.22}
+                ry={m.mirH * 0.18}
+                fill={`url(#${gId('ghost')})`}
+                opacity={ghostOp * 0.6}
+                clipPath={`url(#${glassClipId})`}
+              />
+            )}
+            {i === 1 && (
+              /* Right mirror 2: faint center glow — matches set */
+              <ellipse
+                cx={m.midX}
+                cy={(m.tl.y + m.bl.y) / 2}
+                rx={m.mirW * 0.22}
+                ry={m.mirH * 0.18}
+                fill={`url(#${gId('ghost')})`}
+                opacity={ghostOp * 0.6}
+                clipPath={`url(#${glassClipId})`}
+              />
+            )}
+            {i === 2 && (
+              /* Right mirror 3: crescent moon — moved from Right mirror 1 */
               <>
                 <circle
                   cx={m.midX + m.mirW * 0.05}
@@ -5891,33 +5916,6 @@ export function SvgHallOfMirrors({
                   clipPath={`url(#${glassClipId})`}
                 />
               </>
-            )}
-            {i === 1 && (
-              <>
-                {[0.25, 0.45, 0.65].map((frac, bi) => (
-                  <rect key={bi}
-                    x={m.tl.x + m.mirW * 0.1}
-                    y={m.tl.y + m.mirH * frac}
-                    width={m.mirW * 0.8}
-                    height={m.mirH * 0.05}
-                    fill="#c0c8e0"
-                    opacity={ghostOp * (1 - bi * 0.2)}
-                    clipPath={`url(#${glassClipId})`}
-                    rx="1"
-                  />
-                ))}
-              </>
-            )}
-            {i === 2 && (
-              <ellipse
-                cx={m.midX}
-                cy={(m.tl.y + m.bl.y) / 2}
-                rx={m.mirW * 0.22}
-                ry={m.mirH * 0.18}
-                fill={`url(#${gId('ghost')})`}
-                opacity={ghostOp * 0.5}
-                clipPath={`url(#${glassClipId})`}
-              />
             )}
 
             <rect
@@ -5949,6 +5947,20 @@ export function SvgHallOfMirrors({
       {/* ══════════════════════════════════════
           CANDLE AT VANISHING POINT
           ══════════════════════════════════════ */}
+
+      {/* ── CRESCENT MOON — center top, above candle ── */}
+      {/* Outer circle — faint silver */}
+      <circle cx="450" cy="72" r="9"
+        fill="#c0c8e0" opacity="0.28"
+      />
+      {/* Inner circle — offset to create crescent */}
+      <circle cx="453" cy="70" r="7.5"
+        fill="#080608" opacity="0.92"
+      />
+      {/* Faint silver glow around crescent */}
+      <circle cx="450" cy="72" r="13"
+        fill="#c0c8e0" opacity="0.06"
+      />
 
       <rect x="448" y="100" width="4" height="18"
         fill="#ede0c4" rx="0.5" />

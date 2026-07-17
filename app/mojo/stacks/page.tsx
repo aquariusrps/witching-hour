@@ -3,7 +3,7 @@ import { getAdminClient } from '@/lib/supabase/adminClient'
 import MojoCreateStack from '@/app/mojo/components/MojoCreateStack'
 import MojoStackCard from '@/app/mojo/components/MojoStackCard'
 import {
-  SvgCabinetOfCuriosities, SvgPageHeaderRule, SvgFiligreeRule
+  SvgHallOfMirrors, SvgPageHeaderRule
 } from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoStacksPage({
@@ -68,50 +68,43 @@ export default async function MojoStacksPage({
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1, marginBottom: '8px' }}>
-        <h1 style={{
-          fontFamily: 'Cormorant Upright, serif',
-          fontSize: '36px',
-          fontWeight: 600,
-          color: 'var(--gold)',
-          margin: '0 0 4px',
-          letterSpacing: '0.02em',
-        }}>
-          The Reliquary
-        </h1>
+      {/* ── THE HALL OF MIRRORS HEADER ── */}
+      <div style={{ marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+
+        {/* Corridor illustration — full width */}
+        <div style={{ marginBottom: '0', overflow: 'hidden', borderRadius: '3px' }}>
+          <SvgHallOfMirrors idSuffix="stacks-header" />
+        </div>
+
+        {/* Page title */}
+        <div style={{ marginTop: '20px', marginBottom: '6px' }}>
+          <h1 style={{
+            fontFamily: 'Cormorant Upright, serif',
+            fontSize: '38px',
+            fontWeight: 600,
+            color: 'var(--roseash)',
+            margin: 0,
+            letterSpacing: '0.02em',
+          }}>
+            The Hall of Mirrors
+          </h1>
+        </div>
+
+        {/* Subtitle */}
         <p style={{
           fontFamily: 'EB Garamond, serif',
           fontSize: '15px',
           fontStyle: 'italic',
           color: 'var(--mist)',
-          margin: '0 0 14px',
+          margin: '0 0 16px',
         }}>
-          Every token. Every face. Sealed in amber.
+          One token. Many reflections.
         </p>
+
         <div style={{ color: 'var(--elevated)' }}>
           <SvgPageHeaderRule />
         </div>
-      </div>
 
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          color: 'var(--mist)',
-          marginBottom: '4px',
-        }}
-      >
-        <SvgCabinetOfCuriosities />
-      </div>
-
-      <div style={{
-        color: 'var(--elevated)',
-        marginBottom: '20px',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <SvgFiligreeRule />
       </div>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
