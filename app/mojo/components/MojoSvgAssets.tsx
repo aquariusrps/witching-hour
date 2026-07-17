@@ -4333,3 +4333,669 @@ export function SvgPhaseWaningCrescent({
     </svg>
   )
 }
+
+// ─── MOJO-FIX-021: The Atelier — nav glyph + Library design options ───
+
+export function SvgNavDesign({ active = false }: {
+  active?: boolean
+}) {
+  const op = (v: number) => active ? Math.min(v + 0.3, 1) : v
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      {/* Outer circle */}
+      <circle cx="7" cy="7" r="6"
+        stroke="currentColor" strokeWidth={active ? 0.8 : 0.5}
+        strokeOpacity={op(0.45)} fill="none" />
+      {/* Cardinal points */}
+      <path d="M 7 1 L 7 13" stroke="currentColor"
+        strokeWidth="0.5" strokeOpacity={op(0.30)} />
+      <path d="M 1 7 L 13 7" stroke="currentColor"
+        strokeWidth="0.5" strokeOpacity={op(0.30)} />
+      {/* North point — larger, pointing up */}
+      <path d="M 7 1.5 L 5.5 5.5 L 7 4.5 L 8.5 5.5 Z"
+        fill="currentColor" opacity={op(0.70)} />
+      {/* South point */}
+      <path d="M 7 12.5 L 5.5 8.5 L 7 9.5 L 8.5 8.5 Z"
+        fill="currentColor" opacity={op(0.35)} />
+      {/* East point */}
+      <path d="M 12.5 7 L 8.5 5.5 L 9.5 7 L 8.5 8.5 Z"
+        fill="currentColor" opacity={op(0.35)} />
+      {/* West point */}
+      <path d="M 1.5 7 L 5.5 5.5 L 4.5 7 L 5.5 8.5 Z"
+        fill="currentColor" opacity={op(0.35)} />
+      {/* Center dot */}
+      <circle cx="7" cy="7" r="1.2"
+        fill="currentColor" opacity={op(0.60)} />
+    </svg>
+  )
+}
+
+export function SvgLibraryBookshelf({
+  className = '',
+  idSuffix = 'lbs',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  // ── BOOK DATA ──
+  // Each book: [x, width, height, spineColor, accentColor]
+  // Heights vary: 60–95px (taller books = older, more imposing)
+  // Colors: deep leather tones — burgundy, forest, navy, brown, black
+  const shelf1Books: Array<[number, number, number, string, string]> = [
+    [8,   22, 88, '#3a1418', '#8b4020'],   // tall burgundy
+    [32,  16, 72, '#1a2a1a', '#4a6a30'],   // forest green
+    [50,  20, 80, '#1a1a2a', '#3a3a6a'],   // midnight navy
+    [72,  14, 68, '#2a1a0a', '#6a4010'],   // old brown
+    [88,  18, 85, '#2a0a0a', '#5a1818'],   // dark crimson
+    [108, 12, 62, '#1a2a1a', '#3a5a28'],   // small green
+    [122, 24, 90, '#1a1a1a', '#4a3a2a'],   // large black tome
+    [148, 16, 70, '#3a1a0a', '#7a3818'],   // rust brown
+    [166, 14, 65, '#1a1a2a', '#2a2a5a'],   // thin navy
+    [182, 20, 82, '#2a1418', '#6a2830'],   // medium burgundy
+    [204, 18, 75, '#1a2a1a', '#3a6a30'],   // medium green
+    [224, 10, 58, '#2a2a1a', '#5a5a28'],   // thin olive
+    [236, 22, 86, '#1a0a0a', '#3a1a1a'],   // black
+    [260, 16, 72, '#3a200a', '#8a4a18'],   // amber brown
+    [278, 18, 78, '#1a1a30', '#3a3a7a'],   // deep blue
+    [298, 14, 64, '#2a1a0a', '#5a3818'],   // brown
+    [314, 20, 84, '#1e0808', '#5a1a1a'],   // dark red
+    [336, 12, 60, '#1a2a18', '#3a5a28'],   // small green
+    [350, 24, 92, '#120808', '#401010'],   // very large black
+    [376, 16, 70, '#2a1a14', '#6a3820'],   // earthy brown
+    [394, 18, 76, '#1a1a2a', '#3a3a6a'],   // navy repeat
+    [414, 14, 66, '#1e1408', '#4a3410'],   // old gold-brown
+    [430, 22, 88, '#1a0e0e', '#4a1e1e'],   // dark maroon
+    [454, 16, 72, '#0e1a0e', '#2a4a20'],   // dark forest
+    [472, 20, 80, '#1a1a1a', '#3a2a1a'],   // near-black
+    [494, 14, 65, '#2a1418', '#6a2830'],   // burgundy
+    [510, 18, 78, '#1a2a20', '#3a5a38'],   // muted teal-green
+    [530, 16, 72, '#1a1a30', '#303068'],   // deep blue
+    [548, 24, 90, '#1a0808', '#4a1010'],   // large crimson
+    [574, 14, 62, '#2a200a', '#5a4a18'],   // khaki-brown
+  ]
+
+  const shelf2Books: Array<[number, number, number, string, string]> = [
+    [8,   20, 80, '#2a1418', '#7a3020'],
+    [30,  14, 65, '#1a2a1a', '#3a5a28'],
+    [46,  22, 85, '#1a1a2a', '#3a3a6a'],
+    [70,  16, 70, '#2a1a0a', '#6a3810'],
+    [88,  18, 78, '#1a0a0a', '#4a1818'],
+    [108, 12, 60, '#1a2818', '#3a5228'],
+    [122, 26, 92, '#100808', '#3a1010'],
+    [150, 14, 65, '#2a1a10', '#6a3818'],
+    [166, 20, 82, '#1a1a2a', '#2a2a5a'],
+    [188, 16, 72, '#2a1014', '#5a2028'],
+    [206, 18, 76, '#1a2a1a', '#3a6030'],
+    [226, 10, 58, '#2a2a18', '#4a4a28'],
+    [238, 22, 86, '#0a0a0a', '#2a1818'],
+    [262, 16, 70, '#3a1e08', '#7a3c14'],
+    [280, 20, 80, '#1a1828', '#303068'],
+    [302, 14, 64, '#2a1808', '#523010'],
+    [318, 18, 76, '#1a0808', '#4a1a1a'],
+    [338, 12, 62, '#182818', '#2e4a28'],
+    [352, 24, 90, '#0e0808', '#380e0e'],
+    [378, 16, 70, '#281a12', '#583a1e'],
+    [396, 20, 78, '#181828', '#303068'],
+    [418, 14, 64, '#1c1208', '#3c2c10'],
+    [434, 22, 86, '#180a0a', '#401818'],
+    [458, 16, 70, '#0c180c', '#284018'],
+    [476, 18, 76, '#181818', '#302818'],
+    [496, 14, 63, '#281014', '#582028'],
+    [512, 20, 78, '#18281e', '#305038'],
+    [532, 16, 70, '#181828', '#282858'],
+    [550, 24, 88, '#180808', '#400808'],
+    [576, 14, 60, '#201c08', '#484010'],
+  ]
+
+  const SHELF_Y1 = 110  // top shelf bottom edge
+  const SHELF_Y2 = 210  // bottom shelf bottom edge
+  const SHELF_W  = 600  // shelf width
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  return (
+    <svg
+      width="100%" height="220"
+      viewBox="0 0 600 220"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        {/* Wood shelf gradient */}
+        <linearGradient id={gId('wood')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#2a1808" />
+          <stop offset="40%" stopColor="#1e1008" />
+          <stop offset="100%" stopColor="#140c04" />
+        </linearGradient>
+        {/* Ambient candlelight — warm glow from center-right */}
+        <radialGradient id={gId('glow')} cx="72%" cy="55%" r="45%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.18" />
+          <stop offset="50%"  stopColor="#c87800" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#c87800" stopOpacity="0" />
+        </radialGradient>
+        {/* Cobweb gradient */}
+        <radialGradient id={gId('web')} cx="0%" cy="0%" r="100%">
+          <stop offset="0%"   stopColor="#b0a890" stopOpacity="0.30" />
+          <stop offset="100%" stopColor="#b0a890" stopOpacity="0" />
+        </radialGradient>
+        {/* Gilt lettering shimmer */}
+        <linearGradient id={gId('gilt')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#c8a840" stopOpacity="0.85" />
+          <stop offset="50%"  stopColor="#f0d060" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#a08020" stopOpacity="0.70" />
+        </linearGradient>
+        {/* Flame gradient */}
+        <radialGradient id={gId('flame')} cx="50%" cy="80%" r="60%">
+          <stop offset="0%"   stopColor="#fff4c0" stopOpacity="1" />
+          <stop offset="40%"  stopColor="#f0a020" stopOpacity="0.95" />
+          <stop offset="80%"  stopColor="#c06010" stopOpacity="0.80" />
+          <stop offset="100%" stopColor="#800800" stopOpacity="0" />
+        </radialGradient>
+        <filter id={gId('candle-glow')}
+          x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* ── BACKGROUND WOOD PANEL ── */}
+      <rect x="0" y="0" width="600" height="220"
+        fill="#120a04" rx="2" />
+      {/* Wood grain lines */}
+      {[12, 28, 44, 58, 74, 88, 104, 120, 136, 152, 170, 188, 206].map((y, i) => (
+        <line key={i} x1="0" y1={y} x2="600" y2={y + (i%3)*2}
+          stroke="#1c1008" strokeWidth="1.5" opacity="0.45" />
+      ))}
+
+      {/* ── SHELF 1 — BOOKS ── */}
+      {shelf1Books.map(([x, w, h, color, accent], i) => {
+        const bookY = SHELF_Y1 - h
+        return (
+          <g key={`s1-${i}`}>
+            {/* Book body */}
+            <rect x={x} y={bookY} width={w} height={h}
+              fill={color} rx="0.5" />
+            {/* Spine highlight — left edge catches light */}
+            <rect x={x} y={bookY} width={2} height={h}
+              fill={accent} opacity="0.55" />
+            {/* Gilt title lines */}
+            <rect x={x+3} y={bookY + h*0.25} width={w-6} height={1.5}
+              fill={`url(#${gId('gilt')})`} opacity="0.70" />
+            <rect x={x+3} y={bookY + h*0.32} width={w-6} height={1.0}
+              fill={`url(#${gId('gilt')})`} opacity="0.50" />
+            {/* Top edge — slightly lighter */}
+            <rect x={x} y={bookY} width={w} height={3}
+              fill={accent} opacity="0.30" />
+            {/* Shadow beneath book */}
+            <rect x={x+2} y={SHELF_Y1 - 2} width={w} height={2}
+              fill="#000000" opacity="0.25" />
+          </g>
+        )
+      })}
+
+      {/* ── SHELF 1 — WOOD PLANK ── */}
+      <rect x="0" y={SHELF_Y1} width={SHELF_W} height="10"
+        fill={`url(#${gId('wood')})`} />
+      <line x1="0" y1={SHELF_Y1} x2={SHELF_W} y2={SHELF_Y1}
+        stroke="#4a2808" strokeWidth="1.0" opacity="0.65" />
+
+      {/* ── SHELF 2 — BOOKS ── */}
+      {shelf2Books.map(([x, w, h, color, accent], i) => {
+        const bookY = SHELF_Y2 - h
+        return (
+          <g key={`s2-${i}`}>
+            <rect x={x} y={bookY} width={w} height={h}
+              fill={color} rx="0.5" />
+            <rect x={x} y={bookY} width={2} height={h}
+              fill={accent} opacity="0.50" />
+            <rect x={x+3} y={bookY + h*0.28} width={w-6} height={1.5}
+              fill={`url(#${gId('gilt')})`} opacity="0.65" />
+            <rect x={x+3} y={bookY + h*0.35} width={w-6} height={1.0}
+              fill={`url(#${gId('gilt')})`} opacity="0.45" />
+            <rect x={x} y={bookY} width={w} height={3}
+              fill={accent} opacity="0.25" />
+            <rect x={x+2} y={SHELF_Y2 - 2} width={w} height={2}
+              fill="#000000" opacity="0.20" />
+          </g>
+        )
+      })}
+
+      {/* ── SHELF 2 — WOOD PLANK ── */}
+      <rect x="0" y={SHELF_Y2} width={SHELF_W} height="10"
+        fill={`url(#${gId('wood')})`} />
+      <line x1="0" y1={SHELF_Y2} x2={SHELF_W} y2={SHELF_Y2}
+        stroke="#4a2808" strokeWidth="1.0" opacity="0.60" />
+
+      {/* ── BRASS CANDLESTICK — between books on shelf 1 ── */}
+      {/* Position: x=430 (gap between books) */}
+      <g transform="translate(425 60)">
+        {/* Candle flame glow */}
+        <ellipse cx="8" cy="6" rx="10" ry="14"
+          fill={`url(#${gId('flame')})`}
+          filter={`url(#${gId('candle-glow')})`}
+          className="mojo-flame-main"
+        />
+        {/* Inner flame */}
+        <ellipse cx="8" cy="8" rx="5" ry="8"
+          fill="#fff4c0" opacity="0.90"
+          className="mojo-flame-inner"
+        />
+        {/* Candle body — cream/ivory */}
+        <rect x="4" y="22" width="8" height="28" rx="1"
+          fill="#ede0c4" />
+        {/* Drip */}
+        <path d="M 4 26 C 3 28, 2 32, 3 34" stroke="#d8c8a8"
+          strokeWidth="2" fill="none" opacity="0.60" />
+        {/* Wick */}
+        <line x1="8" y1="22" x2="8" y2="18"
+          stroke="#1a1008" strokeWidth="1.0" />
+        {/* Brass holder */}
+        <rect x="2" y="50" width="12" height="4" rx="0.5"
+          fill="#b88820" />
+        <rect x="0" y="54" width="16" height="2" rx="1"
+          fill="#a07818" />
+      </g>
+
+      {/* ── COBWEBS — upper corners ── */}
+      {/* Left corner cobweb */}
+      <g opacity="0.28">
+        <path d="M 0 0 L 50 0 L 0 40 Z"
+          fill={`url(#${gId('web')})`} />
+        {/* Web threads */}
+        {[8, 18, 28, 38, 48].map((x, i) => (
+          <line key={i} x1="0" y1={i*8} x2={x} y2="0"
+            stroke="#b0a890" strokeWidth="0.5" opacity="0.40" />
+        ))}
+        {[6, 14, 22, 30].map((y, i) => (
+          <path key={i}
+            d={`M 0 ${y} C ${y*0.4} ${y-2}, ${y*0.8} ${y*0.4}, ${y} 0`}
+            stroke="#b0a890" strokeWidth="0.4" fill="none" opacity="0.30" />
+        ))}
+      </g>
+      {/* Right corner cobweb */}
+      <g opacity="0.22" transform="translate(600 0) scale(-1 1)">
+        <path d="M 0 0 L 40 0 L 0 30 Z"
+          fill={`url(#${gId('web')})`} />
+        {[6, 14, 22, 32, 40].map((x, i) => (
+          <line key={i} x1="0" y1={i*6} x2={x} y2="0"
+            stroke="#b0a890" strokeWidth="0.5" opacity="0.35" />
+        ))}
+      </g>
+
+      {/* ── IVY — growing from left, threading through books ── */}
+      {/* Main vine */}
+      <path
+        d="M 0 50 C 20 45, 40 55, 60 48 C 80 42, 95 52, 115 46
+           C 135 40, 148 50, 165 44 C 182 38, 195 48, 210 42"
+        stroke="#2a4a1a" strokeWidth="2.5"
+        strokeLinecap="round" fill="none" opacity="0.85"
+      />
+      {/* Ivy leaves along vine */}
+      {[
+        [30, 44, 0], [55, 38, -15], [80, 48, 10],
+        [105, 42, -8], [130, 36, 12], [155, 46, -5],
+        [180, 40, 8], [205, 34, -10],
+      ].map(([x, y, rot], i) => (
+        <ellipse key={i}
+          cx={x} cy={y}
+          rx={8 + (i%3)*2} ry={5 + (i%2)*1.5}
+          fill="#2a5a18"
+          transform={`rotate(${rot} ${x} ${y})`}
+          opacity={0.75 - (i * 0.04)}
+        />
+      ))}
+      {/* Secondary vine tendrils */}
+      <path d="M 60 48 C 62 60, 58 72, 55 85"
+        stroke="#2a4a1a" strokeWidth="1.5" fill="none" opacity="0.55" />
+      <path d="M 115 46 C 118 58, 114 68, 112 80"
+        stroke="#2a4a1a" strokeWidth="1.2" fill="none" opacity="0.45" />
+      {/* Small leaves on tendrils */}
+      <ellipse cx="54" cy="72" rx="5" ry="3.5" fill="#2a5818"
+        transform="rotate(-20 54 72)" opacity="0.55" />
+      <ellipse cx="112" cy="68" rx="4" ry="3" fill="#2a5818"
+        transform="rotate(15 112 68)" opacity="0.50" />
+      {/* Small white wildflowers on some leaves */}
+      <circle cx="82" cy="38" r="2.5" fill="#f0ece0" opacity="0.55" />
+      <circle cx="82" cy="38" r="1.0" fill="#e8c840" opacity="0.70" />
+      <circle cx="132" cy="32" r="2.0" fill="#f0ece0" opacity="0.45" />
+      <circle cx="132" cy="32" r="0.8" fill="#e8c840" opacity="0.60" />
+
+      {/* ── AMBIENT CANDLELIGHT WASH ── */}
+      <rect x="0" y="0" width="600" height="220"
+        fill={`url(#${gId('glow')})`} />
+
+      {/* ── BOTTOM EDGE — shelf base ── */}
+      <rect x="0" y="210" width="600" height="10"
+        fill="#0e0804" opacity="0.80" />
+    </svg>
+  )
+}
+
+export function SvgLibraryStudy({
+  className = '',
+  idSuffix = 'lss',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  return (
+    <svg
+      width="100%" height="260"
+      viewBox="0 0 800 260"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Stone gradient — aged grey with warm undertone */}
+        <linearGradient id={gId('stone')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stopColor="#2a2824" />
+          <stop offset="50%" stopColor="#1e1c18" />
+          <stop offset="100%" stopColor="#141210" />
+        </linearGradient>
+        {/* Firelight glow — warm amber from hearth */}
+        <radialGradient id={gId('fire-glow')} cx="50%" cy="85%" r="55%">
+          <stop offset="0%"   stopColor="#c84800" stopOpacity="0.65" />
+          <stop offset="30%"  stopColor="#c87800" stopOpacity="0.35" />
+          <stop offset="60%"  stopColor="#c86000" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#c84000" stopOpacity="0" />
+        </radialGradient>
+        {/* Outer room glow */}
+        <radialGradient id={gId('room-glow')} cx="50%" cy="70%" r="60%">
+          <stop offset="0%"   stopColor="#b86000" stopOpacity="0.20" />
+          <stop offset="100%" stopColor="#b86000" stopOpacity="0" />
+        </radialGradient>
+        {/* Fire gradient */}
+        <radialGradient id={gId('flames')} cx="50%" cy="90%" r="55%">
+          <stop offset="0%"   stopColor="#fff0a0" stopOpacity="1" />
+          <stop offset="25%"  stopColor="#f0a020" stopOpacity="0.95" />
+          <stop offset="55%"  stopColor="#c05010" stopOpacity="0.85" />
+          <stop offset="80%"  stopColor="#801000" stopOpacity="0.60" />
+          <stop offset="100%" stopColor="#400000" stopOpacity="0" />
+        </radialGradient>
+        {/* Ember gradient */}
+        <radialGradient id={gId('embers')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#ff8000" stopOpacity="0.90" />
+          <stop offset="100%" stopColor="#c04000" stopOpacity="0.20" />
+        </radialGradient>
+        {/* Gilt gradient for book spines */}
+        <linearGradient id={gId('gilt')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#c8a840" stopOpacity="0.80" />
+          <stop offset="50%"  stopColor="#f0d060" stopOpacity="0.90" />
+          <stop offset="100%" stopColor="#a08020" stopOpacity="0.65" />
+        </linearGradient>
+        {/* Flame glow filter */}
+        <filter id={gId('flame-filter')}
+          x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        {/* Candle glow filter */}
+        <filter id={gId('candle-glow')}
+          x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* ── BACKGROUND — dark study wall ── */}
+      <rect x="0" y="0" width="800" height="260" fill="#0a0806" />
+      {/* Stone wall texture — faint horizontal blocks */}
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240].map((y, i) => (
+        <rect key={i} x="0" y={y} width="800" height="28"
+          fill={i%2===0 ? '#0e0c0a' : '#0c0a08'} />
+      ))}
+      {/* Mortar lines */}
+      {[29, 59, 89, 119, 149, 179, 209].map((y, i) => (
+        <line key={i} x1="0" y1={y} x2="800" y2={y}
+          stroke="#181410" strokeWidth="1.5" opacity="0.60" />
+      ))}
+
+      {/* ── ROOM GLOW (from fire) ── */}
+      <rect x="0" y="0" width="800" height="260"
+        fill={`url(#${gId('room-glow')})`} />
+
+      {/* ── FIREPLACE STRUCTURE ── */}
+      {/* Outer mantle — wide stone surround */}
+      <path d="M 220 0 L 220 200 L 580 200 L 580 0"
+        stroke="#2a2824" strokeWidth="2" fill="none" opacity="0.50" />
+
+      {/* Mantle legs — stone pillars */}
+      {/* Left pillar */}
+      <rect x="220" y="60" width="50" height="160"
+        fill={`url(#${gId('stone')})`} />
+      <line x1="220" y1="60" x2="220" y2="220"
+        stroke="#3a3830" strokeWidth="1.5" opacity="0.70" />
+      <line x1="270" y1="60" x2="270" y2="220"
+        stroke="#141210" strokeWidth="1.0" opacity="0.55" />
+      {/* Stone block details on left pillar */}
+      {[80, 110, 140, 170, 200].map((y, i) => (
+        <line key={i} x1="222" y1={y} x2="268" y2={y}
+          stroke="#181614" strokeWidth="1.0" opacity="0.50" />
+      ))}
+
+      {/* Right pillar */}
+      <rect x="530" y="60" width="50" height="160"
+        fill={`url(#${gId('stone')})`} />
+      <line x1="580" y1="60" x2="580" y2="220"
+        stroke="#3a3830" strokeWidth="1.5" opacity="0.70" />
+      <line x1="530" y1="60" x2="530" y2="220"
+        stroke="#141210" strokeWidth="1.0" opacity="0.55" />
+      {[80, 110, 140, 170, 200].map((y, i) => (
+        <line key={i} x1="532" y1={y} x2="578" y2={y}
+          stroke="#181614" strokeWidth="1.0" opacity="0.50" />
+      ))}
+
+      {/* Mantle top — thick stone lintel */}
+      <rect x="200" y="50" width="400" height="30"
+        fill={`url(#${gId('stone')})`} />
+      <line x1="200" y1="50" x2="600" y2="50"
+        stroke="#3a3830" strokeWidth="2.0" opacity="0.75" />
+      <line x1="200" y1="80" x2="600" y2="80"
+        stroke="#141210" strokeWidth="1.5" opacity="0.65" />
+      {/* Carved lintel detail — horizontal grooves */}
+      <line x1="210" y1="58" x2="590" y2="58"
+        stroke="#141210" strokeWidth="0.8" opacity="0.40" />
+      <line x1="210" y1="65" x2="590" y2="65"
+        stroke="#141210" strokeWidth="0.8" opacity="0.35" />
+      <line x1="210" y1="72" x2="590" y2="72"
+        stroke="#141210" strokeWidth="0.8" opacity="0.35" />
+
+      {/* ── FIREBOX / HEARTH INTERIOR ── */}
+      <rect x="270" y="80" width="260" height="140"
+        fill="#0a0604" />
+      {/* Firebox walls — sooty brick */}
+      <rect x="270" y="80" width="10" height="140"
+        fill="#141008" opacity="0.80" />
+      <rect x="520" y="80" width="10" height="140"
+        fill="#141008" opacity="0.80" />
+      {/* Firebox arch — top */}
+      <path d="M 270 100 C 270 80, 290 72, 400 70 C 510 72, 530 80, 530 100"
+        fill="#0a0604" stroke="#141008" strokeWidth="1.5" />
+
+      {/* ── LOG BASE ── */}
+      {/* Log 1 */}
+      <ellipse cx="350" cy="216" rx="55" ry="8"
+        fill="#1a1008" stroke="#2a1808" strokeWidth="1" />
+      <rect x="295" y="208" width="110" height="8"
+        fill="#1a1008" />
+      {/* Log 2 */}
+      <ellipse cx="420" cy="212" rx="50" ry="7"
+        fill="#161008" stroke="#261808" strokeWidth="1" />
+      <rect x="370" y="205" width="100" height="7"
+        fill="#161008" />
+      {/* Log end rings */}
+      <circle cx="295" cy="212" r="8" fill="#201408"
+        stroke="#2a1808" strokeWidth="0.8" />
+      <circle cx="295" cy="212" r="4" fill="#1a1008" opacity="0.80" />
+
+      {/* ── FIRE — layered flames ── */}
+      {/* Deep ember base */}
+      <ellipse cx="400" cy="215" rx="90" ry="12"
+        fill={`url(#${gId('embers')})`} opacity="0.80" />
+      {/* Large outer flame */}
+      <ellipse cx="395" cy="175" rx="85" ry="55"
+        fill={`url(#${gId('flames')})`}
+        filter={`url(#${gId('flame-filter')})`}
+        className="mojo-flame-main"
+        opacity="0.90"
+      />
+      {/* Center bright flame */}
+      <ellipse cx="400" cy="185" rx="50" ry="40"
+        fill={`url(#${gId('flames')})`}
+        className="mojo-flame-inner"
+        opacity="0.95"
+      />
+      {/* Inner white-hot core */}
+      <ellipse cx="400" cy="200" rx="25" ry="18"
+        fill="#fff8e0" opacity="0.70"
+        className="mojo-flame-inner"
+      />
+      {/* Flame tips — narrow upward tongues */}
+      <path d="M 360 170 C 358 140, 362 120, 370 105 C 372 125, 368 148, 372 165"
+        fill="#f0a020" opacity="0.65"
+        className="mojo-flame-main"
+      />
+      <path d="M 400 160 C 398 125, 402 105, 410 90 C 415 110, 410 135, 412 158"
+        fill="#fff0a0" opacity="0.75"
+        className="mojo-flame-inner"
+      />
+      <path d="M 430 168 C 428 140, 435 122, 440 110 C 443 130, 438 150, 442 165"
+        fill="#f0a020" opacity="0.60"
+        className="mojo-flame-main"
+      />
+
+      {/* ── FIRE GLOW OVERLAY ── */}
+      <rect x="0" y="0" width="800" height="260"
+        fill={`url(#${gId('fire-glow')})`} />
+
+      {/* ── HEARTH FLOOR ── */}
+      <rect x="240" y="220" width="320" height="20"
+        fill="#1a1610" />
+      <line x1="240" y1="220" x2="560" y2="220"
+        stroke="#2a2018" strokeWidth="1.5" opacity="0.70" />
+      {/* Hearth stone blocks */}
+      {[240, 320, 400, 480].map((x, i) => (
+        <line key={i} x1={x} y1="220" x2={x} y2="240"
+          stroke="#0e0c08" strokeWidth="1.5" opacity="0.55" />
+      ))}
+
+      {/* ── BOOKS — stacked on floor left ── */}
+      <g transform="translate(80 180)">
+        {/* Stack of 4 books lying flat */}
+        <rect x="0" y="0"  width="80" height="14" rx="1" fill="#2a1418" />
+        <rect x="0" y="14" width="75" height="13" rx="1" fill="#1a2a1a" />
+        <rect x="0" y="27" width="82" height="15" rx="1" fill="#1a1a2a" />
+        <rect x="0" y="42" width="78" height="13" rx="1" fill="#2a1a0a" />
+        {/* Gilt lines on spines */}
+        <line x1="2" y1="7" x2="78" y2="7"
+          stroke="#c8a840" strokeWidth="0.8" opacity="0.60" />
+        <line x1="2" y1="20" x2="73" y2="20"
+          stroke="#c8a840" strokeWidth="0.8" opacity="0.55" />
+        <line x1="2" y1="34" x2="80" y2="34"
+          stroke="#c8a840" strokeWidth="0.7" opacity="0.50" />
+        {/* Leaning book */}
+        <rect x="-12" y="-45" width="12" height="52" rx="1"
+          fill="#1e0808"
+          transform="rotate(-8 -12 -45)"
+        />
+      </g>
+
+      {/* ── BOOKS — stacked on floor right ── */}
+      <g transform="translate(620 185)">
+        <rect x="0" y="0"  width="70" height="12" rx="1" fill="#1a2a1a" />
+        <rect x="0" y="12" width="75" height="14" rx="1" fill="#2a1418" />
+        <rect x="0" y="26" width="68" height="12" rx="1" fill="#1a1a2a" />
+        <line x1="2" y1="6" x2="68" y2="6"
+          stroke="#c8a840" strokeWidth="0.7" opacity="0.55" />
+        <line x1="2" y1="19" x2="73" y2="19"
+          stroke="#c8a840" strokeWidth="0.7" opacity="0.50" />
+      </g>
+
+      {/* ── BOOKS ON MANTLE ── */}
+      {/* Left mantle: small stack */}
+      <g transform="translate(215 28)">
+        <rect x="0" y="0" width="30" height="22" rx="0.5" fill="#1a1a2a" />
+        <rect x="32" y="3" width="25" height="19" rx="0.5" fill="#2a1418" />
+        {/* Open book lying flat */}
+        <rect x="60" y="8" width="40" height="14" rx="1" fill="#d8c8a0" />
+        <line x1="80" y1="8" x2="80" y2="22"
+          stroke="#8a7840" strokeWidth="0.8" opacity="0.60" />
+      </g>
+      {/* Right mantle: one tall book */}
+      <g transform="translate(545 22)">
+        <rect x="0" y="0" width="18" height="28" rx="0.5" fill="#1e2a1e" />
+        <rect x="2" y="8" width="14" height="1.5"
+          fill="#c8a840" opacity="0.70" />
+      </g>
+
+      {/* ── SMALL CANDLES ON MANTLE ── */}
+      {/* Left mantle candle */}
+      <g transform="translate(310 12)">
+        <ellipse cx="5" cy="3" rx="6" ry="8"
+          fill="#f0a020" opacity="0.70"
+          filter={`url(#${gId('candle-glow')})`}
+          className="mojo-flame-main"
+        />
+        <ellipse cx="5" cy="4" rx="3" ry="5"
+          fill="#fff4c0" opacity="0.85"
+          className="mojo-flame-inner"
+        />
+        <rect x="2" y="10" width="6" height="18" rx="0.5" fill="#ede0c4" />
+        <rect x="1" y="28" width="8" height="3" rx="0.5" fill="#b88820" />
+      </g>
+      {/* Right mantle candle */}
+      <g transform="translate(478 12)">
+        <ellipse cx="5" cy="3" rx="6" ry="8"
+          fill="#f0a020" opacity="0.65"
+          filter={`url(#${gId('candle-glow')})`}
+          className="mojo-flame-main"
+        />
+        <ellipse cx="5" cy="4" rx="3" ry="5"
+          fill="#fff4c0" opacity="0.80"
+          className="mojo-flame-inner"
+        />
+        <rect x="2" y="10" width="6" height="20" rx="0.5" fill="#ede0c4" />
+        <rect x="1" y="30" width="8" height="3" rx="0.5" fill="#b88820" />
+      </g>
+
+      {/* ── IVY — climbing left pillar ── */}
+      {/* Main vine up the left stone pillar */}
+      <path
+        d="M 220 260 C 225 230, 218 200, 222 170
+           C 226 140, 220 110, 225 80 C 228 60, 222 40, 225 15"
+        stroke="#2a4a1a" strokeWidth="2.0"
+        strokeLinecap="round" fill="none" opacity="0.80"
+      />
+      {/* Ivy leaves on left pillar */}
+      {[
+        [228, 240, -15], [218, 215, 20], [225, 188, -10],
+        [220, 162, 18], [228, 135, -12], [222, 108, 15],
+        [226, 82, -8], [220, 55, 20],
+      ].map(([x, y, rot], i) => (
+        <ellipse key={i}
+          cx={x} cy={y}
+          rx={9 + (i%3)*2} ry={5.5 + (i%2)*1.5}
+          fill="#2a5a18"
+          transform={`rotate(${rot} ${x} ${y})`}
+          opacity={0.70 - i*0.03}
+        />
+      ))}
+      {/* A few leaves reaching across the mantle */}
+      <path d="M 225 80 C 240 72, 260 68, 275 72"
+        stroke="#2a4a1a" strokeWidth="1.5" fill="none" opacity="0.55" />
+      <ellipse cx="262" cy="68" rx="8" ry="4.5"
+        fill="#2a5818" transform="rotate(-15 262 68)" opacity="0.55" />
+      {/* Small white flowers */}
+      <circle cx="223" cy="170" r="2.5" fill="#f0ece0" opacity="0.50" />
+      <circle cx="223" cy="170" r="1.0" fill="#e8c840" opacity="0.65" />
+      <circle cx="226" cy="110" r="2.0" fill="#f0ece0" opacity="0.45" />
+    </svg>
+  )
+}

@@ -18,6 +18,7 @@ import {
   SvgNavSearch,
   SvgNavChronicle,
   SvgNavFamiliar,
+  SvgNavDesign,
 } from './MojoSvgAssets'
 
 type MojoCharacter = {
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
   { label: 'Chronicle', href: '/mojo/threads', Icon: SvgNavChronicle },
   { label: 'Search', href: '/mojo/search', Icon: SvgNavSearch },
   { label: 'The Familiar', href: '/mojo/familiar', Icon: SvgNavFamiliar },
+  { label: 'The Atelier', href: '/mojo/design', Icon: SvgNavDesign },
 ]
 
 const SECTION_LABEL_STYLE: React.CSSProperties = {
@@ -173,7 +175,9 @@ export default function MojoSidebar({ rps }: { rps: MojoRpWithCharacters[] }) {
 
         <nav style={{ padding: '0 8px' }}>
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = item.href === '/mojo/design'
+              ? pathname.startsWith('/mojo/design')
+              : pathname === item.href
             const Icon = item.Icon
             return (
               <Link
