@@ -170,7 +170,15 @@ export default async function ChronicleThreadsPage() {
             No active threads. Begin a new entry above.
           </p>
         ) : (
-          groups.map((group) => (
+          groups.map((group) => {
+            const activeGroupThreads = group.threads.filter((t) =>
+              getThreadDisplayState(t, group.characterName) !== 'upcoming'
+            )
+            const onDeckThreads = group.threads.filter((t) =>
+              getThreadDisplayState(t, group.characterName) === 'upcoming'
+            )
+
+            return (
             <div key={group.characterId} className="mojo-thread-group">
 
               {/* Character group header */}
@@ -209,7 +217,7 @@ export default async function ChronicleThreadsPage() {
 
               {/* Thread cards */}
               <div className="mojo-thread-group-body">
-                {group.threads.map((thread, i) => {
+                {activeGroupThreads.map((thread, i) => {
                   const state = getThreadDisplayState(thread, group.characterName)
                   const waitingOn = state === 'waiting' ? getWaitingOn(thread, group.characterName) : null
                   const { className: badgeClass, label: badgeLabel } = getDisplayBadge(state, waitingOn)
@@ -220,7 +228,7 @@ export default async function ChronicleThreadsPage() {
                       className="mojo-thread-card"
                       style={{
                         padding: '12px 16px',
-                        borderBottom: i < group.threads.length - 1
+                        borderBottom: i < activeGroupThreads.length - 1
                           ? '1px solid rgba(255,255,255,0.04)'
                           : 'none',
                         background: state === 'mine'
@@ -307,9 +315,103 @@ export default async function ChronicleThreadsPage() {
                     </div>
                   )
                 })}
+
+                {/* On Deck divider — only when both arrays non-empty */}
+                {activeGroupThreads.length > 0 && onDeckThreads.length > 0 && (
+                  <div style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '8px',
+                    letterSpacing: '0.28em',
+                    textTransform: 'uppercase',
+                    color: 'var(--faded)',
+                    opacity: 0.55,
+                    padding: '8px 16px 4px',
+                    borderTop: '1px solid rgba(255,255,255,0.04)',
+                    background: 'rgba(0,0,0,0.10)',
+                  }}>
+                    On Deck
+                  </div>
+                )}
+
+                {/* Upcoming/on-deck threads — slightly muted, neutral (no scrape data) */}
+                {onDeckThreads.map((thread, i) => {
+                  const state = getThreadDisplayState(thread, group.characterName)
+                  const { className: badgeClass, label: badgeLabel } = getDisplayBadge(state)
+
+                  return (
+                    <div
+                      key={thread.id}
+                      className="mojo-thread-card"
+                      style={{
+                        opacity: 0.70,
+                        padding: '10px 16px',
+                        borderBottom: i < onDeckThreads.length - 1
+                          ? '1px solid rgba(255,255,255,0.03)'
+                          : 'none',
+                      }}
+                    >
+                      {/* Title row + badge */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        marginBottom: '6px',
+                        flexWrap: 'wrap',
+                      }}>
+                        {thread.url ? (
+                          <a
+                            href={thread.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontFamily: 'Playfair Display, serif',
+                              fontSize: '15px',
+                              color: 'var(--roseash)',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            {thread.title}
+                          </a>
+                        ) : (
+                          <span style={{
+                            fontFamily: 'Playfair Display, serif',
+                            fontSize: '15px',
+                            color: 'var(--mist)',
+                          }}>
+                            {thread.title}
+                          </span>
+                        )}
+                        <span className={badgeClass}>
+                          {badgeLabel}
+                        </span>
+                      </div>
+
+                      {/* Meta row — no last_checked_at, upcoming threads aren't scraped */}
+                      {thread.partner_names && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          flexWrap: 'wrap',
+                        }}>
+                          <span style={{
+                            fontFamily: 'EB Garamond, serif',
+                            fontSize: '13px',
+                            fontStyle: 'italic',
+                            color: 'var(--mist)',
+                          }}>
+                            with {thread.partner_names}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
-          ))
+            )
+          })
         )}
       </div>
 

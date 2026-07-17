@@ -105,7 +105,7 @@ export default function MojoThreadTracker({
   const [url, setUrl] = useState('')
   const [partnerNames, setPartnerNames] = useState('')
   const [replyOrder, setReplyOrder] = useState('')
-  const [threadType, setThreadType] = useState<'rp' | 'class'>('rp')
+  const [threadType, setThreadType] = useState<'rp' | 'class' | 'upcoming'>('rp')
   const [dueDate, setDueDate] = useState('')
   const [addLoading, setAddLoading] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
@@ -116,7 +116,7 @@ export default function MojoThreadTracker({
   const [editUrl, setEditUrl] = useState('')
   const [editPartnerNames, setEditPartnerNames] = useState('')
   const [editReplyOrder, setEditReplyOrder] = useState('')
-  const [editThreadType, setEditThreadType] = useState<'rp' | 'class'>('rp')
+  const [editThreadType, setEditThreadType] = useState<'rp' | 'class' | 'upcoming'>('rp')
   const [editDueDate, setEditDueDate] = useState('')
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
@@ -174,7 +174,10 @@ export default function MojoThreadTracker({
     setEditUrl(thread.url ?? '')
     setEditPartnerNames(thread.partner_names ?? '')
     setEditReplyOrder(thread.reply_order ?? '')
-    setEditThreadType(thread.thread_type === 'class' ? 'class' : 'rp')
+    setEditThreadType(
+      thread.thread_type === 'class' ? 'class' :
+      thread.thread_type === 'upcoming' ? 'upcoming' : 'rp'
+    )
     setEditDueDate(thread.assignment_due_at ? thread.assignment_due_at.split('T')[0] : '')
     setEditError(null)
     setConfirmingDelete(null)
@@ -415,7 +418,7 @@ export default function MojoThreadTracker({
     )
   }
 
-  function renderThreadRow(thread: MojoThread, archived: boolean) {
+  function renderThreadRow(thread: MojoThread, archived: boolean, dimmed: boolean = false) {
     const isEditing = editingThreadId === thread.id
     const isConfirmingDelete = confirmingDelete === thread.id
     const rowHasError = rowError?.id === thread.id
@@ -440,11 +443,17 @@ export default function MojoThreadTracker({
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} style={INPUT_STYLE} placeholder="Thread title" />
-            <input type="text" value={editUrl} onChange={(e) => setEditUrl(e.target.value)} style={INPUT_STYLE} placeholder="URL" />
+            <input
+              type="text"
+              value={editUrl}
+              onChange={(e) => setEditUrl(e.target.value)}
+              style={INPUT_STYLE}
+              placeholder={editThreadType === 'upcoming' ? 'Add URL when ready to begin' : 'URL'}
+            />
             <div>
               <label style={{ ...LABEL_STYLE, marginBottom: 4 }}>Thread Type</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                {(['rp', 'class'] as const).map((type) => (
+                {(['rp', 'class', 'upcoming'] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
@@ -463,7 +472,7 @@ export default function MojoThreadTracker({
                       borderRadius: '1px',
                     }}
                   >
-                    {type === 'rp' ? 'RP Thread' : 'Class Assignment'}
+                    {type === 'rp' ? 'RP Thread' : type === 'class' ? 'Class Assignment' : 'Upcoming'}
                   </button>
                 ))}
               </div>
@@ -477,7 +486,7 @@ export default function MojoThreadTracker({
             />
             {editThreadType === 'class' ? (
               <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} style={INPUT_STYLE} />
-            ) : (
+            ) : editThreadType === 'upcoming' ? null : (
               <input type="text" value={editReplyOrder} onChange={(e) => setEditReplyOrder(e.target.value)} style={INPUT_STYLE} placeholder="Reply order (optional) — Remy, Johnny, Sue, Peter" />
             )}
           </div>
@@ -529,6 +538,7 @@ export default function MojoThreadTracker({
           borderRadius: 4,
           padding: '12px 16px',
           marginBottom: 8,
+          opacity: dimmed ? 0.75 : 1,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
@@ -678,12 +688,18 @@ export default function MojoThreadTracker({
         </div>
         <div>
           <label style={LABEL_STYLE}>URL</label>
-          <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} style={INPUT_STYLE} />
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            style={INPUT_STYLE}
+            placeholder={threadType === 'upcoming' ? 'Add URL when ready to begin' : undefined}
+          />
         </div>
         <div>
           <label style={LABEL_STYLE}>Thread Type</label>
           <div style={{ display: 'flex', gap: '8px' }}>
-            {(['rp', 'class'] as const).map((type) => (
+            {(['rp', 'class', 'upcoming'] as const).map((type) => (
               <button
                 key={type}
                 type="button"
@@ -702,7 +718,7 @@ export default function MojoThreadTracker({
                   borderRadius: '1px',
                 }}
               >
-                {type === 'rp' ? 'RP Thread' : 'Class Assignment'}
+                {type === 'rp' ? 'RP Thread' : type === 'class' ? 'Class Assignment' : 'Upcoming'}
               </button>
             ))}
           </div>
@@ -721,7 +737,7 @@ export default function MojoThreadTracker({
             <label style={LABEL_STYLE}>Due Date</label>
             <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={INPUT_STYLE} />
           </div>
-        ) : (
+        ) : threadType === 'upcoming' ? null : (
           <div>
             <label style={LABEL_STYLE}>
               Reply Order
@@ -800,6 +816,7 @@ export default function MojoThreadTracker({
             const pendingThreads: MojoThread[] = []
             const passiveThreads: MojoThread[] = []
             const awaitingThreads: MojoThread[] = []
+            const upcomingThreads: MojoThread[] = []
             const sortedActive = [...activeThreads].sort((a, b) =>
               getThreadStatePriority(getThreadDisplayState(a, characterName)) -
               getThreadStatePriority(getThreadDisplayState(b, characterName))
@@ -810,6 +827,8 @@ export default function MojoThreadTracker({
                 pendingThreads.push(t)
               } else if (state === 'awaiting_start') {
                 awaitingThreads.push(t)
+              } else if (state === 'upcoming') {
+                upcomingThreads.push(t)
               } else {
                 passiveThreads.push(t)
               }
@@ -859,6 +878,22 @@ export default function MojoThreadTracker({
                   </div>
                 )}
                 {awaitingThreads.map((t) => renderThreadRow(t, false))}
+                {upcomingThreads.length > 0 && (pendingThreads.length > 0 || passiveThreads.length > 0 || awaitingThreads.length > 0) && (
+                  <div style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '9px',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: 'var(--faded)',
+                    opacity: 0.65,
+                    padding: '8px 0 4px',
+                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    marginTop: '8px',
+                  }}>
+                    On Deck
+                  </div>
+                )}
+                {upcomingThreads.map((t) => renderThreadRow(t, false, true))}
               </>
             )
           })()}

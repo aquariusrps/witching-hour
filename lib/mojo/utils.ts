@@ -99,6 +99,7 @@ export type ThreadDisplayState =
   | 'theirs' // RP: partner's turn (no specific name)
   | 'waiting' // RP: ordered thread, specific next person
   | 'unknown' // RP: cannot determine
+  | 'upcoming' // planned thread, held on deck until activated
 
 // Single source of truth for thread badge display state. Handles
 // all thread types and states. Call this instead of deriveWhoseTurn()
@@ -117,16 +118,20 @@ export function getThreadDisplayState(
   },
   characterName: string
 ): ThreadDisplayState {
-  // 1. No URL — thread not yet started (any type)
+  // 1. Upcoming — checked first, takes priority over url-null.
+  // An upcoming thread with url=null must not appear as awaiting_start.
+  if (thread.thread_type === 'upcoming') return 'upcoming'
+
+  // 2. No URL — thread not yet started (any type)
   if (!thread.url?.trim()) return 'awaiting_start'
 
-  // 2. Class thread
+  // 3. Class thread
   if (thread.thread_type === 'class') {
     if (thread.completed_at) return 'submitted'
     return 'due'
   }
 
-  // 3. RP thread — use existing logic
+  // 4. RP thread — use existing logic
   const base = deriveWhoseTurn(
     {
       last_poster: thread.last_poster ?? null,
@@ -158,6 +163,11 @@ export function getDisplayBadge(
       return {
         className: 'mojo-turn-badge mojo-turn-pending',
         label: 'Awaiting Starter',
+      }
+    case 'upcoming':
+      return {
+        className: 'mojo-turn-badge mojo-turn-upcoming',
+        label: 'On Deck',
       }
     case 'due':
       return {
@@ -199,12 +209,13 @@ export function getThreadStatePriority(state: ThreadDisplayState): number {
   switch (state) {
     case 'due':            return 0
     case 'mine':           return 1
-    case 'waiting':        return 2
-    case 'theirs':         return 3
-    case 'unknown':        return 4
-    case 'awaiting_start': return 5
-    case 'submitted':      return 6
-    default:               return 7
+    case 'awaiting_start': return 2
+    case 'waiting':        return 3
+    case 'theirs':         return 4
+    case 'unknown':        return 5
+    case 'upcoming':       return 6
+    case 'submitted':      return 7
+    default:               return 8
   }
 }
 

@@ -43,7 +43,7 @@ export default function MojoChronicleAddForm({
   const [url, setUrl] = useState('')
   const [partnerNames, setPartnerNames] = useState('')
   const [replyOrder, setReplyOrder] = useState('')
-  const [threadType, setThreadType] = useState<'rp' | 'class'>('rp')
+  const [threadType, setThreadType] = useState<'rp' | 'class' | 'upcoming'>('rp')
   const [dueDate, setDueDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -144,6 +144,7 @@ export default function MojoChronicleAddForm({
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              placeholder={threadType === 'upcoming' ? 'Add URL when ready to begin' : undefined}
               style={INPUT_STYLE}
             />
           </div>
@@ -152,7 +153,7 @@ export default function MojoChronicleAddForm({
           <div style={{ marginBottom: '14px' }}>
             <label style={LABEL_STYLE}>Thread Type</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {(['rp', 'class'] as const).map((type) => (
+              {(['rp', 'class', 'upcoming'] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
@@ -171,7 +172,7 @@ export default function MojoChronicleAddForm({
                     borderRadius: '1px',
                   }}
                 >
-                  {type === 'rp' ? 'RP Thread' : 'Class Assignment'}
+                  {type === 'rp' ? 'RP Thread' : type === 'class' ? 'Class Assignment' : 'Upcoming'}
                 </button>
               ))}
             </div>
@@ -200,7 +201,7 @@ export default function MojoChronicleAddForm({
                 style={INPUT_STYLE}
               />
             </div>
-          ) : (
+          ) : threadType === 'upcoming' ? null : (
             /* Reply order */
             <div style={{ marginBottom: '18px' }}>
               <label style={LABEL_STYLE}>

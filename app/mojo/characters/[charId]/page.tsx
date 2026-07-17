@@ -316,7 +316,7 @@ export default async function MojoCharacterPage({
                 Active Threads
               </div>
 
-              {threads.filter((t) => t.status === 'active').length === 0 ? (
+              {threads.filter((t) => t.status === 'active' && getThreadDisplayState(t, character.name) !== 'upcoming').length === 0 ? (
                 <p style={{
                   fontFamily: 'EB Garamond, serif',
                   fontSize: '13px',
@@ -329,6 +329,7 @@ export default async function MojoCharacterPage({
               ) : (
                 threads
                   .filter((t) => t.status === 'active')
+                  .filter((t) => getThreadDisplayState(t, character.name) !== 'upcoming')
                   .sort((a, b) =>
                     getThreadStatePriority(getThreadDisplayState(a, character.name)) -
                     getThreadStatePriority(getThreadDisplayState(b, character.name))

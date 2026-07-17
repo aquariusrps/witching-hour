@@ -206,7 +206,7 @@ export async function createMojoThread(payload: {
   url?: string
   partner_names?: string
   reply_order?: string
-  thread_type?: 'rp' | 'class'
+  thread_type?: 'rp' | 'class' | 'upcoming'
   assignment_due_at?: string | null
 }): Promise<ActionError | { success: true; thread: MojoThread }> {
   const userId = await requireSuperAdmin()
@@ -248,7 +248,7 @@ export async function updateMojoThread(
     url?: string | null
     partner_names?: string | null
     reply_order?: string | null
-    thread_type?: 'rp' | 'class'
+    thread_type?: 'rp' | 'class' | 'upcoming'
     assignment_due_at?: string | null
   }
 ): Promise<ActionError | { success: true }> {
@@ -263,13 +263,24 @@ export async function updateMojoThread(
 
   const { data: thread } = await admin
     .from('mojo_threads')
-    .select('character_id, rp_id')
+    .select('character_id, rp_id, thread_type')
     .eq('id', threadId)
     .single()
 
   if (!thread) return { error: 'Thread not found' }
 
-  const updates: TablesUpdate<'mojo_threads'> = { ...payload }
+  // Auto-transition: upcoming + URL provided → active RP (silent, no
+  // prompt). An upcoming thread never reaches the display layer still
+  // typed as 'upcoming' once it has a URL.
+  let resolvedThreadType = payload.thread_type ?? thread.thread_type
+  if (thread.thread_type === 'upcoming' && payload.url?.trim()) {
+    resolvedThreadType = 'rp'
+  }
+
+  const updates: TablesUpdate<'mojo_threads'> = {
+    ...payload,
+    thread_type: resolvedThreadType,
+  }
 
   const { error } = await admin
     .from('mojo_threads')
