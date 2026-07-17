@@ -4753,32 +4753,68 @@ export function SvgLibraryStudy({
       <ellipse cx="395" cy="175" rx="85" ry="55"
         fill={`url(#${gId('flames')})`}
         filter={`url(#${gId('flame-filter')})`}
-        className="mojo-flame-main"
         opacity="0.90"
+        style={{
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
       />
       {/* Center bright flame */}
       <ellipse cx="400" cy="185" rx="50" ry="40"
         fill={`url(#${gId('flames')})`}
-        className="mojo-flame-inner"
         opacity="0.95"
+        style={{
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
       />
       {/* Inner white-hot core */}
       <ellipse cx="400" cy="200" rx="25" ry="18"
         fill="#fff8e0" opacity="0.70"
-        className="mojo-flame-inner"
+        style={{
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
       />
       {/* Flame tips — narrow upward tongues */}
       <path d="M 360 170 C 358 140, 362 120, 370 105 C 372 125, 368 148, 372 165"
         fill="#f0a020" opacity="0.65"
-        className="mojo-flame-main"
+        style={{
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
       />
       <path d="M 400 160 C 398 125, 402 105, 410 90 C 415 110, 410 135, 412 158"
         fill="#fff0a0" opacity="0.75"
-        className="mojo-flame-inner"
+        style={{
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
       />
       <path d="M 430 168 C 428 140, 435 122, 440 110 C 443 130, 438 150, 442 165"
         fill="#f0a020" opacity="0.60"
-        className="mojo-flame-main"
+        style={{
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
       />
 
       {/* ── FIRE GLOW OVERLAY ── */}
@@ -4851,11 +4887,23 @@ export function SvgLibraryStudy({
         <ellipse cx="5" cy="3" rx="6" ry="8"
           fill="#f0a020" opacity="0.70"
           filter={`url(#${gId('candle-glow')})`}
-          className="mojo-flame-main"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0s',
+          }}
         />
         <ellipse cx="5" cy="4" rx="3" ry="5"
           fill="#fff4c0" opacity="0.85"
-          className="mojo-flame-inner"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0s',
+          }}
         />
         <rect x="2" y="10" width="6" height="18" rx="0.5" fill="#ede0c4" />
         <rect x="1" y="28" width="8" height="3" rx="0.5" fill="#b88820" />
@@ -4865,11 +4913,23 @@ export function SvgLibraryStudy({
         <ellipse cx="5" cy="3" rx="6" ry="8"
           fill="#f0a020" opacity="0.65"
           filter={`url(#${gId('candle-glow')})`}
-          className="mojo-flame-main"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.4s',
+          }}
         />
         <ellipse cx="5" cy="4" rx="3" ry="5"
           fill="#fff4c0" opacity="0.80"
-          className="mojo-flame-inner"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.4s',
+          }}
         />
         <rect x="2" y="10" width="6" height="20" rx="0.5" fill="#ede0c4" />
         <rect x="1" y="30" width="8" height="3" rx="0.5" fill="#b88820" />
@@ -5129,19 +5189,37 @@ export function SvgCandelabra({
         <ellipse cx="35" cy="50" rx="9" ry="13"
           fill={`url(#${gId('flame-c')})`}
           filter={`url(#${gId('flame-glow')})`}
-          className="mojo-flame-main"
           opacity="0.85"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: flameDelay,
+          }}
         />
         {/* Inner flame */}
         <ellipse cx="35" cy="53" rx="5" ry="8"
           fill={`url(#${gId('flame-c')})`}
-          className="mojo-flame-inner"
           opacity="0.95"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: flameDelay,
+          }}
         />
         {/* White hot core */}
         <ellipse cx="35" cy="57" rx="2.5" ry="4"
           fill="#fff8e0" opacity="0.80"
-          className="mojo-flame-inner"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: flameDelay,
+          }}
         />
       </g>
 
@@ -5150,17 +5228,35 @@ export function SvgCandelabra({
         <ellipse cx="11" cy="65" rx="7" ry="11"
           fill={`url(#${gId('flame-l')})`}
           filter={`url(#${gId('flame-glow')})`}
-          className="mojo-flame-main"
           opacity="0.80"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: `calc(${flameDelay} + 0.4s)`,
+          }}
         />
         <ellipse cx="11" cy="68" rx="4" ry="7"
           fill={`url(#${gId('flame-l')})`}
-          className="mojo-flame-inner"
           opacity="0.90"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: `calc(${flameDelay} + 0.4s)`,
+          }}
         />
         <ellipse cx="11" cy="71" rx="2" ry="3.5"
           fill="#fff4d0" opacity="0.75"
-          className="mojo-flame-inner"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: `calc(${flameDelay} + 0.4s)`,
+          }}
         />
       </g>
 
@@ -5169,17 +5265,35 @@ export function SvgCandelabra({
         <ellipse cx="59" cy="65" rx="7" ry="11"
           fill={`url(#${gId('flame-r')})`}
           filter={`url(#${gId('flame-glow')})`}
-          className="mojo-flame-main"
           opacity="0.78"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: `calc(${flameDelay} + 0.7s)`,
+          }}
         />
         <ellipse cx="59" cy="68" rx="4" ry="7"
           fill={`url(#${gId('flame-r')})`}
-          className="mojo-flame-inner"
           opacity="0.88"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: `calc(${flameDelay} + 0.7s)`,
+          }}
         />
         <ellipse cx="59" cy="71" rx="2" ry="3.5"
           fill="#fff4c8" opacity="0.72"
-          className="mojo-flame-inner"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: `calc(${flameDelay} + 0.7s)`,
+          }}
         />
       </g>
     </svg>
