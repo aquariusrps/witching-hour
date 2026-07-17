@@ -6058,35 +6058,33 @@ type RuneStone = [number, number, number, number, number, string]
 type ScatterLight = [number, number, number, number, string, number]
 
 const CARDS: TarotCard[] = [
-  [165, 145, -28, false, null],
-  [220, 138, -18, false, null],
-  [278, 132, -8, false, null],
-  [338, 130, 2, true, 'moon'],
-  [400, 131, 12, false, null],
-  [462, 136, 22, true, 'eye'],
-  [520, 145, 30, false, null],
+  [148, 148, -30, false, null],
+  [210, 138, -18, false, null],
+  [272, 131,  -7, false, null],
+  [335, 128,   3, true, 'moon'],
+  [398, 131,  13, false, null],
+  [458, 139,  23, true, 'eye'],
+  [515, 150,  32, false, null],
 ]
 
 const STONES: RuneStone[] = [
-  [580, 100, 9, 6, 15, 'M'],
-  [620, 140, 8, 5, -8, 'F'],
-  [655, 108, 10, 6, 22, 'R'],
-  [700, 145, 8, 5, -15, 'T'],
-  [730, 115, 9, 6, 5, 'S'],
-  [760, 150, 7, 5, 18, 'N'],
-  [610, 165, 8, 5, -12, 'E'],
-  [680, 170, 9, 6, 8, 'G'],
+  [588, 96,  11, 7,  15, 'M'],
+  [628, 138, 10, 6,  -8, 'F'],
+  [660, 104, 12, 7,  22, 'R'],
+  [705, 142, 10, 6, -15, 'T'],
+  [735, 112, 11, 7,   5, 'S'],
+  [768, 148,  9, 6,  18, 'N'],
+  [615, 168, 10, 6, -12, 'E'],
+  [685, 172, 11, 7,   8, 'G'],
 ]
 
 const SCATTER: ScatterLight[] = [
-  [490, 125, 6, 3, '#c8a0ff', 0.14],
-  [470, 138, 4, 2, '#a0ffb8', 0.11],
-  [500, 142, 5, 3, '#ffd8a0', 0.16],
-  [460, 120, 3, 2, '#c8a0ff', 0.09],
-  [508, 130, 4, 2, '#a0e8ff', 0.10],
+  [508, 132, 6, 3, '#c8a0ff', 0.14],
+  [488, 145, 4, 2, '#a0ffb8', 0.11],
+  [515, 148, 5, 3, '#ffd8a0', 0.16],
+  [478, 128, 3, 2, '#c8a0ff', 0.09],
+  [522, 138, 4, 2, '#a0e8ff', 0.10],
 ]
-
-const GRIMOIRE_SPOKE_DEGREES = [0, 45, 90, 135, 180, 225, 270, 315]
 
 export function SvgDiviningChamber({
   className = '',
@@ -6097,8 +6095,8 @@ export function SvgDiviningChamber({
 }) {
   const gId = (name: string) => `${name}-${idSuffix}`
 
-  const CARD_W = 42
-  const CARD_H = 70
+  const CARD_W = 52
+  const CARD_H = 86
   const CARD_R = 2
 
   return (
@@ -6210,12 +6208,6 @@ export function SvgDiviningChamber({
           <stop offset="100%" stopColor="#000000" stopOpacity="0.80" />
         </radialGradient>
 
-        {/* Grimoire page */}
-        <linearGradient id={gId('parchment')} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#e8dcc0" />
-          <stop offset="100%" stopColor="#d4c8a4" />
-        </linearGradient>
-
         {/* Cloth clip */}
         <clipPath id={gId('cloth-clip')}>
           <rect x="60" y="20" width="780" height="190" rx="4" />
@@ -6264,35 +6256,6 @@ export function SvgDiviningChamber({
         fill={`url(#${gId('light-r')})`}
         clipPath={`url(#${gId('cloth-clip')})`} />
 
-      {/* ── GRIMOIRE — bottom-left corner ── */}
-      <g clipPath={`url(#${gId('cloth-clip')})`}>
-        <rect x="62" y="158" width="95" height="60" rx="2"
-          fill="#1a0a10" stroke="#3a1820" strokeWidth="1.0" />
-        <rect x="74" y="160" width="80" height="56" rx="1"
-          fill={`url(#${gId('parchment')})`} opacity="0.88" />
-        {[168, 174, 180, 186, 192, 198].map((y, i) => (
-          <line key={i}
-            x1={78 + (i % 2) * 3} y1={y}
-            x2={148 - (i % 3) * 5} y2={y}
-            stroke="#5a4830" strokeWidth="0.8" opacity="0.50"
-          />
-        ))}
-        <circle cx="118" cy="178" r="12"
-          stroke="#6a5838" strokeWidth="0.8" fill="none" opacity="0.45" />
-        <circle cx="118" cy="178" r="8"
-          stroke="#6a5838" strokeWidth="0.6" fill="none" opacity="0.35" />
-        {GRIMOIRE_SPOKE_DEGREES.map((deg, i) => (
-          <line key={i}
-            x1="118" y1="178"
-            x2={118 + 10 * Math.cos((deg * Math.PI) / 180)}
-            y2={178 + 10 * Math.sin((deg * Math.PI) / 180)}
-            stroke="#6a5838" strokeWidth="0.5" opacity="0.40"
-          />
-        ))}
-        <path d="M 74 160 L 74 220 L 80 215 L 86 220 L 86 160"
-          fill="#8a1a20" opacity="0.70" />
-      </g>
-
       {/* ── TAROT CARDS ── */}
       {CARDS.map(([cx, cy, rot, faceUp, faceType], i) => {
         const x = cx - CARD_W / 2
@@ -6321,23 +6284,23 @@ export function SvgDiviningChamber({
                 />
                 {faceType === 'moon' && (
                   <g>
-                    <text x={cx} y={y + 10}
+                    <text x={cx} y={y + 12}
                       textAnchor="middle"
                       fontFamily="Cinzel, serif"
                       fontSize="6" fill="#c8a840" opacity="0.70"
                     >XVIII</text>
-                    <circle cx={cx} cy={y + 30} r="11"
+                    <circle cx={cx} cy={y + 36} r="13"
                       fill="#d0c8e0" opacity="0.75" />
-                    <circle cx={cx + 4} cy={y + 28} r="9"
+                    <circle cx={cx + 5} cy={y + 34} r="11"
                       fill={`url(#${gId('moon-card')})`} />
                     {[
-                      [cx - 12, y + 22],
-                      [cx + 14, y + 20],
-                      [cx - 8, y + 48],
-                      [cx + 10, y + 46],
+                      [cx - 15, y + 27],
+                      [cx + 17, y + 25],
+                      [cx - 10, y + 59],
+                      [cx + 12, y + 57],
                     ].map(([sx, sy], si) => (
                       <circle key={si}
-                        cx={sx} cy={sy} r="1.2"
+                        cx={sx} cy={sy} r="1.5"
                         fill="#e0d8f0" opacity="0.65" />
                     ))}
                     <text x={cx} y={y + CARD_H - 6}
@@ -6350,28 +6313,28 @@ export function SvgDiviningChamber({
                 )}
                 {faceType === 'eye' && (
                   <g>
-                    <text x={cx} y={y + 10}
+                    <text x={cx} y={y + 12}
                       textAnchor="middle"
                       fontFamily="Cinzel, serif"
                       fontSize="6" fill="#c8a840" opacity="0.70"
                     >XII</text>
                     <path
-                      d={`M ${cx - 14} ${y + 30}
-                          Q ${cx} ${y + 18} ${cx + 14} ${y + 30}
-                          Q ${cx} ${y + 42} ${cx - 14} ${y + 30} Z`}
+                      d={`M ${cx - 17} ${y + 36}
+                          Q ${cx} ${y + 22} ${cx + 17} ${y + 36}
+                          Q ${cx} ${y + 52} ${cx - 17} ${y + 36} Z`}
                       fill="#c0a8d0" opacity="0.35"
                       stroke="#c8a840" strokeWidth="0.8"
                     />
-                    <circle cx={cx} cy={y + 30} r="7"
+                    <circle cx={cx} cy={y + 36} r="9"
                       fill="#2a1830" stroke="#c8a840"
                       strokeWidth="0.6" opacity="0.90" />
-                    <circle cx={cx} cy={y + 30} r="3.5" fill="#0a0610" />
-                    <circle cx={cx - 1.5} cy={y + 28} r="1.2"
+                    <circle cx={cx} cy={y + 36} r="4" fill="#0a0610" />
+                    <circle cx={cx - 2} cy={y + 34} r="1.5"
                       fill="#e0d8f0" opacity="0.70" />
-                    {[-10, -6, -2, 2, 6, 10].map((dx, li) => (
+                    {[-12, -7, -2, 2, 7, 12].map((dx, li) => (
                       <line key={li}
-                        x1={cx + dx} y1={y + 20}
-                        x2={cx + dx * 1.1} y2={y + 16}
+                        x1={cx + dx} y1={y + 24}
+                        x2={cx + dx * 1.1} y2={y + 20}
                         stroke="#c8a840" strokeWidth="0.7"
                         opacity="0.55"
                       />
@@ -6517,32 +6480,79 @@ export function SvgDiviningChamber({
         </g>
       ))}
 
-      {/* ── CRYSTAL PENDULUM ── */}
-      <path d="M 450 0 C 452 28, 460 48, 468 72"
+      {/* ── CELESTIAL MAP — gilt star chart on the cloth ── */}
+      <g>
+        <circle cx="490" cy="152" r="52" stroke="#c8a840" strokeWidth="0.6" fill="none" opacity="0.18" />
+        <circle cx="490" cy="152" r="36" stroke="#c8a840" strokeWidth="0.4" fill="none" opacity="0.14" />
+        <circle cx="490" cy="152" r="20" stroke="#c8a840" strokeWidth="0.4" fill="none" opacity="0.12" />
+        <circle cx="490" cy="152" r="2.5" fill="#c8a840" opacity="0.20" />
+
+        {/* Cardinal cross */}
+        <line x1="490" y1="100" x2="490" y2="152" stroke="#c8a840" strokeWidth="0.5" opacity="0.12" />
+        <line x1="490" y1="152" x2="490" y2="204" stroke="#c8a840" strokeWidth="0.5" opacity="0.12" />
+        <line x1="490" y1="152" x2="542" y2="152" stroke="#c8a840" strokeWidth="0.5" opacity="0.12" />
+        <line x1="438" y1="152" x2="490" y2="152" stroke="#c8a840" strokeWidth="0.5" opacity="0.12" />
+
+        {/* 12 zodiac position marks */}
+        {Array.from({ length: 12 }, (_, i) => {
+          const angle = (i * 30 - 90) * (Math.PI / 180)
+          const zx = 490 + 48 * Math.cos(angle)
+          const zy = 152 + 48 * Math.sin(angle)
+          return (
+            <circle key={i} cx={zx} cy={zy} r="1.5" fill="#c8a840" opacity="0.22" />
+          )
+        })}
+
+        {/* 8 intercardinal compass lines */}
+        {Array.from({ length: 8 }, (_, i) => {
+          const angle = (i * 45 - 90) * (Math.PI / 180)
+          const cos = Math.cos(angle)
+          const sin = Math.sin(angle)
+          return (
+            <line key={i}
+              x1={490 + 18 * cos} y1={152 + 18 * sin}
+              x2={490 + 52 * cos} y2={152 + 52 * sin}
+              stroke="#c8a840" strokeWidth="0.4" opacity="0.10"
+            />
+          )
+        })}
+
+        {/* Constellation dot clusters */}
+        {[
+          [482, 108], [490, 104], [498, 110],
+          [455, 165], [460, 172], [452, 170],
+          [524, 168], [530, 162], [528, 172],
+        ].map(([sx, sy], si) => (
+          <circle key={si} cx={sx} cy={sy} r="1.2" fill="#c8a840" opacity="0.18" />
+        ))}
+      </g>
+
+      {/* ── CRYSTAL PENDULUM — hangs over the celestial map ── */}
+      <path d="M 490 0 C 492 25, 496 48, 498 70"
         stroke="#8090a0" strokeWidth="0.8"
         strokeDasharray="2 2" opacity="0.55"
       />
-      <circle cx="450" cy="2" r="3"
+      <circle cx="490" cy="2" r="3"
         stroke="#7080a0" strokeWidth="0.8" fill="none" opacity="0.45" />
 
       <path
-        d="M 468 72 L 462 82 L 460 95 L 471 110 L 482 95 L 480 82 Z"
+        d="M 498 70 L 490 80 L 488 96 L 494 120 L 500 96 L 508 80 Z"
         fill={`url(#${gId('crystal')})`}
         filter={`url(#${gId('crystal-filter')})`}
         stroke="#b0b8d8" strokeWidth="0.8"
         opacity="0.90"
       />
-      <line x1="468" y1="72" x2="471" y2="110"
+      <line x1="498" y1="70" x2="494" y2="120"
         stroke="#d0d8f0" strokeWidth="0.4" opacity="0.50" />
-      <line x1="462" y1="82" x2="480" y2="82"
+      <line x1="490" y1="80" x2="508" y2="80"
         stroke="#d0d8f0" strokeWidth="0.4" opacity="0.40" />
-      <line x1="460" y1="95" x2="482" y2="95"
+      <line x1="488" y1="96" x2="500" y2="96"
         stroke="#d0d8f0" strokeWidth="0.4" opacity="0.40" />
-      <ellipse cx="471" cy="72" rx="5" ry="3"
+      <ellipse cx="498" cy="70" rx="6" ry="3.5"
         fill="#9098c0" opacity="0.70" />
-      <path d="M 462 82 L 468 72 L 471 80 Z"
+      <path d="M 490 80 L 498 70 L 500 79 Z"
         fill="white" opacity="0.50" />
-      <ellipse cx="469" cy="88" rx="6" ry="12"
+      <ellipse cx="493" cy="96" rx="7" ry="14"
         fill={`url(#${gId('crystal-glow')})`}
         opacity="0.35"
       />
@@ -6590,7 +6600,7 @@ export function SvgDiviningChamber({
             animationDuration: '1.2s',
             animationTimingFunction: 'ease-in-out',
             animationIterationCount: 'infinite',
-            animationDelay: '0.1s',
+            animationDelay: '0.15s',
           }}
         />
         <line x1="110" y1="36" x2="110" y2="32"
@@ -6636,7 +6646,7 @@ export function SvgDiviningChamber({
             animationDuration: '1.2s',
             animationTimingFunction: 'ease-in-out',
             animationIterationCount: 'infinite',
-            animationDelay: '0.55s',
+            animationDelay: '0.60s',
           }}
         />
         <line x1="790" y1="36" x2="790" y2="32"

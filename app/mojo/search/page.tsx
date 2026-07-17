@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getAdminClient } from '@/lib/supabase/adminClient'
 import {
-  SvgScryingBowl, SvgStarfield, SvgPageHeaderRule,
+  SvgScryingBowl, SvgStarfield, SvgPageHeaderRule, SvgDiviningChamber,
   SvgNavDashboard, SvgNavFaceclaims, SvgNavSearch,
   SvgNavStacks, SvgNavLibrary, SvgNavPartners, SvgNavImages,
 } from '@/app/mojo/components/MojoSvgAssets'
@@ -76,39 +76,43 @@ export default async function MojoSearchPage({
         margin: '0 auto',
         padding: '24px 16px 48px',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '28px', width: '100%' }}>
-          <h1 style={{
-            fontFamily: 'Cormorant Upright, serif',
-            fontSize: '40px',
-            fontWeight: 600,
-            color: 'var(--gold)',
-            margin: '0 0 6px',
-            letterSpacing: '0.02em',
-          }}>
-            The Oracle
-          </h1>
+        {/* ── THE DIVINING CHAMBER HEADER ── */}
+        <div style={{ marginBottom: '24px', width: '100%' }}>
+
+          {/* Divining Chamber illustration */}
+          <div style={{ marginBottom: '0', overflow: 'hidden', borderRadius: '3px' }}>
+            <SvgDiviningChamber idSuffix="search-header" />
+          </div>
+
+          {/* Page title */}
+          <div style={{ marginTop: '20px', marginBottom: '6px' }}>
+            <h1 style={{
+              fontFamily: 'Cormorant Upright, serif',
+              fontSize: '38px',
+              fontWeight: 600,
+              color: 'var(--roseash)',
+              margin: 0,
+              letterSpacing: '0.02em',
+            }}>
+              The Divining Chamber
+            </h1>
+          </div>
+
+          {/* Subtitle */}
           <p style={{
             fontFamily: 'EB Garamond, serif',
-            fontSize: '16px',
+            fontSize: '15px',
             fontStyle: 'italic',
             color: 'var(--mist)',
-            margin: 0,
+            margin: '0 0 16px',
           }}>
-            What do you seek?
+            Ask. The chamber answers.
           </p>
-        </div>
 
-        {/* Scrying Bowl */}
-        <div className="mojo-bowl-wrapper" style={{
-          marginBottom: query ? '20px' : '28px',
-          color: 'var(--mist)',
-          animation: 'mojo-moon-breathe 5s ease-in-out infinite',
-          filter: 'drop-shadow(0 0 30px rgba(96,64,192,0.15))',
-        }} aria-hidden="true">
-          <SvgScryingBowl
-            size={query ? 140 : 220}
-            idSuffix="main"
-          />
+          <div style={{ color: 'var(--elevated)' }}>
+            <SvgPageHeaderRule />
+          </div>
+
         </div>
 
         <form action="/mojo/search" method="GET" style={{
@@ -131,10 +135,6 @@ export default async function MojoSearchPage({
             <SvgNavSearch active={false} />
           </button>
         </form>
-
-        <div style={{ width: '100%', color: 'var(--elevated)', opacity: 0.5 }}>
-          <SvgPageHeaderRule />
-        </div>
 
         {!query ? (
           <p style={{

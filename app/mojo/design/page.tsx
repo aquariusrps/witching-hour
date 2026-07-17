@@ -8,11 +8,6 @@ const DESIGNS = [
     description: 'Stone fireplace in a forgotten scholar\'s study. Books stacked around the hearth, ivy on stone, mantle candles. Option B for The Library page.',
   },
   {
-    slug: 'divining-chamber',
-    title: 'Search — The Divining Chamber',
-    description: 'A candlelit divination table — tarot cards, rune stones, a crystal pendulum, an open grimoire, two candles. Proposed visual for the Search page.',
-  },
-  {
     slug: 'grimoire',
     title: 'Chronicle — The Grimoire',
     description: 'An open ancient spell book — occult wheel diagram, dense text, botanical illustration, wax seal on the left page; a moon phase circle and dark quill with wet ink on the right. Proposed header for The Grimoire (Chronicle) page.',
