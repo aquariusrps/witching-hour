@@ -1731,7 +1731,7 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-FIX-027    | ✅ Complete | 7ab2feb | SvgWitchesAttic — atmospheric witch's attic, Atelier preview |
 | MOJO-FIX-028    | ✅ Complete | 1f8a81c | Moon phases card padding reduction, non-active label opacity to 1.0 |
 | MOJO-FIX-029    | ⏳ Pending  | —       | SvgPortraitHall — Hall of Legends, Atelier preview for Faceclaims page |
-| MOJO-BRIEF v1.6 | ✅ Complete | [hash]  | Brief updated through FIX-028 |
+| MOJO-BRIEF v1.6 | ✅ Complete | 62152c4 | Brief updated through FIX-028 |
 
 ---
 
