@@ -57,7 +57,7 @@ export default function MojoMoonPhases() {
       background: 'radial-gradient(ellipse at 50% 40%, #0e0e20 0%, #080810 70%, #050508 100%)',
       border: '1px solid rgba(160,160,200,0.09)',
       borderRadius: '6px',
-      padding: '20px 24px 16px',
+      padding: '10px 12px 10px',
     }}>
       {/* Star background — fixed coordinates, no Math.random */}
       <svg
@@ -117,7 +117,7 @@ export default function MojoMoonPhases() {
                 letterSpacing: '0.16em',
                 textTransform: 'uppercase',
                 color: isActive ? 'var(--gold)' : 'var(--faded)',
-                opacity: isActive ? 1 : 0.65,
+                opacity: 1,
                 textAlign: 'center',
                 whiteSpace: 'nowrap',
                 lineHeight: 1.2,
