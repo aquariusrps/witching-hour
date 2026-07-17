@@ -1,7 +1,7 @@
 import { getMojoPersonalImages, getMojoImageFolders } from '@/lib/db/mojo'
 import MojoPersonalImageManager from '@/app/mojo/components/MojoPersonalImageManager'
 import {
-  SvgHangingPhotographs, SvgPageHeaderRule, SvgFiligreeRule, SvgDarkroomHeader,
+  SvgPageHeaderRule, SvgWitchesAttic, SvgIvyColumn,
 } from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoImagesPage() {
@@ -27,74 +27,95 @@ export default async function MojoImagesPage() {
         `,
       }}
     >
-      <div style={{ textAlign: 'center', padding: '32px 28px 0', position: 'relative', zIndex: 1 }}>
-        <h1 style={{
-          fontFamily: 'Cormorant Upright, serif',
-          fontSize: '36px',
-          fontWeight: 600,
-          color: 'var(--gold)',
-          margin: '0 0 4px',
-          letterSpacing: '0.02em',
-        }}>
-          The Darkroom
-        </h1>
+      {/* ── THE WITCH'S ATTIC HEADER ── */}
+      <div style={{ marginBottom: '24px' }}>
+
+        {/* Attic illustration — full width */}
+        <div style={{ marginBottom: '0' }}>
+          <SvgWitchesAttic idSuffix="images-header" />
+        </div>
+
+        {/* Page title */}
+        <div style={{ marginTop: '20px', marginBottom: '6px' }}>
+          <h1 style={{
+            fontFamily: 'Cormorant Upright, serif',
+            fontSize: '38px',
+            fontWeight: 600,
+            color: 'var(--roseash)',
+            margin: 0,
+            letterSpacing: '0.02em',
+          }}>
+            The Witch&apos;s Attic
+          </h1>
+        </div>
+
+        {/* Subtitle */}
         <p style={{
           fontFamily: 'EB Garamond, serif',
           fontSize: '15px',
           fontStyle: 'italic',
           color: 'var(--mist)',
-          margin: '0 0 12px',
+          margin: '0 0 16px',
         }}>
-          Where light becomes image.
+          Your private collection.
         </p>
+
         <div style={{ color: 'var(--elevated)' }}>
           <SvgPageHeaderRule />
         </div>
+
       </div>
 
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          color: 'var(--mist)',
-          marginBottom: '12px',
-          opacity: 0.75,
-          pointerEvents: 'none',
-        }}
-      >
-        <SvgHangingPhotographs />
-      </div>
-
-      <div style={{
-        color: 'var(--elevated)',
-        marginBottom: '16px',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <SvgFiligreeRule />
-      </div>
-
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          color: 'var(--mist)',
-          marginBottom: '12px',
-          opacity: 0.65,
-        }}
-      >
-        <SvgDarkroomHeader />
-      </div>
-
+      {/* Content zone with ivy flanking */}
       <div style={{ position: 'relative', zIndex: 1 }}>
+
+        {/* Left ivy column */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '-28px',
+            top: '0',
+            bottom: '0',
+            width: '24px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgIvyColumn
+            height={9999}
+            flip={false}
+            idSuffix="img-ivy-l"
+          />
+        </div>
+
         <MojoPersonalImageManager
           initialImages={images}
           initialFolders={folders}
           totalCount={totalCount}
           untaggedCount={untaggedCount}
         />
+
+        {/* Right ivy column */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            right: '-28px',
+            top: '0',
+            bottom: '0',
+            width: '24px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgIvyColumn
+            height={9999}
+            flip={true}
+            idSuffix="img-ivy-r"
+          />
+        </div>
+
       </div>
     </div>
   )

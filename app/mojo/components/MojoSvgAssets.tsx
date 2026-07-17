@@ -7865,7 +7865,7 @@ export function SvgWitchesAttic({
       </g>
 
       {/* ── LAYER 14 — BRASS LANTERN ── */}
-      <g transform="translate(240 128)">
+      <g transform="translate(272 140)">
         <ellipse cx="18" cy="18" rx="55" ry="40"
           fill={`url(#${gId('lantern')})`}
         />

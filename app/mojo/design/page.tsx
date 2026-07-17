@@ -3,11 +3,6 @@ import { SvgPageHeaderRule } from '@/app/mojo/components/MojoSvgAssets'
 
 const DESIGNS = [
   {
-    slug: 'library-bookshelf',
-    title: 'Library — Illustrated Bookshelf',
-    description: 'Leather-bound tomes on aged wood shelves. Brass candlestick, cobwebs, trailing ivy. Option A for The Library page.',
-  },
-  {
     slug: 'library-study',
     title: 'Library — Old Study / Hearth',
     description: 'Stone fireplace in a forgotten scholar\'s study. Books stacked around the hearth, ivy on stone, mantle candles. Option B for The Library page.',
@@ -26,11 +21,6 @@ const DESIGNS = [
     slug: 'grimoire',
     title: 'Chronicle — The Grimoire',
     description: 'An open ancient spell book — occult wheel diagram, dense text, botanical illustration, wax seal on the left page; a moon phase circle and dark quill with wet ink on the right. Proposed header for The Grimoire (Chronicle) page.',
-  },
-  {
-    slug: 'witches-attic',
-    title: 'Images — The Witch\'s Attic',
-    description: 'A candlelit witch\'s attic — peaked beams, moonlit circular window, hanging herb bundles, birdcage with spectral glow, brass lantern, glass bottles, old trunks, spinning wheel, books and scrolls. Proposed replacement for The Darkroom on the Images page.',
   },
   {
     slug: 'portrait-hall',
