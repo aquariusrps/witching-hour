@@ -3,7 +3,8 @@ import MojoThreadAutoRefresh from '@/app/mojo/components/MojoThreadAutoRefresh'
 import MojoChronicleAddForm from '@/app/mojo/components/MojoChronicleAddForm'
 import MojoPortraitCard from '@/app/mojo/components/MojoPortraitCard'
 import {
-  SvgOpenLedger,
+  SvgGrimoire,
+  SvgIvyColumn,
   SvgChronicleQuill,
   SvgCandleRealistic,
   SvgWaxSeal,
@@ -111,34 +112,87 @@ export default async function ChronicleThreadsPage() {
         }))}
       />
 
-      {/* ════ ZONE 1: HEADER ════ */}
-      <div className="mojo-chronicle-header">
-        <div aria-hidden="true" style={{ marginBottom: '20px' }}>
-          <SvgOpenLedger />
+      {/* ── THE GRIMOIRE HEADER ── */}
+      <div style={{ marginBottom: '24px' }}>
+
+        {/* Grimoire illustration — full width */}
+        <div style={{ marginBottom: '0' }}>
+          <SvgGrimoire idSuffix="chronicle-header" />
         </div>
-        <h1 style={{
-          fontFamily: 'Cormorant Upright, serif',
-          fontSize: '44px',
-          fontWeight: 600,
-          color: 'var(--gold)',
-          margin: '0 0 6px',
-          letterSpacing: '0.02em',
-        }}>
-          The Chronicle
-        </h1>
+
+        {/* Page title */}
+        <div style={{ marginTop: '20px', marginBottom: '6px' }}>
+          <h1 style={{
+            fontFamily: 'Cormorant Upright, serif',
+            fontSize: '38px',
+            fontWeight: 600,
+            color: 'var(--roseash)',
+            margin: 0,
+            letterSpacing: '0.02em',
+          }}>
+            The Grimoire
+          </h1>
+        </div>
+
+        {/* Subtitle */}
         <p style={{
           fontFamily: 'EB Garamond, serif',
-          fontSize: '17px',
+          fontSize: '15px',
           fontStyle: 'italic',
           color: 'var(--mist)',
           margin: '0 0 16px',
         }}>
-          Every thread. Every story. Every word owed.
+          Every thread, every word. The record is kept.
         </p>
+
         <div style={{ color: 'var(--elevated)' }}>
           <SvgPageHeaderRule />
         </div>
+
       </div>
+
+      {/* Content zone with ivy flanking */}
+      <div style={{ position: 'relative' }}>
+
+        {/* Left ivy column */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '-28px',
+            top: '0',
+            bottom: '0',
+            width: '24px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgIvyColumn
+            height={9999}
+            flip={false}
+            idSuffix="chr-ivy-l"
+          />
+        </div>
+
+        {/* Right ivy column */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            right: '-28px',
+            top: '0',
+            bottom: '0',
+            width: '24px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgIvyColumn
+            height={9999}
+            flip={true}
+            idSuffix="chr-ivy-r"
+          />
+        </div>
 
       {/* ════ ZONE 2: ADD NEW ENTRY ════ */}
       <div style={{ marginTop: '24px' }}>
@@ -507,6 +561,8 @@ export default async function ChronicleThreadsPage() {
         <div style={{ color: 'var(--elevated)', marginTop: '8px', opacity: 0.35 }}>
           <SvgScrollEnd flip={false} />
         </div>
+      </div>
+
       </div>
 
     </div>

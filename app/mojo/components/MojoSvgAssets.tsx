@@ -7017,19 +7017,6 @@ export function SvgGrimoire({
         </text>
       </g>
 
-      {/* Ink blot */}
-      <g clipPath={`url(#${gId('page-l-clip')})`}>
-        <ellipse cx="200" cy="110" rx="10" ry="7"
-          fill="#0a0808" opacity="0.45"
-          transform="rotate(-15 200 110)"
-        />
-        <circle cx="194" cy="106" r="5" fill="#0a0808" opacity="0.38" />
-        <circle cx="208" cy="114" r="4" fill="#0a0808" opacity="0.35" />
-        <circle cx="188" cy="115" r="2" fill="#0a0808" opacity="0.30" />
-        <circle cx="214" cy="108" r="1.5" fill="#0a0808" opacity="0.28" />
-        <circle cx="198" cy="120" r="1.8" fill="#0a0808" opacity="0.25" />
-      </g>
-
       {/* Broken wax seal */}
       <g clipPath={`url(#${gId('page-l-clip')})`}>
         <path d="M 70 185 L 110 175 L 115 190 L 70 200"
@@ -7202,14 +7189,14 @@ export function SvgGrimoire({
       <path
         d={leftVanePath}
         fill={`url(#${gId('vane-l')})`}
-        opacity="0.88"
+        opacity="0.32"
         clipPath={`url(#${gId('page-r-clip')})`}
       />
 
       <path
         d={rightVanePath}
         fill="#201810"
-        opacity="0.72"
+        opacity="0.22"
         clipPath={`url(#${gId('page-r-clip')})`}
       />
 
@@ -7325,20 +7312,28 @@ export function SvgGrimoire({
       ))}
 
       {GRIMOIRE_CORNERS.map((c, i) => {
-        const hx = c.xDir > 0 ? c.cx : c.cx - 16
-        const hy = c.yDir > 0 ? c.cy : c.cy - 3
-        const vx = c.xDir > 0 ? c.cx : c.cx - 3
-        const vy = c.yDir > 0 ? c.cy : c.cy - 16
+        const armLen = 26
+        const armThick = 6
+        const hx = c.xDir > 0 ? c.cx : c.cx - armLen
+        const hy = c.yDir > 0 ? c.cy : c.cy - armThick
+        const vx = c.xDir > 0 ? c.cx : c.cx - armThick
+        const vy = c.yDir > 0 ? c.cy : c.cy - armLen
+        const hInnerY = c.cy + c.yDir * armThick
+        const vInnerX = c.cx + c.xDir * armThick
         return (
           <g key={i}>
-            <rect x={hx} y={hy} width="16" height="3"
+            <rect x={hx} y={hy} width={armLen} height={armThick}
               fill={`url(#${gId('brass')})`} opacity="0.85" />
-            <rect x={vx} y={vy} width="3" height="16"
+            <line x1={hx} y1={hInnerY} x2={hx + armLen} y2={hInnerY}
+              stroke="#f0d060" strokeWidth="0.8" opacity="0.55" />
+            <rect x={vx} y={vy} width={armThick} height={armLen}
               fill={`url(#${gId('brass')})`} opacity="0.85" />
+            <line x1={vInnerX} y1={vy} x2={vInnerX} y2={vy + armLen}
+              stroke="#f0d060" strokeWidth="0.8" opacity="0.55" />
             <circle
-              cx={c.cx + c.xDir * 1.5}
-              cy={c.cy + c.yDir * 1.5}
-              r="2"
+              cx={c.cx + c.xDir * 3}
+              cy={c.cy + c.yDir * 3}
+              r="3.5"
               fill="#c8a840" opacity="0.80"
             />
           </g>
