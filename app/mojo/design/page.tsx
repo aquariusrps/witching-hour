@@ -17,6 +17,11 @@ const DESIGNS = [
     title: 'Stacks — Hall of Mirrors',
     description: 'A candlelit perspective corridor with six gothic arched mirrors, each showing a different ghostly reflection. Proposed replacement for The Reliquary on the Stacks page.',
   },
+  {
+    slug: 'divining-chamber',
+    title: 'Search — The Divining Chamber',
+    description: 'A candlelit divination table — tarot cards, rune stones, a crystal pendulum, an open grimoire, two candles. Proposed visual for the Search page.',
+  },
 ]
 
 export default function DesignIndexPage() {

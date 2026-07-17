@@ -5924,3 +5924,611 @@ export function SvgHallOfMirrors({
     </svg>
   )
 }
+
+// ─── MOJO-FIX-024: SvgDiviningChamber — The Atelier preview ───
+
+type TarotCard = [number, number, number, boolean, string | null]
+type RuneStone = [number, number, number, number, number, string]
+type ScatterLight = [number, number, number, number, string, number]
+
+const CARDS: TarotCard[] = [
+  [165, 145, -28, false, null],
+  [220, 138, -18, false, null],
+  [278, 132, -8, false, null],
+  [338, 130, 2, true, 'moon'],
+  [400, 131, 12, false, null],
+  [462, 136, 22, true, 'eye'],
+  [520, 145, 30, false, null],
+]
+
+const STONES: RuneStone[] = [
+  [580, 100, 9, 6, 15, 'M'],
+  [620, 140, 8, 5, -8, 'F'],
+  [655, 108, 10, 6, 22, 'R'],
+  [700, 145, 8, 5, -15, 'T'],
+  [730, 115, 9, 6, 5, 'S'],
+  [760, 150, 7, 5, 18, 'N'],
+  [610, 165, 8, 5, -12, 'E'],
+  [680, 170, 9, 6, 8, 'G'],
+]
+
+const SCATTER: ScatterLight[] = [
+  [490, 125, 6, 3, '#c8a0ff', 0.14],
+  [470, 138, 4, 2, '#a0ffb8', 0.11],
+  [500, 142, 5, 3, '#ffd8a0', 0.16],
+  [460, 120, 3, 2, '#c8a0ff', 0.09],
+  [508, 130, 4, 2, '#a0e8ff', 0.10],
+]
+
+const GRIMOIRE_SPOKE_DEGREES = [0, 45, 90, 135, 180, 225, 270, 315]
+
+export function SvgDiviningChamber({
+  className = '',
+  idSuffix = 'dc',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  const CARD_W = 42
+  const CARD_H = 70
+  const CARD_R = 2
+
+  return (
+    <svg
+      width="100%"
+      height="220"
+      viewBox="0 0 900 220"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Velvet cloth */}
+        <radialGradient id={gId('cloth')} cx="50%" cy="50%" r="60%">
+          <stop offset="0%"   stopColor="#12102a" />
+          <stop offset="60%"  stopColor="#0e0c20" />
+          <stop offset="100%" stopColor="#080614" />
+        </radialGradient>
+
+        {/* Candlelight — two sources */}
+        <radialGradient id={gId('light-l')} cx="12%" cy="19%" r="55%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.35" />
+          <stop offset="40%"  stopColor="#c87000" stopOpacity="0.14" />
+          <stop offset="100%" stopColor="#c86000" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={gId('light-r')} cx="88%" cy="19%" r="55%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.35" />
+          <stop offset="40%"  stopColor="#c87000" stopOpacity="0.14" />
+          <stop offset="100%" stopColor="#c86000" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Tarot card back — ornate burgundy */}
+        <linearGradient id={gId('card-back')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#280818" />
+          <stop offset="50%"  stopColor="#1e0612" />
+          <stop offset="100%" stopColor="#28081a" />
+        </linearGradient>
+        {/* Card face — Moon */}
+        <radialGradient id={gId('moon-card')} cx="50%" cy="35%" r="50%">
+          <stop offset="0%"   stopColor="#1a1830" />
+          <stop offset="100%" stopColor="#0e0c1e" />
+        </radialGradient>
+        {/* Card face — Eye */}
+        <radialGradient id={gId('eye-card')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#1e1420" />
+          <stop offset="100%" stopColor="#0c080e" />
+        </radialGradient>
+
+        {/* Gold gilt */}
+        <linearGradient id={gId('gilt')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#8a5810" />
+          <stop offset="30%"  stopColor="#c8a840" />
+          <stop offset="70%"  stopColor="#f0d060" />
+          <stop offset="100%" stopColor="#8a5810" />
+        </linearGradient>
+        <linearGradient id={gId('gilt-v')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#8a5810" />
+          <stop offset="50%"  stopColor="#c8a840" />
+          <stop offset="100%" stopColor="#8a5810" />
+        </linearGradient>
+
+        {/* Crystal pendulum */}
+        <linearGradient id={gId('crystal')} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#d0d8f0" stopOpacity="0.95" />
+          <stop offset="30%"  stopColor="#9098c0" stopOpacity="0.80" />
+          <stop offset="60%"  stopColor="#e8ecff" stopOpacity="0.90" />
+          <stop offset="100%" stopColor="#6068a0" stopOpacity="0.70" />
+        </linearGradient>
+        <radialGradient id={gId('crystal-glow')} cx="35%" cy="25%" r="50%">
+          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.60" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        <filter id={gId('crystal-filter')}
+          x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+
+        {/* Rune stone */}
+        <linearGradient id={gId('stone')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#2a2418" />
+          <stop offset="100%" stopColor="#141008" />
+        </linearGradient>
+
+        {/* Candle wax */}
+        <linearGradient id={gId('wax')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#ede8d8" />
+          <stop offset="100%" stopColor="#d4c8a8" />
+        </linearGradient>
+
+        {/* Flame */}
+        <radialGradient id={gId('flame')} cx="50%" cy="80%" r="55%">
+          <stop offset="0%"   stopColor="#fff8e0" stopOpacity="1" />
+          <stop offset="35%"  stopColor="#f0a020" stopOpacity="0.95" />
+          <stop offset="80%"  stopColor="#c06010" stopOpacity="0.70" />
+          <stop offset="100%" stopColor="#800800" stopOpacity="0" />
+        </radialGradient>
+        <filter id={gId('flame-glow')}
+          x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+
+        {/* Vignette */}
+        <radialGradient id={gId('vignette')} cx="50%" cy="50%" r="55%">
+          <stop offset="50%"  stopColor="#000000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.80" />
+        </radialGradient>
+
+        {/* Grimoire page */}
+        <linearGradient id={gId('parchment')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#e8dcc0" />
+          <stop offset="100%" stopColor="#d4c8a4" />
+        </linearGradient>
+
+        {/* Cloth clip */}
+        <clipPath id={gId('cloth-clip')}>
+          <rect x="60" y="20" width="780" height="190" rx="4" />
+        </clipPath>
+      </defs>
+
+      {/* ── VOID BACKGROUND ── */}
+      <rect x="0" y="0" width="900" height="220" fill="#04030c" />
+
+      {/* ── VELVET CLOTH SURFACE ── */}
+      <rect x="60" y="20" width="780" height="190" rx="4"
+        fill={`url(#${gId('cloth')})`} />
+      {/* Cloth texture — subtle diagonal grain */}
+      {Array.from({ length: 30 }, (_, i) => (
+        <line key={i}
+          x1={60 + i * 28} y1="20"
+          x2={60 + i * 28 - 40} y2="210"
+          stroke="#1a1830" strokeWidth="0.5"
+          opacity="0.18"
+          clipPath={`url(#${gId('cloth-clip')})`}
+        />
+      ))}
+
+      {/* Gold embroidered border — near (bottom) edge */}
+      <rect x="68" y="198" width="764" height="8"
+        fill={`url(#${gId('gilt')})`} opacity="0.22" rx="1" />
+      {Array.from({ length: 24 }, (_, i) => (
+        <path key={i}
+          d={`M ${100 + i * 28} 202 L ${114 + i * 28} 198
+              L ${128 + i * 28} 202 L ${114 + i * 28} 206 Z`}
+          fill="#c8a840" opacity="0.18"
+        />
+      ))}
+      <rect x="60" y="20" width="8" height="188"
+        fill={`url(#${gId('gilt-v')})`} opacity="0.18" rx="1" />
+      <rect x="832" y="20" width="8" height="188"
+        fill={`url(#${gId('gilt-v')})`} opacity="0.18" rx="1" />
+      <rect x="68" y="20" width="764" height="6"
+        fill={`url(#${gId('gilt')})`} opacity="0.16" rx="1" />
+
+      {/* ── CANDLELIGHT WASHES ── */}
+      <rect x="60" y="20" width="780" height="190"
+        fill={`url(#${gId('light-l')})`}
+        clipPath={`url(#${gId('cloth-clip')})`} />
+      <rect x="60" y="20" width="780" height="190"
+        fill={`url(#${gId('light-r')})`}
+        clipPath={`url(#${gId('cloth-clip')})`} />
+
+      {/* ── GRIMOIRE — bottom-left corner ── */}
+      <g clipPath={`url(#${gId('cloth-clip')})`}>
+        <rect x="62" y="158" width="95" height="60" rx="2"
+          fill="#1a0a10" stroke="#3a1820" strokeWidth="1.0" />
+        <rect x="74" y="160" width="80" height="56" rx="1"
+          fill={`url(#${gId('parchment')})`} opacity="0.88" />
+        {[168, 174, 180, 186, 192, 198].map((y, i) => (
+          <line key={i}
+            x1={78 + (i % 2) * 3} y1={y}
+            x2={148 - (i % 3) * 5} y2={y}
+            stroke="#5a4830" strokeWidth="0.8" opacity="0.50"
+          />
+        ))}
+        <circle cx="118" cy="178" r="12"
+          stroke="#6a5838" strokeWidth="0.8" fill="none" opacity="0.45" />
+        <circle cx="118" cy="178" r="8"
+          stroke="#6a5838" strokeWidth="0.6" fill="none" opacity="0.35" />
+        {GRIMOIRE_SPOKE_DEGREES.map((deg, i) => (
+          <line key={i}
+            x1="118" y1="178"
+            x2={118 + 10 * Math.cos((deg * Math.PI) / 180)}
+            y2={178 + 10 * Math.sin((deg * Math.PI) / 180)}
+            stroke="#6a5838" strokeWidth="0.5" opacity="0.40"
+          />
+        ))}
+        <path d="M 74 160 L 74 220 L 80 215 L 86 220 L 86 160"
+          fill="#8a1a20" opacity="0.70" />
+      </g>
+
+      {/* ── TAROT CARDS ── */}
+      {CARDS.map(([cx, cy, rot, faceUp, faceType], i) => {
+        const x = cx - CARD_W / 2
+        const y = cy - CARD_H / 2
+        const rotate = `rotate(${rot} ${cx} ${cy})`
+
+        return (
+          <g key={i} transform={rotate}>
+            {/* Drop shadow */}
+            <rect x={x + 2} y={y + 3} width={CARD_W} height={CARD_H}
+              rx={CARD_R} fill="#000000" opacity="0.35" />
+
+            {faceUp ? (
+              <>
+                <rect x={x} y={y} width={CARD_W} height={CARD_H}
+                  rx={CARD_R}
+                  fill={faceType === 'moon'
+                    ? `url(#${gId('moon-card')})`
+                    : `url(#${gId('eye-card')})`}
+                  stroke="#c8a840" strokeWidth="1.0"
+                />
+                <rect x={x + 3} y={y + 3}
+                  width={CARD_W - 6} height={CARD_H - 6}
+                  rx={CARD_R - 1} fill="none"
+                  stroke="#c8a840" strokeWidth="0.5" opacity="0.50"
+                />
+                {faceType === 'moon' && (
+                  <g>
+                    <text x={cx} y={y + 10}
+                      textAnchor="middle"
+                      fontFamily="Cinzel, serif"
+                      fontSize="6" fill="#c8a840" opacity="0.70"
+                    >XVIII</text>
+                    <circle cx={cx} cy={y + 30} r="11"
+                      fill="#d0c8e0" opacity="0.75" />
+                    <circle cx={cx + 4} cy={y + 28} r="9"
+                      fill={`url(#${gId('moon-card')})`} />
+                    {[
+                      [cx - 12, y + 22],
+                      [cx + 14, y + 20],
+                      [cx - 8, y + 48],
+                      [cx + 10, y + 46],
+                    ].map(([sx, sy], si) => (
+                      <circle key={si}
+                        cx={sx} cy={sy} r="1.2"
+                        fill="#e0d8f0" opacity="0.65" />
+                    ))}
+                    <text x={cx} y={y + CARD_H - 6}
+                      textAnchor="middle"
+                      fontFamily="EB Garamond, serif"
+                      fontSize="5" fontStyle="italic"
+                      fill="#c8a840" opacity="0.60"
+                    >The Moon</text>
+                  </g>
+                )}
+                {faceType === 'eye' && (
+                  <g>
+                    <text x={cx} y={y + 10}
+                      textAnchor="middle"
+                      fontFamily="Cinzel, serif"
+                      fontSize="6" fill="#c8a840" opacity="0.70"
+                    >XII</text>
+                    <path
+                      d={`M ${cx - 14} ${y + 30}
+                          Q ${cx} ${y + 18} ${cx + 14} ${y + 30}
+                          Q ${cx} ${y + 42} ${cx - 14} ${y + 30} Z`}
+                      fill="#c0a8d0" opacity="0.35"
+                      stroke="#c8a840" strokeWidth="0.8"
+                    />
+                    <circle cx={cx} cy={y + 30} r="7"
+                      fill="#2a1830" stroke="#c8a840"
+                      strokeWidth="0.6" opacity="0.90" />
+                    <circle cx={cx} cy={y + 30} r="3.5" fill="#0a0610" />
+                    <circle cx={cx - 1.5} cy={y + 28} r="1.2"
+                      fill="#e0d8f0" opacity="0.70" />
+                    {[-10, -6, -2, 2, 6, 10].map((dx, li) => (
+                      <line key={li}
+                        x1={cx + dx} y1={y + 20}
+                        x2={cx + dx * 1.1} y2={y + 16}
+                        stroke="#c8a840" strokeWidth="0.7"
+                        opacity="0.55"
+                      />
+                    ))}
+                    <text x={cx} y={y + CARD_H - 6}
+                      textAnchor="middle"
+                      fontFamily="EB Garamond, serif"
+                      fontSize="5" fontStyle="italic"
+                      fill="#c8a840" opacity="0.60"
+                    >The Eye</text>
+                  </g>
+                )}
+              </>
+            ) : (
+              <>
+                <rect x={x} y={y} width={CARD_W} height={CARD_H}
+                  rx={CARD_R}
+                  fill={`url(#${gId('card-back')})`}
+                  stroke="#8a3040" strokeWidth="0.8"
+                />
+                <rect x={x + 3} y={y + 3}
+                  width={CARD_W - 6} height={CARD_H - 6}
+                  rx={CARD_R - 1} fill="none"
+                  stroke="#c8a840" strokeWidth="0.5" opacity="0.40"
+                />
+                {[10, 7, 4].map((r, ri) => (
+                  <path key={ri}
+                    d={`M ${cx} ${cy - r * 2.2}
+                        L ${cx + r * 1.4} ${cy}
+                        L ${cx} ${cy + r * 2.2}
+                        L ${cx - r * 1.4} ${cy} Z`}
+                    stroke="#c8a840" strokeWidth="0.5"
+                    fill="none" opacity={0.55 - ri * 0.12}
+                  />
+                ))}
+                <line x1={cx} y1={y + 8} x2={cx} y2={y + CARD_H - 8}
+                  stroke="#c8a840" strokeWidth="0.4" opacity="0.22" />
+                <line x1={x + 6} y1={cy} x2={x + CARD_W - 6} y2={cy}
+                  stroke="#c8a840" strokeWidth="0.4" opacity="0.22" />
+                {[
+                  [x + 7, y + 7], [x + CARD_W - 7, y + 7],
+                  [x + 7, y + CARD_H - 7], [x + CARD_W - 7, y + CARD_H - 7],
+                ].map(([sx, sy], si) => (
+                  <circle key={si} cx={sx} cy={sy} r="2"
+                    fill="#c8a840" opacity="0.35" />
+                ))}
+              </>
+            )}
+          </g>
+        )
+      })}
+
+      {/* ── RUNE STONES ── */}
+      {STONES.map(([cx, cy, rx, ry, rot, rune], i) => (
+        <g key={i} transform={`rotate(${rot} ${cx} ${cy})`}>
+          <ellipse cx={cx + 1} cy={cy + 2} rx={rx} ry={ry}
+            fill="#000000" opacity="0.40" />
+          <ellipse cx={cx} cy={cy} rx={rx} ry={ry}
+            fill={`url(#${gId('stone')})`}
+            stroke="#3a2c18" strokeWidth="0.8"
+          />
+          <ellipse
+            cx={cx - rx * 0.25} cy={cy - ry * 0.25}
+            rx={rx * 0.45} ry={ry * 0.35}
+            fill="#3a2c18" opacity="0.55"
+          />
+          {rune === 'M' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <path d={`M ${cx - 3} ${cy + 3}
+                        L ${cx - 3} ${cy - 3}
+                        L ${cx} ${cy}
+                        L ${cx + 3} ${cy - 3}
+                        L ${cx + 3} ${cy + 3}`}
+                stroke="#9090a0" strokeWidth="0.7" fill="none" opacity="0.55" />
+            </g>
+          )}
+          {rune === 'F' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <line x1={cx} y1={cy - 4} x2={cx} y2={cy + 4}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <line x1={cx} y1={cy - 3} x2={cx + 3} y2={cy - 1}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <line x1={cx} y1={cy - 0.5} x2={cx + 3} y2={cy + 1}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.50" />
+            </g>
+          )}
+          {rune === 'R' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <line x1={cx} y1={cy - 4} x2={cx} y2={cy + 4}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <path d={`M ${cx} ${cy - 4}
+                        L ${cx + 3} ${cy - 1}
+                        L ${cx} ${cy}
+                        L ${cx + 3} ${cy + 4}`}
+                stroke="#9090a0" strokeWidth="0.7" fill="none" opacity="0.55" />
+            </g>
+          )}
+          {rune === 'T' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <line x1={cx} y1={cy - 4} x2={cx} y2={cy + 4}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <line x1={cx - 3} y1={cy - 1} x2={cx + 3} y2={cy - 1}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+            </g>
+          )}
+          {rune === 'S' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <path d={`M ${cx - 3} ${cy - 4}
+                        L ${cx + 3} ${cy - 1}
+                        L ${cx - 3} ${cy + 1}
+                        L ${cx + 3} ${cy + 4}`}
+                stroke="#9090a0" strokeWidth="0.7" fill="none" opacity="0.55" />
+            </g>
+          )}
+          {rune === 'N' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <line x1={cx - 2.5} y1={cy - 4} x2={cx - 2.5} y2={cy + 4}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <line x1={cx + 2.5} y1={cy - 4} x2={cx + 2.5} y2={cy + 4}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <line x1={cx - 2.5} y1={cy - 3} x2={cx + 2.5} y2={cy + 3}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+            </g>
+          )}
+          {rune === 'E' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <line x1={cx - 3} y1={cy - 4} x2={cx + 3} y2={cy - 4}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <path d={`M ${cx - 3} ${cy - 4}
+                        L ${cx - 3} ${cy + 4}
+                        L ${cx + 3} ${cy + 4}`}
+                stroke="#9090a0" strokeWidth="0.7" fill="none" opacity="0.55" />
+            </g>
+          )}
+          {rune === 'G' && (
+            <g transform={`rotate(${-rot} ${cx} ${cy})`}>
+              <line x1={cx - 3.5} y1={cy - 3.5} x2={cx + 3.5} y2={cy + 3.5}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+              <line x1={cx + 3.5} y1={cy - 3.5} x2={cx - 3.5} y2={cy + 3.5}
+                stroke="#9090a0" strokeWidth="0.7" opacity="0.55" />
+            </g>
+          )}
+        </g>
+      ))}
+
+      {/* ── CRYSTAL PENDULUM ── */}
+      <path d="M 450 0 C 452 28, 460 48, 468 72"
+        stroke="#8090a0" strokeWidth="0.8"
+        strokeDasharray="2 2" opacity="0.55"
+      />
+      <circle cx="450" cy="2" r="3"
+        stroke="#7080a0" strokeWidth="0.8" fill="none" opacity="0.45" />
+
+      <path
+        d="M 468 72 L 462 82 L 460 95 L 471 110 L 482 95 L 480 82 Z"
+        fill={`url(#${gId('crystal')})`}
+        filter={`url(#${gId('crystal-filter')})`}
+        stroke="#b0b8d8" strokeWidth="0.8"
+        opacity="0.90"
+      />
+      <line x1="468" y1="72" x2="471" y2="110"
+        stroke="#d0d8f0" strokeWidth="0.4" opacity="0.50" />
+      <line x1="462" y1="82" x2="480" y2="82"
+        stroke="#d0d8f0" strokeWidth="0.4" opacity="0.40" />
+      <line x1="460" y1="95" x2="482" y2="95"
+        stroke="#d0d8f0" strokeWidth="0.4" opacity="0.40" />
+      <ellipse cx="471" cy="72" rx="5" ry="3"
+        fill="#9098c0" opacity="0.70" />
+      <path d="M 462 82 L 468 72 L 471 80 Z"
+        fill="white" opacity="0.50" />
+      <ellipse cx="469" cy="88" rx="6" ry="12"
+        fill={`url(#${gId('crystal-glow')})`}
+        opacity="0.35"
+      />
+
+      {/* Prismatic scatter on cloth below crystal */}
+      {SCATTER.map(([px, py, prx, pry, pcolor, pop], pi) => (
+        <ellipse key={pi}
+          cx={px} cy={py} rx={prx} ry={pry}
+          fill={pcolor}
+          opacity={pop}
+        />
+      ))}
+
+      {/* ── CANDLES — rear corners ── */}
+
+      {/* Left candle (x=110) */}
+      <g>
+        <ellipse cx="110" cy="22" rx="10" ry="14"
+          fill={`url(#${gId('flame')})`}
+          filter={`url(#${gId('flame-glow')})`}
+          opacity="0.85"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0s',
+          }}
+        />
+        <ellipse cx="110" cy="26" rx="5" ry="8"
+          fill={`url(#${gId('flame')})`}
+          opacity="0.92"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0s',
+          }}
+        />
+        <ellipse cx="110" cy="30" rx="2.5" ry="4"
+          fill="#fff8e0" opacity="0.80"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.1s',
+          }}
+        />
+        <line x1="110" y1="36" x2="110" y2="32"
+          stroke="#1a1008" strokeWidth="0.8" />
+        <rect x="106" y="36" width="8" height="28" rx="0.5"
+          fill={`url(#${gId('wax')})`} />
+        <path d="M 108 42 C 107 46, 106 50, 106 55"
+          stroke="#d4c8a8" strokeWidth="1.5"
+          strokeLinecap="round" fill="none" opacity="0.65" />
+        <ellipse cx="110" cy="64" rx="8" ry="2" fill="#8a5818" />
+        <rect x="103" y="64" width="14" height="3" rx="0.5" fill="#6a4010" />
+      </g>
+
+      {/* Right candle (x=790) — staggered flame delay */}
+      <g>
+        <ellipse cx="790" cy="22" rx="10" ry="14"
+          fill={`url(#${gId('flame')})`}
+          filter={`url(#${gId('flame-glow')})`}
+          opacity="0.82"
+          style={{
+            animationName: 'mojo-flame-main',
+            animationDuration: '1.8s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.45s',
+          }}
+        />
+        <ellipse cx="790" cy="26" rx="5" ry="8"
+          fill={`url(#${gId('flame')})`}
+          opacity="0.90"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.45s',
+          }}
+        />
+        <ellipse cx="790" cy="30" rx="2.5" ry="4"
+          fill="#fff8e0" opacity="0.78"
+          style={{
+            animationName: 'mojo-flame-inner',
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+            animationDelay: '0.55s',
+          }}
+        />
+        <line x1="790" y1="36" x2="790" y2="32"
+          stroke="#1a1008" strokeWidth="0.8" />
+        <rect x="786" y="36" width="8" height="28" rx="0.5"
+          fill={`url(#${gId('wax')})`} />
+        <path d="M 792 44 C 793 48, 794 52, 793 57"
+          stroke="#d4c8a8" strokeWidth="1.5"
+          strokeLinecap="round" fill="none" opacity="0.60" />
+        <ellipse cx="790" cy="64" rx="8" ry="2" fill="#8a5818" />
+        <rect x="783" y="64" width="14" height="3" rx="0.5" fill="#6a4010" />
+      </g>
+
+      {/* ── ATMOSPHERIC OVERLAYS ── */}
+      <rect x="0" y="0" width="900" height="220"
+        fill={`url(#${gId('vignette')})`} />
+      <rect x="60" y="170" width="780" height="40" rx="4"
+        fill="#000000" opacity="0.20" />
+    </svg>
+  )
+}
