@@ -12,6 +12,11 @@ const DESIGNS = [
     title: 'Library — Old Study / Hearth',
     description: 'Stone fireplace in a forgotten scholar\'s study. Books stacked around the hearth, ivy on stone, mantle candles. Option B for The Library page.',
   },
+  {
+    slug: 'hall-of-mirrors',
+    title: 'Stacks — Hall of Mirrors',
+    description: 'A candlelit perspective corridor with six gothic arched mirrors, each showing a different ghostly reflection. Proposed replacement for The Reliquary on the Stacks page.',
+  },
 ]
 
 export default function DesignIndexPage() {

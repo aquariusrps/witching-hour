@@ -5330,3 +5330,597 @@ export function SvgIvyColumn({
     </svg>
   )
 }
+
+// ─── MOJO-FIX-023: SvgHallOfMirrors — The Atelier preview ───
+
+type MirrorGeometry = {
+  tl: { x: number; y: number }
+  tr: { x: number; y: number }
+  bl: { x: number; y: number }
+  br: { x: number; y: number }
+  apex: { x: number; y: number }
+  frameW: number
+  mirW: number
+  mirH: number
+  midX: number
+  t: number
+}
+
+export function SvgHallOfMirrors({
+  className = '',
+  idSuffix = 'hom',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+  const VP = { x: 450, y: 95 }
+
+  // ── COMPUTE MIRROR POSITIONS ──
+  const depths = [0.15, 0.45, 0.68]
+
+  const leftMirrors: MirrorGeometry[] = depths.map((t) => {
+    const wallX = 80 + 370 * t
+    const wallTopY = 95 * t
+    const wallBotY = 200 - 105 * t
+    const wallH = wallBotY - wallTopY
+    const mirH = wallH * 0.55
+    const mirTopY = wallTopY + wallH * 0.22
+    const mirBotY = mirTopY + mirH
+    const mirW = mirH * 0.38
+    const mirRightX = wallX
+    const mirLeftX = mirRightX - mirW
+    const archY = mirTopY - mirH * 0.18
+    const midX = (mirLeftX + mirRightX) / 2
+    const frameW = mirW * 0.12
+    return {
+      tl: { x: mirLeftX, y: mirTopY },
+      tr: { x: mirRightX, y: mirTopY },
+      bl: { x: mirLeftX, y: mirBotY },
+      br: { x: mirRightX, y: mirBotY },
+      apex: { x: midX, y: archY },
+      frameW,
+      mirW,
+      mirH,
+      midX,
+      t,
+    }
+  })
+
+  const rightMirrors: MirrorGeometry[] = depths.map((t) => {
+    const wallX = 820 - 370 * t
+    const wallTopY = 95 * t
+    const wallBotY = 200 - 105 * t
+    const wallH = wallBotY - wallTopY
+    const mirH = wallH * 0.55
+    const mirTopY = wallTopY + wallH * 0.22
+    const mirBotY = mirTopY + mirH
+    const mirW = mirH * 0.38
+    const mirLeftX = wallX
+    const mirRightX = mirLeftX + mirW
+    const archY = mirTopY - mirH * 0.18
+    const midX = (mirLeftX + mirRightX) / 2
+    const frameW = mirW * 0.12
+    return {
+      tl: { x: mirLeftX, y: mirTopY },
+      tr: { x: mirRightX, y: mirTopY },
+      bl: { x: mirLeftX, y: mirBotY },
+      br: { x: mirRightX, y: mirBotY },
+      apex: { x: midX, y: archY },
+      frameW,
+      mirW,
+      mirH,
+      midX,
+      t,
+    }
+  })
+
+  // Ghost shape opacities — near mirrors brighter, far mirrors fainter
+  const ghostOpacities = [0.18, 0.10, 0.05]
+
+  // Frame path for a mirror — pointed gothic arch top, flat-ish sides
+  function framePath(m: MirrorGeometry, outerL: number, outerR: number) {
+    return `M ${m.bl.x - outerL} ${m.bl.y + m.frameW}
+            L ${m.br.x + outerR} ${m.br.y + m.frameW}
+            L ${m.br.x + outerR} ${m.tr.y}
+            Q ${m.apex.x + m.mirW * 0.1} ${m.apex.y - m.frameW}
+              ${m.apex.x} ${m.apex.y - m.frameW * 1.5}
+            Q ${m.apex.x - m.mirW * 0.1} ${m.apex.y - m.frameW}
+              ${m.tl.x - outerL} ${m.tl.y}
+            L ${m.tl.x - outerL} ${m.bl.y + m.frameW} Z`
+  }
+
+  // Glass clip path — arched top matching the frame's inner edge
+  function glassPath(m: MirrorGeometry) {
+    return `M ${m.bl.x} ${m.bl.y}
+            L ${m.br.x} ${m.br.y}
+            L ${m.tr.x} ${m.tr.y}
+            Q ${m.apex.x + m.mirW * 0.08} ${m.apex.y}
+              ${m.apex.x} ${m.apex.y - m.mirH * 0.05}
+            Q ${m.apex.x - m.mirW * 0.08} ${m.apex.y}
+              ${m.tl.x} ${m.tl.y}
+            Z`
+  }
+
+  return (
+    <svg
+      width="100%"
+      height="200"
+      viewBox="0 0 900 200"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* Ambient candlelight from VP — warm amber wash */}
+        <radialGradient id={gId('vp-glow')} cx="50%" cy="47.5%" r="50%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.40" />
+          <stop offset="30%"  stopColor="#c87800" stopOpacity="0.15" />
+          <stop offset="65%"  stopColor="#c86000" stopOpacity="0.05" />
+          <stop offset="100%" stopColor="#c84000" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Stone wall gradients */}
+        <linearGradient id={gId('wall-l')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#1a1614" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#0e0c0a" stopOpacity="0.90" />
+        </linearGradient>
+        <linearGradient id={gId('wall-r')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#0e0c0a" stopOpacity="0.90" />
+          <stop offset="100%" stopColor="#1a1614" stopOpacity="0.95" />
+        </linearGradient>
+
+        {/* Floor gradient — lighter toward VP (lit by candle) */}
+        <linearGradient id={gId('floor')} x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stopColor="#0e0c10" />
+          <stop offset="60%"  stopColor="#141218" />
+          <stop offset="100%" stopColor="#1c1820" />
+        </linearGradient>
+
+        {/* Ceiling gradient */}
+        <linearGradient id={gId('ceil')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#080608" />
+          <stop offset="100%" stopColor="#0c0a0e" />
+        </linearGradient>
+
+        {/* Mirror glass gradient — dark with shimmer */}
+        <linearGradient id={gId('glass')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#0a0a18" stopOpacity="0.95" />
+          <stop offset="35%"  stopColor="#12121e" stopOpacity="0.90" />
+          <stop offset="55%"  stopColor="#1a1a2a" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#0e0e1c" stopOpacity="0.95" />
+        </linearGradient>
+
+        {/* Mirror specular highlight — top-left catch-light */}
+        <radialGradient id={gId('specular')} cx="25%" cy="15%" r="40%">
+          <stop offset="0%"   stopColor="#c0c0e0" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#c0c0e0" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Gilt frame gradient — metallic gold */}
+        <linearGradient id={gId('gilt')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#6a4010" />
+          <stop offset="25%"  stopColor="#c8a840" />
+          <stop offset="50%"  stopColor="#f0d060" />
+          <stop offset="75%"  stopColor="#c8a840" />
+          <stop offset="100%" stopColor="#6a4010" />
+        </linearGradient>
+
+        {/* Ghost shape gradient — faint pale figure in glass */}
+        <radialGradient id={gId('ghost')} cx="50%" cy="40%" r="50%">
+          <stop offset="0%"   stopColor="#c0c8e0" stopOpacity="1" />
+          <stop offset="60%"  stopColor="#9098c0" stopOpacity="0.60" />
+          <stop offset="100%" stopColor="#6070a0" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Archway vignette — dark arch frame around entire scene */}
+        <radialGradient id={gId('vignette')} cx="50%" cy="50%" r="55%">
+          <stop offset="60%"  stopColor="#000000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.75" />
+        </radialGradient>
+
+        {/* Mist gradient — cool blue-white, floor level */}
+        <linearGradient id={gId('mist')} x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%"   stopColor="#a8b8d0" stopOpacity="0.12" />
+          <stop offset="40%"  stopColor="#a8b8d0" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#a8b8d0" stopOpacity="0" />
+        </linearGradient>
+
+        {/* Candle flame at VP */}
+        <radialGradient id={gId('vp-flame')} cx="50%" cy="80%" r="55%">
+          <stop offset="0%"   stopColor="#fff8e0" stopOpacity="1" />
+          <stop offset="40%"  stopColor="#f0a020" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#c06010" stopOpacity="0" />
+        </radialGradient>
+
+        <filter id={gId('flame-filter')}
+          x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+
+        {/* Stone block clip for arch sides */}
+        <clipPath id={gId('scene-clip')}>
+          <rect x="0" y="0" width="900" height="200" />
+        </clipPath>
+      </defs>
+
+      {/* ══════════════════════════════════════
+          BACKGROUND — deep void
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="200" fill="#080608" />
+
+      {/* ══════════════════════════════════════
+          CORRIDOR WALLS, FLOOR, CEILING
+          ══════════════════════════════════════ */}
+
+      {/* LEFT WALL — triangle from (80,0),(80,200) to VP */}
+      <path
+        d={`M 80 0 L ${VP.x} ${VP.y} L 80 200 Z`}
+        fill={`url(#${gId('wall-l')})`}
+      />
+      {/* Stone coursing lines — converge to VP, mathematically correct one-point perspective */}
+      {[0.15, 0.30, 0.45, 0.60, 0.75, 0.88].map((f, i) => (
+        <line key={i}
+          x1="80" y1={f * 200}
+          x2={VP.x} y2={VP.y}
+          stroke="#141210" strokeWidth="0.6" opacity="0.35"
+          clipPath={`url(#${gId('scene-clip')})`}
+        />
+      ))}
+
+      {/* RIGHT WALL */}
+      <path
+        d={`M 820 0 L ${VP.x} ${VP.y} L 820 200 Z`}
+        fill={`url(#${gId('wall-r')})`}
+      />
+      {[0.15, 0.30, 0.45, 0.60, 0.75, 0.88].map((f, i) => (
+        <line key={i}
+          x1="820" y1={f * 200}
+          x2={VP.x} y2={VP.y}
+          stroke="#141210" strokeWidth="0.6" opacity="0.35"
+          clipPath={`url(#${gId('scene-clip')})`}
+        />
+      ))}
+
+      {/* FLOOR — triangle from (80,200),(820,200) to VP */}
+      <path
+        d={`M 80 200 L 820 200 L ${VP.x} ${VP.y} Z`}
+        fill={`url(#${gId('floor')})`}
+      />
+
+      {/* Floor tile diamond pattern — four rows, narrower toward VP */}
+      {[0.85, 0.65, 0.45, 0.25].map((t, row) => {
+        const floorY = 200 - (200 - VP.y) * (1 - t)
+        const leftX = 80 + 370 * t
+        const rightX = 820 - 370 * t
+        const rowW = rightX - leftX
+        const tileW = rowW / 6
+        const tileH = (200 - floorY) * 0.45
+        return Array.from({ length: 6 }, (_, col) => {
+          const tx = leftX + col * tileW
+          const altFill = (row + col) % 2 === 0 ? '#0e0c10' : '#131018'
+          return (
+            <path key={`${row}-${col}`}
+              d={`M ${tx + tileW / 2} ${floorY}
+                  L ${tx + tileW} ${floorY + tileH}
+                  L ${tx + tileW / 2} ${floorY + tileH * 2}
+                  L ${tx} ${floorY + tileH} Z`}
+              fill={altFill}
+              stroke="#1a1820" strokeWidth="0.4"
+              clipPath={`url(#${gId('scene-clip')})`}
+            />
+          )
+        })
+      })}
+
+      {/* CEILING — triangle from (80,0),(820,0) to VP */}
+      <path
+        d={`M 80 0 L 820 0 L ${VP.x} ${VP.y} Z`}
+        fill={`url(#${gId('ceil')})`}
+      />
+      {/* Ceiling stone blocks */}
+      {[0.2, 0.4, 0.6, 0.8].map((t, i) => {
+        const leftX = 80 + 370 * t
+        const rightX = 820 - 370 * t
+        return (
+          <line key={i}
+            x1={leftX} y1={95 * t}
+            x2={rightX} y2={95 * t}
+            stroke="#0c0a0e" strokeWidth="0.8" opacity="0.60"
+          />
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          MIRRORS — LEFT SIDE
+          ══════════════════════════════════════ */}
+
+      {leftMirrors.map((m, i) => {
+        const opacity = 1 - i * 0.15
+        const ghostOp = ghostOpacities[i]
+        const glassClipId = gId(`lglass-clip-${i}`)
+
+        return (
+          <g key={`lm-${i}`} opacity={opacity}>
+            {/* Gothic arch frame (gilt) */}
+            <path
+              d={framePath(m, m.frameW, m.frameW * 0.5)}
+              fill={`url(#${gId('gilt')})`}
+              opacity="0.90"
+            />
+
+            {/* Mirror glass, clipped to the arch shape */}
+            <clipPath id={glassClipId}>
+              <path d={glassPath(m)} />
+            </clipPath>
+            <rect
+              x={m.tl.x} y={m.apex.y}
+              width={m.mirW} height={m.mirH + (m.tl.y - m.apex.y) + m.frameW}
+              fill={`url(#${gId('glass')})`}
+              clipPath={`url(#${glassClipId})`}
+            />
+
+            {/* Ghost shape in glass — different per mirror */}
+            {i === 0 && (
+              <ellipse
+                cx={m.midX - m.mirW * 0.1}
+                cy={(m.tl.y + m.bl.y) / 2 - m.mirH * 0.05}
+                rx={m.mirW * 0.15}
+                ry={m.mirH * 0.32}
+                fill={`url(#${gId('ghost')})`}
+                opacity={ghostOp}
+                clipPath={`url(#${glassClipId})`}
+              />
+            )}
+            {i === 1 && (
+              <path
+                d={`M ${m.midX} ${m.tl.y + m.mirH * 0.3}
+                    C ${m.midX + m.mirW * 0.2} ${m.tl.y + m.mirH * 0.4},
+                      ${m.midX - m.mirW * 0.2} ${m.tl.y + m.mirH * 0.5},
+                      ${m.midX} ${m.tl.y + m.mirH * 0.6}`}
+                stroke="#c0c8e0"
+                strokeWidth={m.mirW * 0.12}
+                strokeLinecap="round"
+                fill="none"
+                opacity={ghostOp * 0.8}
+                clipPath={`url(#${glassClipId})`}
+              />
+            )}
+            {i === 2 && (
+              <ellipse
+                cx={m.midX}
+                cy={(m.tl.y + m.bl.y) / 2}
+                rx={m.mirW * 0.25}
+                ry={m.mirH * 0.20}
+                fill={`url(#${gId('ghost')})`}
+                opacity={ghostOp * 0.6}
+                clipPath={`url(#${glassClipId})`}
+              />
+            )}
+
+            {/* Specular highlight */}
+            <rect
+              x={m.tl.x} y={m.apex.y}
+              width={m.mirW} height={m.mirH * 0.6}
+              fill={`url(#${gId('specular')})`}
+              clipPath={`url(#${glassClipId})`}
+            />
+
+            {/* Frame corner rosettes */}
+            {[
+              { x: m.tl.x - m.frameW * 0.5, y: m.tl.y },
+              { x: m.br.x + m.frameW * 0.3, y: m.br.y },
+              { x: m.bl.x - m.frameW * 0.5, y: m.bl.y },
+            ].map((pt, ri) => (
+              <circle key={ri}
+                cx={pt.x} cy={pt.y} r={m.frameW * 0.8}
+                fill="#c8a840" opacity="0.75"
+              />
+            ))}
+            {/* Apex ornament */}
+            <circle
+              cx={m.apex.x} cy={m.apex.y - m.frameW}
+              r={m.frameW * 1.0}
+              fill="#f0d060" opacity="0.80"
+            />
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          MIRRORS — RIGHT SIDE
+          ══════════════════════════════════════ */}
+
+      {rightMirrors.map((m, i) => {
+        const opacity = 1 - i * 0.15
+        const ghostOp = ghostOpacities[i]
+        const glassClipId = gId(`rglass-clip-${i}`)
+
+        return (
+          <g key={`rm-${i}`} opacity={opacity}>
+            <path
+              d={framePath(m, m.frameW * 0.5, m.frameW)}
+              fill={`url(#${gId('gilt')})`}
+              opacity="0.90"
+            />
+
+            <clipPath id={glassClipId}>
+              <path d={glassPath(m)} />
+            </clipPath>
+            <rect
+              x={m.tl.x} y={m.apex.y}
+              width={m.mirW} height={m.mirH + (m.tl.y - m.apex.y) + m.frameW}
+              fill={`url(#${gId('glass')})`}
+              clipPath={`url(#${glassClipId})`}
+            />
+
+            {/* Ghost shapes — different from left side */}
+            {i === 0 && (
+              <>
+                <circle
+                  cx={m.midX + m.mirW * 0.05}
+                  cy={(m.tl.y + m.bl.y) / 2 - m.mirH * 0.05}
+                  r={m.mirH * 0.22}
+                  fill="#c0c8e0"
+                  opacity={ghostOp}
+                  clipPath={`url(#${glassClipId})`}
+                />
+                <circle
+                  cx={m.midX + m.mirW * 0.15}
+                  cy={(m.tl.y + m.bl.y) / 2 - m.mirH * 0.08}
+                  r={m.mirH * 0.20}
+                  fill="#0a0a18"
+                  opacity={0.90}
+                  clipPath={`url(#${glassClipId})`}
+                />
+              </>
+            )}
+            {i === 1 && (
+              <>
+                {[0.25, 0.45, 0.65].map((frac, bi) => (
+                  <rect key={bi}
+                    x={m.tl.x + m.mirW * 0.1}
+                    y={m.tl.y + m.mirH * frac}
+                    width={m.mirW * 0.8}
+                    height={m.mirH * 0.05}
+                    fill="#c0c8e0"
+                    opacity={ghostOp * (1 - bi * 0.2)}
+                    clipPath={`url(#${glassClipId})`}
+                    rx="1"
+                  />
+                ))}
+              </>
+            )}
+            {i === 2 && (
+              <ellipse
+                cx={m.midX}
+                cy={(m.tl.y + m.bl.y) / 2}
+                rx={m.mirW * 0.22}
+                ry={m.mirH * 0.18}
+                fill={`url(#${gId('ghost')})`}
+                opacity={ghostOp * 0.5}
+                clipPath={`url(#${glassClipId})`}
+              />
+            )}
+
+            <rect
+              x={m.tl.x} y={m.apex.y}
+              width={m.mirW} height={m.mirH * 0.6}
+              fill={`url(#${gId('specular')})`}
+              clipPath={`url(#${glassClipId})`}
+            />
+
+            {[
+              { x: m.tr.x + m.frameW * 0.5, y: m.tr.y },
+              { x: m.bl.x - m.frameW * 0.3, y: m.bl.y },
+              { x: m.br.x + m.frameW * 0.5, y: m.br.y },
+            ].map((pt, ri) => (
+              <circle key={ri}
+                cx={pt.x} cy={pt.y} r={m.frameW * 0.8}
+                fill="#c8a840" opacity="0.75"
+              />
+            ))}
+            <circle
+              cx={m.apex.x} cy={m.apex.y - m.frameW}
+              r={m.frameW * 1.0}
+              fill="#f0d060" opacity="0.80"
+            />
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          CANDLE AT VANISHING POINT
+          ══════════════════════════════════════ */}
+
+      <rect x="448" y="100" width="4" height="18"
+        fill="#ede0c4" rx="0.5" />
+      <line x1="450" y1="100" x2="450" y2="97"
+        stroke="#1a1008" strokeWidth="0.8" />
+      <ellipse cx="450" cy="118" rx="6" ry="1.5"
+        fill="#b88820" />
+
+      {/* Flame — outer glow, inner, white core (staggered via animation-delay 0 since single instance) */}
+      <ellipse cx="450" cy="90" rx="12" ry="16"
+        fill={`url(#${gId('vp-flame')})`}
+        filter={`url(#${gId('flame-filter')})`}
+        opacity="0.90"
+        style={{
+          animationName: 'mojo-flame-main',
+          animationDuration: '1.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
+      />
+      <ellipse cx="450" cy="93" rx="6" ry="10"
+        fill={`url(#${gId('vp-flame')})`}
+        opacity="0.95"
+        style={{
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0s',
+        }}
+      />
+      <ellipse cx="450" cy="97" rx="3" ry="5"
+        fill="#fff8e0" opacity="0.85"
+        style={{
+          animationName: 'mojo-flame-inner',
+          animationDuration: '1.2s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDelay: '0.15s',
+        }}
+      />
+
+      {/* ══════════════════════════════════════
+          ATMOSPHERIC OVERLAYS
+          ══════════════════════════════════════ */}
+
+      <rect x="0" y="0" width="900" height="200"
+        fill={`url(#${gId('vp-glow')})`} />
+
+      {/* Floor mist — low-lying, near the viewer */}
+      <rect x="80" y="140" width="740" height="60"
+        fill={`url(#${gId('mist')})`} />
+
+      {/* ══════════════════════════════════════
+          ARCHWAY FRAME — stone entrance
+          ══════════════════════════════════════ */}
+
+      <rect x="0" y="0" width="82" height="200" fill="#0e0c0a" />
+      {[0, 28, 56, 84, 112, 140, 168, 196].map((y, i) => (
+        <rect key={i} x="0" y={y} width="82" height="27"
+          fill={i % 2 === 0 ? '#0e0c0a' : '#121008'}
+          stroke="#1a1612" strokeWidth="0.8"
+        />
+      ))}
+      <rect x="818" y="0" width="82" height="200" fill="#0e0c0a" />
+      {[0, 28, 56, 84, 112, 140, 168, 196].map((y, i) => (
+        <rect key={i} x="818" y={y} width="82" height="27"
+          fill={i % 2 === 0 ? '#0e0c0a' : '#121008'}
+          stroke="#1a1612" strokeWidth="0.8"
+        />
+      ))}
+
+      {/* Archway inner edges — the reveal of the stone */}
+      <rect x="78" y="0" width="5" height="200" fill="#1a1614" opacity="0.70" />
+      <rect x="817" y="0" width="5" height="200" fill="#1a1614" opacity="0.70" />
+
+      {/* Vignette overlay */}
+      <rect x="0" y="0" width="900" height="200"
+        fill={`url(#${gId('vignette')})`} />
+
+      {/* Corridor edge shadow lines */}
+      <line x1="80" y1="0"   x2={VP.x} y2={VP.y} stroke="#000000" strokeWidth="2" opacity="0.60" />
+      <line x1="80" y1="200" x2={VP.x} y2={VP.y} stroke="#000000" strokeWidth="2" opacity="0.60" />
+      <line x1="820" y1="0"   x2={VP.x} y2={VP.y} stroke="#000000" strokeWidth="2" opacity="0.60" />
+      <line x1="820" y1="200" x2={VP.x} y2={VP.y} stroke="#000000" strokeWidth="2" opacity="0.60" />
+    </svg>
+  )
+}
