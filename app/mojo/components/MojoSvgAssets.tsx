@@ -7960,3 +7960,657 @@ export function SvgWitchesAttic({
     </svg>
   )
 }
+
+export function SvgPortraitHall({
+  className = '',
+  idSuffix = 'ph',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  // Portrait data — fully typed
+  type Portrait = {
+    id: string
+    cx: number; cy: number; w: number; h: number
+    shape: 'rect' | 'oval'
+    fw: number        // frame border width
+    bg: string        // canvas background color
+    skin: string      // face skin tone
+    shadow: string    // shadow side color
+    eyeColor: string
+    frameStyle: 'baroque'|'gothic'|'neoclassical'|'rope'|'victorian'
+  }
+
+  const portraits: Portrait[] = [
+    // Top row
+    { id:'p1', cx:148, cy:70,  w:88,  h:98,  shape:'oval', fw:9,
+      bg:'#1e1018', skin:'#d8b898', shadow:'#8a5838', eyeColor:'#2a1a10',
+      frameStyle:'victorian' },
+    { id:'p2', cx:450, cy:62,  w:112, h:102, shape:'rect', fw:12,
+      bg:'#1a1040', skin:'#e0d0c0', shadow:'#b09880', eyeColor:'#1a1428',
+      frameStyle:'gothic' },
+    { id:'p3', cx:752, cy:70,  w:88,  h:98,  shape:'oval', fw:9,
+      bg:'#0e0c14', skin:'#a87858', shadow:'#502808', eyeColor:'#100808',
+      frameStyle:'victorian' },
+    // Main row
+    { id:'p4', cx:188, cy:152, w:92,  h:116, shape:'rect', fw:10,
+      bg:'#181c24', skin:'#c8b8a0', shadow:'#887060', eyeColor:'#1a1818',
+      frameStyle:'neoclassical' },
+    { id:'p5', cx:360, cy:155, w:108, h:124, shape:'rect', fw:14,
+      bg:'#0e0806', skin:'#c8a880', shadow:'#1a0e08', eyeColor:'#0e0808',
+      frameStyle:'baroque' },
+    { id:'p6', cx:540, cy:155, w:108, h:124, shape:'rect', fw:11,
+      bg:'#1a2830', skin:'#d4b090', shadow:'#8a5830', eyeColor:'#1a1010',
+      frameStyle:'rope' },
+    { id:'p7', cx:712, cy:152, w:92,  h:116, shape:'rect', fw:10,
+      bg:'#201818', skin:'#c0a888', shadow:'#785840', eyeColor:'#181410',
+      frameStyle:'neoclassical' },
+  ]
+
+  // Helper: render a painted face within a canvas area
+  // cx/cy = center of canvas, cw/ch = canvas width/height
+  // The face is built from layered ellipses suggesting oil paint
+  function renderFace(
+    p: Portrait,
+    cx: number, cy: number, cw: number, ch: number,
+    clipId: string
+  ) {
+    const faceW = cw * 0.55
+    const faceH = ch * 0.70
+    const isChairo = p.frameStyle === 'baroque' && p.bg === '#0e0806'
+
+    return (
+      <g clipPath={`url(#${clipId})`}>
+        {/* Face base — warm skin ellipse */}
+        <ellipse cx={cx} cy={cy + ch*0.05}
+          rx={faceW * 0.5} ry={faceH * 0.5}
+          fill={p.skin} opacity="0.82"
+        />
+        {/* Shadow side — left or right depending on portrait */}
+        <ellipse
+          cx={cx + (isChairo ? -faceW*0.15 : faceW*0.12)}
+          cy={cy + ch*0.05}
+          rx={faceW * 0.38}
+          ry={faceH * 0.50}
+          fill={p.shadow}
+          opacity={isChairo ? "0.75" : "0.45"}
+        />
+        {/* Neck suggestion */}
+        <ellipse cx={cx} cy={cy + faceH*0.52}
+          rx={faceW * 0.18} ry={ch * 0.12}
+          fill={p.skin} opacity="0.55"
+        />
+        {/* Eyes — two subtle dark ellipses */}
+        <ellipse
+          cx={cx - faceW*0.14} cy={cy - faceH*0.06}
+          rx={faceW * 0.09} ry={faceH * 0.04}
+          fill={p.eyeColor} opacity="0.60"
+        />
+        <ellipse
+          cx={cx + faceW*0.14} cy={cy - faceH*0.06}
+          rx={faceW * 0.09} ry={faceH * 0.04}
+          fill={p.eyeColor} opacity="0.55"
+        />
+        {/* Brow shadows */}
+        <ellipse
+          cx={cx - faceW*0.14} cy={cy - faceH*0.12}
+          rx={faceW * 0.11} ry={faceH * 0.025}
+          fill={p.shadow} opacity="0.30"
+        />
+        <ellipse
+          cx={cx + faceW*0.14} cy={cy - faceH*0.12}
+          rx={faceW * 0.10} ry={faceH * 0.025}
+          fill={p.shadow} opacity="0.28"
+        />
+        {/* Nose bridge — subtle vertical shadow */}
+        <ellipse cx={cx} cy={cy + faceH*0.06}
+          rx={faceW * 0.04} ry={faceH * 0.09}
+          fill={p.shadow} opacity="0.18"
+        />
+        {/* Lips suggestion */}
+        <ellipse cx={cx} cy={cy + faceH*0.24}
+          rx={faceW * 0.14} ry={faceH * 0.04}
+          fill={p.shadow} opacity="0.28"
+        />
+        {/* Painted canvas texture — varnish crackle suggestion */}
+        <line
+          x1={cx - cw*0.4} y1={cy - ch*0.4}
+          x2={cx + cw*0.3} y2={cy + ch*0.4}
+          stroke={p.skin} strokeWidth="0.5" opacity="0.06"
+        />
+        <line
+          x1={cx + cw*0.3} y1={cy - ch*0.4}
+          x2={cx - cw*0.2} y2={cy + ch*0.4}
+          stroke={p.skin} strokeWidth="0.4" opacity="0.04"
+        />
+      </g>
+    )
+  }
+
+  return (
+    <svg
+      width="100%"
+      height="210"
+      viewBox="0 0 900 210"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* ── WALL PANELING ── */}
+        <linearGradient id={gId('wall')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#141008" />
+          <stop offset="100%" stopColor="#0e0c06" />
+        </linearGradient>
+
+        {/* ── GILT FRAME GOLD ── */}
+        <linearGradient id={gId('gilt')} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#7a5010" />
+          <stop offset="25%"  stopColor="#c8a840" />
+          <stop offset="50%"  stopColor="#f0d060" />
+          <stop offset="75%"  stopColor="#c8a840" />
+          <stop offset="100%" stopColor="#6a4008" />
+        </linearGradient>
+        <linearGradient id={gId('gilt-v')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#f0d060" />
+          <stop offset="50%"  stopColor="#c8a840" />
+          <stop offset="100%" stopColor="#7a5010" />
+        </linearGradient>
+        <linearGradient id={gId('gilt-dark')} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#4a2c08" />
+          <stop offset="50%"  stopColor="#8a6018" />
+          <stop offset="100%" stopColor="#3a2006" />
+        </linearGradient>
+
+        {/* ── SCONCE GLOW (warm amber per portrait) ── */}
+        <radialGradient id={gId('sconce')} cx="50%" cy="0%" r="80%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.45" />
+          <stop offset="40%"  stopColor="#c87000" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#c86000" stopOpacity="0" />
+        </radialGradient>
+
+        {/* ── NAMEPLATE (brass) ── */}
+        <linearGradient id={gId('brass')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#6a4808" />
+          <stop offset="40%"  stopColor="#a07828" />
+          <stop offset="60%"  stopColor="#c8a040" />
+          <stop offset="100%" stopColor="#6a4808" />
+        </linearGradient>
+
+        {/* ── VIGNETTE ── */}
+        <radialGradient id={gId('vignette')} cx="50%" cy="50%" r="60%">
+          <stop offset="40%"  stopColor="#000000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.65" />
+        </radialGradient>
+
+        {/* ── CANVAS CLIP PATHS (one per portrait) ── */}
+        {portraits.map(p => {
+          const left  = p.cx - p.w/2 + p.fw
+          const top   = p.cy - p.h/2 + p.fw
+          const cw    = p.w - p.fw*2
+          const ch    = p.h - p.fw*2
+          return p.shape === 'oval' ? (
+            <clipPath key={p.id} id={gId(`clip-${p.id}`)}>
+              <ellipse cx={p.cx} cy={p.cy} rx={cw/2} ry={ch/2} />
+            </clipPath>
+          ) : (
+            <clipPath key={p.id} id={gId(`clip-${p.id}`)}>
+              <rect x={left} y={top} width={cw} height={ch} />
+            </clipPath>
+          )
+        })}
+      </defs>
+
+      {/* ══════════════════════════════════════
+          LAYER 1 — DARK WOOD WALL
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="210"
+        fill={`url(#${gId('wall')})`}
+      />
+      {/* Vertical panel lines — wood paneling */}
+      {[90, 180, 270, 360, 450, 540, 630, 720, 810].map((x, i) => (
+        <line key={i} x1={x} y1="0" x2={x} y2="210"
+          stroke="#1e1a0e" strokeWidth="1.5" opacity="0.40"
+        />
+      ))}
+      {/* Raised molding — horizontal rails */}
+      <rect x="0" y="8"   width="900" height="2"
+        fill="#1e1a0e" opacity="0.45" />
+      <rect x="0" y="200" width="900" height="2"
+        fill="#1e1a0e" opacity="0.45" />
+
+      {/* ══════════════════════════════════════
+          LAYER 2 — FRIEZE (top decorative band)
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="10"
+        fill="#181408" />
+      <line x1="0" y1="10" x2="900" y2="10"
+        stroke="#c8a840" strokeWidth="0.8" opacity="0.30" />
+      {/* Egg-and-dart motif — alternating ovals and dashes */}
+      {Array.from({ length: 36 }, (_, i) => (
+        i % 2 === 0 ? (
+          <ellipse key={i}
+            cx={12 + i * 25} cy="5" rx="6" ry="3"
+            fill="#c8a840" opacity="0.18"
+          />
+        ) : (
+          <line key={i}
+            x1={12 + i * 25} y1="3"
+            x2={12 + i * 25} y2="7"
+            stroke="#c8a840" strokeWidth="1.5" opacity="0.14"
+          />
+        )
+      ))}
+
+      {/* ══════════════════════════════════════
+          LAYER 3 — SCONCE GLOWS (behind frames)
+          ══════════════════════════════════════ */}
+      {portraits.map(p => (
+        <ellipse key={p.id}
+          cx={p.cx}
+          cy={p.cy - p.h/2 - 5}
+          rx={p.w * 0.65}
+          ry={p.h * 0.60}
+          fill={`url(#${gId('sconce')})`}
+        />
+      ))}
+
+      {/* ══════════════════════════════════════
+          LAYER 4 — FRAMES
+          Each frame rendered in its own style
+          ══════════════════════════════════════ */}
+      {portraits.map(p => {
+        const left   = p.cx - p.w/2
+        const top    = p.cy - p.h/2
+        const right  = p.cx + p.w/2
+        const bottom = p.cy + p.h/2
+        const fw = p.fw
+
+        if (p.frameStyle === 'victorian' && p.shape === 'oval') {
+          // Victorian oval frame
+          return (
+            <g key={p.id}>
+              {/* Outer oval — dark base */}
+              <ellipse cx={p.cx} cy={p.cy}
+                rx={p.w/2} ry={p.h/2}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              {/* Gilt middle ring */}
+              <ellipse cx={p.cx} cy={p.cy}
+                rx={p.w/2 - 2} ry={p.h/2 - 2}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="4" fill="none"
+              />
+              {/* Inner ring */}
+              <ellipse cx={p.cx} cy={p.cy}
+                rx={p.w/2 - 7} ry={p.h/2 - 7}
+                stroke="#c8a840" strokeWidth="0.8"
+                fill="none" opacity="0.50"
+              />
+              {/* Floral ornament top */}
+              <ellipse cx={p.cx} cy={top + 2}
+                rx="8" ry="5"
+                fill={`url(#${gId('gilt')})`} opacity="0.80"
+              />
+              <ellipse cx={p.cx} cy={top + 2}
+                rx="4" ry="3"
+                fill="#f0d060" opacity="0.60"
+              />
+              {/* Floral ornament bottom */}
+              <ellipse cx={p.cx} cy={bottom - 2}
+                rx="8" ry="5"
+                fill={`url(#${gId('gilt')})`} opacity="0.75"
+              />
+            </g>
+          )
+        }
+
+        if (p.frameStyle === 'gothic') {
+          // Gothic arch frame — pointed top
+          const archH = 22  // how far arch apex extends above frame top
+          return (
+            <g key={p.id}>
+              {/* Frame body — rect */}
+              <rect x={left} y={top} width={p.w} height={p.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              {/* Gilt border — inner */}
+              <rect x={left+2} y={top+2}
+                width={p.w-4} height={p.h-4}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="5" fill="none"
+              />
+              {/* Gothic arch apex above frame */}
+              <path
+                d={`M ${left+4} ${top}
+                    Q ${left+4} ${top-archH*0.8}
+                      ${p.cx} ${top-archH}
+                    Q ${right-4} ${top-archH*0.8}
+                      ${right-4} ${top}`}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="5" fill={`url(#${gId('gilt-dark')})`}
+              />
+              {/* Tracery in arch */}
+              <path
+                d={`M ${p.cx - 10} ${top}
+                    Q ${p.cx - 10} ${top-archH*0.5}
+                      ${p.cx} ${top-archH*0.8}
+                    Q ${p.cx + 10} ${top-archH*0.5}
+                      ${p.cx + 10} ${top}`}
+                stroke="#c8a840" strokeWidth="0.8"
+                fill="none" opacity="0.55"
+              />
+              {/* Keystone at arch apex */}
+              <ellipse cx={p.cx} cy={top - archH}
+                rx="6" ry="4"
+                fill={`url(#${gId('gilt')})`} opacity="0.85"
+              />
+              {/* Corner column capitals */}
+              {[[left, top],[right, top]].map(([cx2, cy2], i) => (
+                <ellipse key={i}
+                  cx={cx2} cy={cy2}
+                  rx="6" ry="4"
+                  fill={`url(#${gId('gilt')})`} opacity="0.75"
+                />
+              ))}
+              {/* Base molding */}
+              <rect x={left} y={bottom-4}
+                width={p.w} height="4"
+                fill={`url(#${gId('gilt')})`} opacity="0.65"
+              />
+            </g>
+          )
+        }
+
+        if (p.frameStyle === 'baroque') {
+          return (
+            <g key={p.id}>
+              {/* Heavy outer rect — darkest gold */}
+              <rect x={left} y={top} width={p.w} height={p.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.5"
+              />
+              {/* Wide gilt border — the heavy baroque bulk */}
+              <rect x={left+2} y={top+2}
+                width={p.w-4} height={p.h-4}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="8" fill="none"
+              />
+              {/* Inner bright line */}
+              <rect x={left + fw - 2} y={top + fw - 2}
+                width={p.w - (fw-2)*2} height={p.h - (fw-2)*2}
+                stroke="#f0d060" strokeWidth="0.8"
+                fill="none" opacity="0.55"
+              />
+              {/* Corner scrollwork — circles at each corner */}
+              {[
+                [left+fw*0.5, top+fw*0.5],
+                [right-fw*0.5, top+fw*0.5],
+                [left+fw*0.5, bottom-fw*0.5],
+                [right-fw*0.5, bottom-fw*0.5],
+              ].map(([scx, scy], i) => (
+                <g key={i}>
+                  <circle cx={scx} cy={scy} r={fw*0.38}
+                    fill={`url(#${gId('gilt')})`} opacity="0.85" />
+                  <circle cx={scx} cy={scy} r={fw*0.20}
+                    fill="#f0d060" opacity="0.60" />
+                </g>
+              ))}
+              {/* Cartouche — top center ornament */}
+              <path
+                d={`M ${p.cx-12} ${top+3}
+                    C ${p.cx-12} ${top-6},
+                      ${p.cx+12} ${top-6},
+                      ${p.cx+12} ${top+3}`}
+                fill={`url(#${gId('gilt')})`}
+                stroke="#c8a840" strokeWidth="0.8"
+                opacity="0.80"
+              />
+              <ellipse cx={p.cx} cy={top-3}
+                rx="5" ry="4"
+                fill="#f0d060" opacity="0.65"
+              />
+            </g>
+          )
+        }
+
+        if (p.frameStyle === 'rope') {
+          // Rope-twist frame — diagonal line pattern on border
+          return (
+            <g key={p.id}>
+              <rect x={left} y={top} width={p.w} height={p.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              {/* Rope twist — diagonal lines along each side */}
+              {/* Top edge diagonals */}
+              {Array.from({ length: Math.floor(p.w / 7) }, (_, i) => (
+                <line key={i}
+                  x1={left + i * 7} y1={top}
+                  x2={left + i * 7 + fw} y2={top + fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.55"
+                />
+              ))}
+              {/* Bottom edge */}
+              {Array.from({ length: Math.floor(p.w / 7) }, (_, i) => (
+                <line key={i}
+                  x1={left + i * 7} y1={bottom}
+                  x2={left + i * 7 + fw} y2={bottom - fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.50"
+                />
+              ))}
+              {/* Left edge */}
+              {Array.from({ length: Math.floor(p.h / 7) }, (_, i) => (
+                <line key={i}
+                  x1={left} y1={top + i * 7}
+                  x2={left + fw} y2={top + i * 7 + fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.50"
+                />
+              ))}
+              {/* Right edge */}
+              {Array.from({ length: Math.floor(p.h / 7) }, (_, i) => (
+                <line key={i}
+                  x1={right} y1={top + i * 7}
+                  x2={right - fw} y2={top + i * 7 + fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.50"
+                />
+              ))}
+              {/* Corner bosses */}
+              {[
+                [left, top], [right, top],
+                [left, bottom], [right, bottom],
+              ].map(([bx, by], i) => (
+                <circle key={i} cx={bx} cy={by} r="6"
+                  fill={`url(#${gId('gilt')})`} opacity="0.80"
+                />
+              ))}
+              {/* Outer bright line */}
+              <rect x={left} y={top} width={p.w} height={p.h}
+                stroke="#c8a840" strokeWidth="0.8"
+                fill="none" opacity="0.45"
+              />
+              {/* Inner bright line */}
+              <rect x={left+fw} y={top+fw}
+                width={p.w - fw*2} height={p.h - fw*2}
+                stroke="#c8a840" strokeWidth="0.6"
+                fill="none" opacity="0.40"
+              />
+            </g>
+          )
+        }
+
+        if (p.frameStyle === 'neoclassical') {
+          return (
+            <g key={p.id}>
+              {/* Stepped profile — two concentric rects */}
+              <rect x={left} y={top} width={p.w} height={p.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              <rect x={left+3} y={top+3}
+                width={p.w-6} height={p.h-6}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="4" fill="none"
+              />
+              <rect x={left+7} y={top+7}
+                width={p.w-14} height={p.h-14}
+                stroke={`url(#${gId('gilt-dark')})`}
+                strokeWidth="2" fill="none"
+              />
+              {/* Laurel wreath at top center */}
+              {/* Left leaf cluster */}
+              {[-14,-8,-2].map((dx, i) => (
+                <ellipse key={i}
+                  cx={p.cx + dx} cy={top + fw*0.5}
+                  rx={4 - i*0.5} ry={2.5}
+                  fill="#c8a840" opacity={0.55 - i*0.08}
+                  transform={`rotate(${-30 + i*15} ${p.cx + dx} ${top + fw*0.5})`}
+                />
+              ))}
+              {/* Right leaf cluster */}
+              {[2,8,14].map((dx, i) => (
+                <ellipse key={i}
+                  cx={p.cx + dx} cy={top + fw*0.5}
+                  rx={3.5 - i*0.3} ry={2.5}
+                  fill="#c8a840" opacity={0.55 - i*0.08}
+                  transform={`rotate(${30 - i*15} ${p.cx + dx} ${top + fw*0.5})`}
+                />
+              ))}
+              {/* Center bow */}
+              <circle cx={p.cx} cy={top + fw*0.5}
+                r="3" fill="#f0d060" opacity="0.65"
+              />
+            </g>
+          )
+        }
+
+        return null
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 5 — CANVAS BACKGROUNDS
+          (the painted surface, within each frame)
+          ══════════════════════════════════════ */}
+      {portraits.map(p => {
+        const left = p.cx - p.w/2 + p.fw
+        const top  = p.cy - p.h/2 + p.fw
+        const cw   = p.w - p.fw*2
+        const ch   = p.h - p.fw*2
+        const clipId = gId(`clip-${p.id}`)
+
+        return p.shape === 'oval' ? (
+          <ellipse key={p.id}
+            cx={p.cx} cy={p.cy}
+            rx={cw/2} ry={ch/2}
+            fill={p.bg}
+            clipPath={`url(#${clipId})`}
+          />
+        ) : (
+          <rect key={p.id}
+            x={left} y={top} width={cw} height={ch}
+            fill={p.bg}
+            clipPath={`url(#${clipId})`}
+          />
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 6 — PAINTED FACES
+          ══════════════════════════════════════ */}
+      {portraits.map(p => {
+        const cw = p.w - p.fw*2
+        const ch = p.h - p.fw*2
+        return (
+          <g key={p.id}>
+            {renderFace(p, p.cx, p.cy, cw, ch, gId(`clip-${p.id}`))}
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 7 — NAMEPLATES
+          ══════════════════════════════════════ */}
+      {portraits.map(p => {
+        const plateW = p.w * 0.58
+        const plateH = 7
+        const plateX = p.cx - plateW/2
+        const plateY = p.cy + p.h/2 + 5
+
+        return (
+          <g key={p.id}>
+            <rect x={plateX} y={plateY}
+              width={plateW} height={plateH}
+              rx="0.5"
+              fill={`url(#${gId('brass')})`}
+              opacity="0.80"
+            />
+            {/* Text suggestion lines */}
+            <line x1={plateX+5} y1={plateY+2.5}
+              x2={plateX+plateW-5} y2={plateY+2.5}
+              stroke="#ede0c0" strokeWidth="0.8" opacity="0.20"
+            />
+            <line x1={plateX+10} y1={plateY+4.5}
+              x2={plateX+plateW-10} y2={plateY+4.5}
+              stroke="#ede0c0" strokeWidth="0.6" opacity="0.14"
+            />
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 8 — SCONCE FIXTURES
+          (small bracket + glow above each frame)
+          ══════════════════════════════════════ */}
+      {portraits.map(p => {
+        const scX = p.cx
+        const scY = p.cy - p.h/2 - 8
+
+        return (
+          <g key={p.id}>
+            {/* Bracket arm */}
+            <path
+              d={`M ${scX} ${scY + 6}
+                  C ${scX - 4} ${scY + 4},
+                    ${scX - 5} ${scY + 1},
+                    ${scX} ${scY}`}
+              stroke="#8a6018" strokeWidth="1.5"
+              fill="none" opacity="0.70"
+            />
+            {/* Wall mount */}
+            <rect x={scX-4} y={scY+4}
+              width="8" height="4" rx="1"
+              fill="#6a4810" opacity="0.65"
+            />
+            {/* Flame/bulb glow */}
+            <ellipse cx={scX} cy={scY}
+              rx="4" ry="5"
+              fill="#f0c840" opacity="0.55"
+            />
+            <ellipse cx={scX} cy={scY}
+              rx="2" ry="3"
+              fill="#fff8e0" opacity="0.70"
+            />
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 9 — VIGNETTE
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="210"
+        fill={`url(#${gId('vignette')})`}
+      />
+      {/* Floor shadow at bottom */}
+      <rect x="0" y="200" width="900" height="10"
+        fill="#000000" opacity="0.45"
+      />
+
+    </svg>
+  )
+}

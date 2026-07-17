@@ -32,6 +32,11 @@ const DESIGNS = [
     title: 'Images — The Witch\'s Attic',
     description: 'A candlelit witch\'s attic — peaked beams, moonlit circular window, hanging herb bundles, birdcage with spectral glow, brass lantern, glass bottles, old trunks, spinning wheel, books and scrolls. Proposed replacement for The Darkroom on the Images page.',
   },
+  {
+    slug: 'portrait-hall',
+    title: 'Faceclaims — The Hall of Legends',
+    description: 'Seven oil portraits on dark paneled walls — five frame styles (baroque, gothic, neoclassical, rope-twist, Victorian oval), painted faces in different eras, individual sconce lighting, brass nameplates. Proposed header for The Hall of Legends (Faceclaims) page.',
+  },
 ]
 
 export default function DesignIndexPage() {
