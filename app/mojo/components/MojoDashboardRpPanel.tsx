@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { updateMojoRp } from '@/lib/actions/mojo'
 import MojoDashboardNotes from './MojoDashboardNotes'
 import MojoDashboardCharCard from './MojoDashboardCharCard'
-import { SvgCornerBracket } from '@/app/mojo/components/MojoSvgAssets'
+import { SvgCornerBracket, SvgFiligreeRule } from '@/app/mojo/components/MojoSvgAssets'
 import type { DashboardRp } from '@/lib/db/mojo'
 
 function navigateToDashboard() {
@@ -18,7 +18,7 @@ const STATUS_LABEL: Record<string, string> = {
   ended: 'Ended',
 }
 
-function MojoRpStatusMenu({ rpId, currentStatus }: { rpId: string; currentStatus: string }) {
+function MojoRpStatusMenu({ rpId, currentStatus, accentColor }: { rpId: string; currentStatus: string; accentColor: string }) {
   const [showMenu, setShowMenu] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -67,13 +67,26 @@ function MojoRpStatusMenu({ rpId, currentStatus }: { rpId: string; currentStatus
           background: 'none',
           border: '1px solid var(--elevated)',
           borderRadius: 2,
-          padding: '2px 8px',
+          padding: '4px 10px',
           cursor: loading ? 'not-allowed' : 'pointer',
-          fontFamily: 'var(--f-ui)',
-          fontSize: '0.6875rem',
-          color: 'var(--faded)',
+          fontFamily: 'Cinzel, serif',
+          fontSize: '9px',
+          letterSpacing: '0.20em',
+          textTransform: 'uppercase',
+          color: currentStatus === 'active' ? 'var(--mist)' : 'var(--faded)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
         }}
       >
+        <span style={{
+          width: '5px',
+          height: '5px',
+          borderRadius: '50%',
+          background: currentStatus === 'active' ? accentColor : 'var(--faded)',
+          display: 'inline-block',
+          flexShrink: 0,
+        }} />
         {STATUS_LABEL[currentStatus] ?? currentStatus} ▾
       </button>
       {showMenu && (
@@ -137,14 +150,18 @@ export default function MojoDashboardRpPanel({
   return (
     <div
       style={{
-        background: 'var(--claret)',
-        border: '1px solid var(--elevated)',
-        borderLeft: `4px solid ${muted ? 'var(--faded)' : rp.color_hex}`,
+        background: muted
+          ? 'var(--raised)'
+          : `radial-gradient(ellipse at top left, ${rp.color_hex}0a 0%, transparent 60%), var(--claret)`,
+        border: `1px solid ${muted ? 'var(--elevated)' : rp.color_hex + '33'}`,
+        borderLeft: `3px solid ${muted ? 'var(--faded)' : rp.color_hex + '80'}`,
         borderRadius: 4,
         marginBottom: 16,
         overflow: 'hidden',
         position: 'relative',
-        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.35)',
+        boxShadow: muted
+          ? 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.35)'
+          : `inset 0 0 0 1px ${rp.color_hex}14, 0 4px 24px rgba(0,0,0,0.35)`,
       }}
     >
       <style>{`
@@ -154,19 +171,19 @@ export default function MojoDashboardRpPanel({
 
       {/* Corner brackets — decorative, inset to stay clear of overflow:hidden clipping */}
       <SvgCornerBracket
-        size={16} color={rp.color_hex} rotation={0}
+        size={24} color={rp.color_hex} rotation={0}
         style={{ position: 'absolute', top: 2, left: 2 }}
       />
       <SvgCornerBracket
-        size={16} color={rp.color_hex} rotation={90}
+        size={24} color={rp.color_hex} rotation={90}
         style={{ position: 'absolute', top: 2, right: 2 }}
       />
       <SvgCornerBracket
-        size={16} color={rp.color_hex} rotation={270}
+        size={24} color={rp.color_hex} rotation={270}
         style={{ position: 'absolute', bottom: 2, left: 2 }}
       />
       <SvgCornerBracket
-        size={16} color={rp.color_hex} rotation={180}
+        size={24} color={rp.color_hex} rotation={180}
         style={{ position: 'absolute', bottom: 2, right: 2 }}
       />
 
@@ -174,7 +191,15 @@ export default function MojoDashboardRpPanel({
         <div style={{ minWidth: 0 }}>
           <Link
             href={`/mojo/rps/${rp.id}`}
-            style={{ fontFamily: 'var(--f-display)', fontSize: '1.375rem', color: muted ? 'var(--mist)' : 'var(--gold)', textDecoration: 'none', display: 'block' }}
+            style={{
+              fontFamily: 'Cormorant Upright, serif',
+              fontSize: '32px',
+              fontWeight: 600,
+              letterSpacing: '0.01em',
+              color: muted ? 'var(--mist)' : rp.color_hex,
+              textDecoration: 'none',
+              display: 'block',
+            }}
           >
             {rp.name}
           </Link>
@@ -183,14 +208,14 @@ export default function MojoDashboardRpPanel({
               href={rp.site_url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontFamily: 'var(--f-body)', fontSize: '0.8125rem', color: 'var(--mist)', textDecoration: 'none' }}
+              style={{ fontFamily: 'EB Garamond, serif', fontSize: '15px', fontStyle: 'italic', color: 'var(--mist)', textDecoration: 'none' }}
               onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline' }}
               onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none' }}
             >
               {rp.site_name}
             </a>
           ) : (
-            <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.8125rem', color: 'var(--mist)' }}>
+            <span style={{ fontFamily: 'EB Garamond, serif', fontSize: '15px', fontStyle: 'italic', color: 'var(--mist)' }}>
               {rp.site_name}
             </span>
           )}
@@ -203,7 +228,7 @@ export default function MojoDashboardRpPanel({
           <Link href={`/mojo/rps/${rp.id}`} style={{ fontFamily: 'var(--f-ui)', fontSize: '0.6875rem', color: 'var(--moonstone)', textDecoration: 'none' }}>
             Add Character
           </Link>
-          <MojoRpStatusMenu rpId={rp.id} currentStatus={rp.status} />
+          <MojoRpStatusMenu rpId={rp.id} currentStatus={rp.status} accentColor={rp.color_hex} />
         </div>
       </div>
 
@@ -212,6 +237,10 @@ export default function MojoDashboardRpPanel({
           <MojoDashboardNotes html={rp.notes_plot} />
         </div>
       )}
+
+      <div style={{ padding: '0 16px 6px', opacity: 0.35, color: 'var(--faded)' }}>
+        <SvgFiligreeRule />
+      </div>
 
       <div style={{ padding: '0 16px 12px' }}>
         {sortedCharacters.length === 0 ? (
@@ -229,10 +258,27 @@ export default function MojoDashboardRpPanel({
         )}
       </div>
 
+      <div style={{ padding: '0 16px', opacity: 0.35, color: 'var(--faded)' }}>
+        <SvgFiligreeRule />
+      </div>
+
       <div style={{ padding: '8px 16px', borderTop: '1px solid var(--elevated)', background: 'var(--raised)' }}>
-        <span style={{ fontFamily: 'var(--f-ui)', fontSize: '0.6875rem', color: 'var(--faded)' }}>
-          {rp.total_thread_count} threads total · {rp.active_thread_count} active
-        </span>
+        <div style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '9px',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--faded)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}>
+          <span style={{ color: muted ? 'var(--faded)' : rp.color_hex, opacity: 0.85 }}>
+            {rp.active_thread_count} active
+          </span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span>{rp.total_thread_count - rp.active_thread_count} closed</span>
+        </div>
       </div>
     </div>
   )

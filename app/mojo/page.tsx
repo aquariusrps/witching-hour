@@ -2,7 +2,7 @@ import { getMojoDashboardData } from '@/lib/db/mojo'
 import MojoDashboardStatTile from './components/MojoDashboardStatTile'
 import MojoDashboardRpPanel from './components/MojoDashboardRpPanel'
 import MojoCollapsedRps from './components/MojoCollapsedRps'
-import { SvgLargeCrescent, SvgCandle, SvgPageHeaderRule, SvgFiligreeRule } from '@/app/mojo/components/MojoSvgAssets'
+import { SvgLargeCrescent, SvgCandleRealistic, SvgPageHeaderRule, SvgFiligreeRule } from '@/app/mojo/components/MojoSvgAssets'
 import MojoMoonPhases from '@/app/mojo/components/MojoMoonPhases'
 
 export default async function MojoDashboardPage() {
@@ -88,7 +88,7 @@ export default async function MojoDashboardPage() {
       }}>
         {/* Left candle */}
         <div style={{ color: 'var(--mist)', flexShrink: 0 }} aria-hidden="true">
-          <SvgCandle height={72} idSuffix="left" flameDelay="0s" />
+          <SvgCandleRealistic height={72} idSuffix="sanctum-left" flameDelay="0s" />
         </div>
 
         <div style={{ flex: 1, textAlign: 'center' }}>
@@ -105,7 +105,7 @@ export default async function MojoDashboardPage() {
 
         {/* Right candle */}
         <div style={{ color: 'var(--mist)', flexShrink: 0 }} aria-hidden="true">
-          <SvgCandle height={72} idSuffix="right" flameDelay="0.35s" />
+          <SvgCandleRealistic height={72} idSuffix="sanctum-right" flameDelay="0.35s" />
         </div>
       </div>
 

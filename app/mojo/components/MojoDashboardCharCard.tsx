@@ -55,7 +55,7 @@ export default function MojoDashboardCharCard({
   return (
     <div
       style={{
-        width: 160,
+        width: 220,
         flex: 'none',
         background: 'var(--raised)',
         border: '1px solid var(--elevated)',
@@ -67,8 +67,8 @@ export default function MojoDashboardCharCard({
     >
       <div
         style={{
-          width: '110px',
-          margin: '10px auto 0',
+          width: '180px',
+          margin: '12px auto 0',
           position: 'relative',
           cursor: 'pointer',
         }}
@@ -77,7 +77,7 @@ export default function MojoDashboardCharCard({
         <MojoPortraitCard
           token={avatarToken}
           alt={character.name}
-          size="sm"
+          size="md"
           idSuffix={`dash-char-${character.id}`}
         />
 

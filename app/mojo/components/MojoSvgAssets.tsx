@@ -3957,3 +3957,379 @@ export function SvgFamiliarPresence({ className = '' }: {
     </svg>
   )
 }
+
+// ─── MOJO-FIX-019: Moon Phase SVGs — The Sanctum ──────────────
+// Eight unique illustrated lunar phases. Dark portions are deep
+// blue-purple (#0a0818), illuminated portions warm silver-white
+// with catch-lights. Same quality bar as SvgLargeCrescent.
+
+export function SvgPhaseNewMoon({
+  size = 48, active = false, className = '', idSuffix = 'nm'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const gId = `nm-glow-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        <radialGradient id={gId} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#0a0818" />
+          <stop offset="85%"  stopColor="#0a0818" />
+          <stop offset="100%" stopColor="#1a1830" />
+        </radialGradient>
+      </defs>
+      {/* Outer halos — very faint */}
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.12" fill="none" />
+      <circle cx="24" cy="24" r="24" stroke="#9090b0"
+        strokeWidth="0.3" opacity="0.06" fill="none" />
+      {/* Dark disc */}
+      <circle cx="24" cy="24" r="20" fill={`url(#${gId})`} />
+      {/* Silver limb ring — barely visible */}
+      <circle cx="24" cy="24" r="20" stroke="#8080a0"
+        strokeWidth="0.6" opacity="0.22" fill="none" />
+      {/* Two faint stars */}
+      <circle cx="10" cy="12" r="0.8" fill="#c0c0d8" opacity="0.45" />
+      <circle cx="38" cy="36" r="0.6" fill="#c0c0d8" opacity="0.35" />
+      {/* Active glow */}
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#a0a0c0"
+          strokeWidth="1.5" opacity="0.35" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseWaxingCrescent({
+  size = 48, active = false, className = '', idSuffix = 'wxc'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const illumId = `wxc-illum-${idSuffix}`
+  const glowId  = `wxc-glow-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        {/* Illuminated crescent gradient */}
+        <radialGradient id={illumId} cx="75%" cy="45%" r="40%">
+          <stop offset="0%"   stopColor="#e8e8f8" stopOpacity="1" />
+          <stop offset="60%"  stopColor="#c8c8e0" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#9898c0" stopOpacity="0.80" />
+        </radialGradient>
+        <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      {/* Outer halo */}
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.10" fill="none" />
+      {/* Dark disc base */}
+      <circle cx="24" cy="24" r="20" fill="#0a0818" />
+      {/* Crescent: clip a circle offset left to create right crescent */}
+      <clipPath id={`wxc-clip-${idSuffix}`}>
+        <circle cx="24" cy="24" r="20" />
+      </clipPath>
+      <circle cx="31" cy="24" r="17"
+        fill={`url(#${illumId})`}
+        clipPath={`url(#wxc-clip-${idSuffix})`}
+        filter={`url(#${glowId})`}
+      />
+      {/* Catch-lights on illuminated limb */}
+      <circle cx="40" cy="18" r="0.9" fill="#f0f0ff" opacity="0.70"
+        clipPath={`url(#wxc-clip-${idSuffix})`} />
+      <circle cx="42" cy="28" r="0.6" fill="#f0f0ff" opacity="0.50"
+        clipPath={`url(#wxc-clip-${idSuffix})`} />
+      {/* Terminator glow */}
+      <circle cx="24" cy="24" r="20" stroke="#8080b0"
+        strokeWidth="0.4" opacity="0.18" fill="none" />
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#b0b0d0"
+          strokeWidth="1.5" opacity="0.40" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseFirstQuarter({
+  size = 48, active = false, className = '', idSuffix = 'fq'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const illumId = `fq-illum-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        <linearGradient id={illumId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#c8c8e0" stopOpacity="0" />
+          <stop offset="15%"  stopColor="#c8c8e0" stopOpacity="0.85" />
+          <stop offset="50%"  stopColor="#e0e0f0" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#e8e8f8" stopOpacity="1.00" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.10" fill="none" />
+      {/* Dark left half */}
+      <circle cx="24" cy="24" r="20" fill="#0a0818" />
+      {/* Right half illuminated */}
+      <clipPath id={`fq-clip-${idSuffix}`}>
+        <rect x="24" y="4" width="20" height="40" />
+      </clipPath>
+      <circle cx="24" cy="24" r="20"
+        fill={`url(#${illumId})`}
+        clipPath={`url(#fq-clip-${idSuffix})`}
+      />
+      {/* Terminator glow */}
+      <line x1="24" y1="4" x2="24" y2="44"
+        stroke="#b0b0d0" strokeWidth="1.5" opacity="0.15" />
+      {/* Catch-lights */}
+      <circle cx="38" cy="16" r="0.9" fill="#f0f0ff" opacity="0.65"
+        clipPath={`url(#fq-clip-${idSuffix})`} />
+      <circle cx="40" cy="30" r="0.6" fill="#f0f0ff" opacity="0.50"
+        clipPath={`url(#fq-clip-${idSuffix})`} />
+      <circle cx="24" cy="24" r="20" stroke="#8080b0"
+        strokeWidth="0.4" opacity="0.18" fill="none" />
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#b0b0d0"
+          strokeWidth="1.5" opacity="0.40" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseWaxingGibbous({
+  size = 48, active = false, className = '', idSuffix = 'wxg'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const illumId = `wxg-illum-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        <radialGradient id={illumId} cx="55%" cy="45%" r="55%">
+          <stop offset="0%"   stopColor="#e8e8f8" stopOpacity="1" />
+          <stop offset="70%"  stopColor="#d0d0ea" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#a0a0c8" stopOpacity="0.85" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.12" fill="none" />
+      {/* Mostly illuminated disc */}
+      <circle cx="24" cy="24" r="20" fill={`url(#${illumId})`} />
+      {/* Dark crescent on left: offset circle to mask */}
+      <clipPath id={`wxg-clip-${idSuffix}`}>
+        <circle cx="24" cy="24" r="20" />
+      </clipPath>
+      <circle cx="17" cy="24" r="17" fill="#0a0818"
+        clipPath={`url(#wxg-clip-${idSuffix})`} />
+      {/* Terminator glow */}
+      <circle cx="17" cy="24" r="17" stroke="#7070a0"
+        strokeWidth="1.0" opacity="0.20" fill="none"
+        clipPath={`url(#wxg-clip-${idSuffix})`} />
+      {/* Catch-lights */}
+      <circle cx="38" cy="14" r="1.0" fill="#f0f0ff" opacity="0.65" />
+      <circle cx="40" cy="32" r="0.7" fill="#f0f0ff" opacity="0.50" />
+      <circle cx="24" cy="24" r="20" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.20" fill="none" />
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#c0c0e0"
+          strokeWidth="1.5" opacity="0.40" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseFullMoon({
+  size = 48, active = false, className = '', idSuffix = 'fm'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const surfaceId = `fm-surface-${idSuffix}`
+  const glowId    = `fm-glow-${idSuffix}`
+  const haloId    = `fm-halo-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none', overflow: 'visible' }}>
+      <defs>
+        {/* Surface gradient — bright center, warm edges */}
+        <radialGradient id={surfaceId} cx="42%" cy="38%" r="60%">
+          <stop offset="0%"   stopColor="#f0f0ff" stopOpacity="1.00" />
+          <stop offset="40%"  stopColor="#e0e0f4" stopOpacity="0.98" />
+          <stop offset="75%"  stopColor="#c8c8e8" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#a8a8d0" stopOpacity="0.90" />
+        </radialGradient>
+        {/* Outer glow */}
+        <radialGradient id={haloId} cx="50%" cy="50%" r="50%">
+          <stop offset="60%"  stopColor="rgba(200,200,230,0)" />
+          <stop offset="80%"  stopColor="rgba(200,200,230,0.12)" />
+          <stop offset="100%" stopColor="rgba(200,200,230,0)" />
+        </radialGradient>
+        <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      {/* Halo rings — outermost to innermost */}
+      <circle cx="24" cy="24" r="26"
+        fill="none" stroke="#a0a0c8" strokeWidth="0.3" opacity="0.08" />
+      <circle cx="24" cy="24" r="24"
+        fill="none" stroke="#b0b0d8" strokeWidth="0.4" opacity="0.12" />
+      <circle cx="24" cy="24" r="22"
+        fill="none" stroke="#c0c0e0" strokeWidth="0.5" opacity="0.18" />
+      {/* Glow layer */}
+      <circle cx="24" cy="24" r="22"
+        fill={`url(#${haloId})`} />
+      {/* Main disc */}
+      <circle cx="24" cy="24" r="20"
+        fill={`url(#${surfaceId})`}
+        filter={`url(#${glowId})`} />
+      {/* Limb darkening ring */}
+      <circle cx="24" cy="24" r="20"
+        fill="none" stroke="#8080b0" strokeWidth="0.5" opacity="0.25" />
+      {/* Catch-lights */}
+      <circle cx="18" cy="16" r="1.8" fill="white" opacity="0.55" />
+      <circle cx="32" cy="19" r="1.0" fill="white" opacity="0.35" />
+      <circle cx="15" cy="28" r="0.8" fill="white" opacity="0.25" />
+      {/* Active glow — amplified for full moon */}
+      {active && (
+        <>
+          <circle cx="24" cy="24" r="24" stroke="#d0d0f0"
+            strokeWidth="2.0" opacity="0.45" fill="none"
+            className="mojo-moon-breathe" />
+          <circle cx="24" cy="24" r="27" stroke="#c0c0e8"
+            strokeWidth="1.0" opacity="0.20" fill="none"
+            className="mojo-moon-breathe" />
+        </>
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseWaningGibbous({
+  size = 48, active = false, className = '', idSuffix = 'wng'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const illumId = `wng-illum-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        <radialGradient id={illumId} cx="45%" cy="45%" r="55%">
+          <stop offset="0%"   stopColor="#e8e8f8" stopOpacity="1" />
+          <stop offset="70%"  stopColor="#d0d0ea" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#a0a0c8" stopOpacity="0.85" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.12" fill="none" />
+      <circle cx="24" cy="24" r="20" fill={`url(#${illumId})`} />
+      {/* Dark crescent on right */}
+      <clipPath id={`wng-clip-${idSuffix}`}>
+        <circle cx="24" cy="24" r="20" />
+      </clipPath>
+      <circle cx="31" cy="24" r="17" fill="#0a0818"
+        clipPath={`url(#wng-clip-${idSuffix})`} />
+      <circle cx="31" cy="24" r="17" stroke="#7070a0"
+        strokeWidth="1.0" opacity="0.20" fill="none"
+        clipPath={`url(#wng-clip-${idSuffix})`} />
+      {/* Catch-lights — left side this time */}
+      <circle cx="10" cy="14" r="1.0" fill="#f0f0ff" opacity="0.65" />
+      <circle cx="8" cy="32" r="0.7" fill="#f0f0ff" opacity="0.50" />
+      <circle cx="24" cy="24" r="20" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.20" fill="none" />
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#c0c0e0"
+          strokeWidth="1.5" opacity="0.40" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseLastQuarter({
+  size = 48, active = false, className = '', idSuffix = 'lq'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const illumId = `lq-illum-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        <linearGradient id={illumId} x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0%"   stopColor="#c8c8e0" stopOpacity="0" />
+          <stop offset="15%"  stopColor="#c8c8e0" stopOpacity="0.85" />
+          <stop offset="50%"  stopColor="#e0e0f0" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#e8e8f8" stopOpacity="1.00" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.10" fill="none" />
+      <circle cx="24" cy="24" r="20" fill="#0a0818" />
+      {/* Left half illuminated */}
+      <clipPath id={`lq-clip-${idSuffix}`}>
+        <rect x="4" y="4" width="20" height="40" />
+      </clipPath>
+      <circle cx="24" cy="24" r="20"
+        fill={`url(#${illumId})`}
+        clipPath={`url(#lq-clip-${idSuffix})`}
+      />
+      <line x1="24" y1="4" x2="24" y2="44"
+        stroke="#b0b0d0" strokeWidth="1.5" opacity="0.15" />
+      {/* Catch-lights — left limb */}
+      <circle cx="10" cy="16" r="0.9" fill="#f0f0ff" opacity="0.65"
+        clipPath={`url(#lq-clip-${idSuffix})`} />
+      <circle cx="8" cy="30" r="0.6" fill="#f0f0ff" opacity="0.50"
+        clipPath={`url(#lq-clip-${idSuffix})`} />
+      <circle cx="24" cy="24" r="20" stroke="#8080b0"
+        strokeWidth="0.4" opacity="0.18" fill="none" />
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#b0b0d0"
+          strokeWidth="1.5" opacity="0.40" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
+
+export function SvgPhaseWaningCrescent({
+  size = 48, active = false, className = '', idSuffix = 'wnc'
+}: { size?: number; active?: boolean; className?: string; idSuffix?: string }) {
+  const illumId = `wnc-illum-${idSuffix}`
+  const glowId  = `wnc-glow-${idSuffix}`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none"
+      className={className} style={{ pointerEvents: 'none' }}>
+      <defs>
+        <radialGradient id={illumId} cx="25%" cy="45%" r="40%">
+          <stop offset="0%"   stopColor="#e8e8f8" stopOpacity="1" />
+          <stop offset="60%"  stopColor="#c8c8e0" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#9898c0" stopOpacity="0.80" />
+        </radialGradient>
+        <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      <circle cx="24" cy="24" r="22" stroke="#9090b0"
+        strokeWidth="0.4" opacity="0.10" fill="none" />
+      <circle cx="24" cy="24" r="20" fill="#0a0818" />
+      {/* Left crescent: offset circle to the right to create left crescent */}
+      <clipPath id={`wnc-clip-${idSuffix}`}>
+        <circle cx="24" cy="24" r="20" />
+      </clipPath>
+      <circle cx="17" cy="24" r="17"
+        fill={`url(#${illumId})`}
+        clipPath={`url(#wnc-clip-${idSuffix})`}
+        filter={`url(#${glowId})`}
+      />
+      {/* Catch-lights on left limb */}
+      <circle cx="8" cy="18" r="0.9" fill="#f0f0ff" opacity="0.70"
+        clipPath={`url(#wnc-clip-${idSuffix})`} />
+      <circle cx="6" cy="28" r="0.6" fill="#f0f0ff" opacity="0.50"
+        clipPath={`url(#wnc-clip-${idSuffix})`} />
+      <circle cx="24" cy="24" r="20" stroke="#8080b0"
+        strokeWidth="0.4" opacity="0.18" fill="none" />
+      {active && (
+        <circle cx="24" cy="24" r="23" stroke="#b0b0d0"
+          strokeWidth="1.5" opacity="0.40" fill="none"
+          className="mojo-moon-breathe" />
+      )}
+    </svg>
+  )
+}
