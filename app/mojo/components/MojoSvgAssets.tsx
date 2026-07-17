@@ -6532,3 +6532,709 @@ export function SvgDiviningChamber({
     </svg>
   )
 }
+
+// ─── MOJO-FIX-025: SvgGrimoire — The Atelier preview for Chronicle ───
+
+const GRIMOIRE_PHASE_LABELS = [
+  'Full', 'Waning G.', 'Last Q.', 'Waning C.',
+  'New', 'Waxing C.', 'First Q.', 'Waxing G.',
+]
+
+const GRIMOIRE_WHEEL_SYMBOLS = ['✦', '◈', '⟡', '✧', '◆', '⟢', '✦', '◇']
+
+const GRIMOIRE_CORNERS = [
+  { cx: 30, cy: 8, xDir: 1, yDir: 1 },
+  { cx: 862, cy: 8, xDir: -1, yDir: 1 },
+  { cx: 30, cy: 194, xDir: 1, yDir: -1 },
+  { cx: 862, cy: 194, xDir: -1, yDir: -1 },
+]
+
+const GRIMOIRE_RIBBONS = [
+  { x: 380, color: '#8a1020', opacity: 0.80 },
+  { x: 450, color: '#c8a020', opacity: 0.70 },
+  { x: 520, color: '#1a4020', opacity: 0.65 },
+]
+
+const GRIMOIRE_FLOURISH_CORNERS = [
+  { x: 472, y: 28, rx: 1, ry: -1 },
+  { x: 846, y: 28, rx: -1, ry: -1 },
+  { x: 472, y: 176, rx: 1, ry: 1 },
+  { x: 846, y: 176, rx: -1, ry: 1 },
+]
+
+export function SvgGrimoire({
+  className = '',
+  idSuffix = 'gr',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  // ── Moon phase wheel geometry ──
+  const WHEEL_CX = 660
+  const WHEEL_CY = 100
+  const PHASE_R = 52
+  const phases = Array.from({ length: 8 }, (_, i) => {
+    const angle = ((i * 45 - 90) * Math.PI) / 180
+    return {
+      x: WHEEL_CX + PHASE_R * Math.cos(angle),
+      y: WHEEL_CY + PHASE_R * Math.sin(angle),
+      label: GRIMOIRE_PHASE_LABELS[i],
+    }
+  })
+  const STAR_R = 72
+  const stars = Array.from({ length: 12 }, (_, i) => ({
+    x: WHEEL_CX + STAR_R * Math.cos(((i * 30 - 90) * Math.PI) / 180),
+    y: WHEEL_CY + STAR_R * Math.sin(((i * 30 - 90) * Math.PI) / 180),
+  }))
+
+  // ── Quill geometry ──
+  const SHAFT_START = { x: 800, y: 80 }
+  const SHAFT_END = { x: 530, y: 175 }
+  const dx = SHAFT_END.x - SHAFT_START.x
+  const dy = SHAFT_END.y - SHAFT_START.y
+  const shaftLen = Math.sqrt(dx * dx + dy * dy)
+  const ux = dx / shaftLen
+  const uy = dy / shaftLen
+  const px = -uy
+  const py = ux
+  const shaftAngleDeg = (Math.atan2(dy, dx) * 180) / Math.PI
+
+  const BARB_COUNT = 65
+  const barbs = Array.from({ length: BARB_COUNT }, (_, i) => {
+    const t = i / (BARB_COUNT - 1)
+    const bx = SHAFT_START.x + dx * t * 0.88
+    const by = SHAFT_START.y + dy * t * 0.88
+    const vaneWidth = Math.sin(t * Math.PI) * 20 + 2
+    return {
+      bx, by,
+      lb: {
+        x2: bx - px * vaneWidth - ux * 6,
+        y2: by - py * vaneWidth - uy * 6,
+      },
+      rb: {
+        x2: bx + px * vaneWidth * 0.6 + ux * 4,
+        y2: by + py * vaneWidth * 0.6 + uy * 4,
+      },
+    }
+  })
+
+  // Pre-computed vane path strings — avoids nested template literals in JSX
+  const barbSubset = barbs.slice(0, -5)
+  const barbSubsetReversed = [...barbSubset].reverse()
+
+  const leftVanePath =
+    `M ${SHAFT_START.x} ${SHAFT_START.y} ` +
+    barbSubset.map((b) => `L ${b.lb.x2} ${b.lb.y2}`).join(' ') +
+    ` L ${SHAFT_END.x + px * 2} ${SHAFT_END.y + py * 2}` +
+    ` L ${SHAFT_END.x} ${SHAFT_END.y} ` +
+    barbSubsetReversed.map((b) => `L ${b.bx} ${b.by}`).join(' ') +
+    ' Z'
+
+  const rightVanePath =
+    `M ${SHAFT_START.x} ${SHAFT_START.y} ` +
+    barbSubset.map((b) => `L ${b.rb.x2} ${b.rb.y2}`).join(' ') +
+    ` L ${SHAFT_END.x - px * 1.5} ${SHAFT_END.y - py * 1.5}` +
+    ` L ${SHAFT_END.x} ${SHAFT_END.y} ` +
+    barbSubsetReversed.map((b) => `L ${b.bx} ${b.by}`).join(' ') +
+    ' Z'
+
+  return (
+    <svg
+      width="100%"
+      height="210"
+      viewBox="0 0 900 210"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        <linearGradient id={gId('parch-l')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#d4c4a4" />
+          <stop offset="30%"  stopColor="#e0d0b0" />
+          <stop offset="80%"  stopColor="#e8dcc0" />
+          <stop offset="100%" stopColor="#e4d8bc" />
+        </linearGradient>
+        <linearGradient id={gId('parch-r')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#eee4c8" />
+          <stop offset="60%"  stopColor="#ead8b8" />
+          <stop offset="100%" stopColor="#d8c8a8" />
+        </linearGradient>
+
+        <linearGradient id={gId('leather')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#241408" />
+          <stop offset="50%"  stopColor="#1a0e08" />
+          <stop offset="100%" stopColor="#120a04" />
+        </linearGradient>
+
+        <linearGradient id={gId('bind')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#0a0604" stopOpacity="0.70" />
+          <stop offset="50%"  stopColor="#060402" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#0a0604" stopOpacity="0.70" />
+        </linearGradient>
+
+        <radialGradient id={gId('light')} cx="15%" cy="10%" r="70%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.16" />
+          <stop offset="50%"  stopColor="#c87000" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#c86000" stopOpacity="0" />
+        </radialGradient>
+
+        <linearGradient id={gId('brass')} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#c8a840" />
+          <stop offset="50%"  stopColor="#a07828" />
+          <stop offset="100%" stopColor="#7a5818" />
+        </linearGradient>
+
+        <radialGradient id={gId('wax')} cx="40%" cy="35%" r="60%">
+          <stop offset="0%"   stopColor="#c03028" />
+          <stop offset="60%"  stopColor="#8a1018" />
+          <stop offset="100%" stopColor="#5a0810" />
+        </radialGradient>
+
+        <linearGradient id={gId('vane-l')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#0e0c08" />
+          <stop offset="50%"  stopColor="#181208" />
+          <stop offset="100%" stopColor="#0a0808" />
+        </linearGradient>
+
+        <filter id={gId('quill-shadow')}
+          x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+
+        <radialGradient id={gId('moon-hub')} cx="40%" cy="35%" r="60%">
+          <stop offset="0%"   stopColor="#f0ecd8" />
+          <stop offset="60%"  stopColor="#d8d0e8" />
+          <stop offset="100%" stopColor="#b8b0d0" />
+        </radialGradient>
+
+        <filter id={gId('book-shadow')}
+          x="-3%" y="-5%" width="106%" height="115%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+
+        <clipPath id={gId('page-l-clip')}>
+          <rect x="38" y="16" width="404" height="176" />
+        </clipPath>
+        <clipPath id={gId('page-r-clip')}>
+          <rect x="458" y="16" width="404" height="176" />
+        </clipPath>
+        <clipPath id={gId('book-clip')}>
+          <rect x="30" y="8" width="840" height="192" rx="2" />
+        </clipPath>
+      </defs>
+
+      {/* ── BOOK SHADOW ── */}
+      <rect x="34" y="14" width="840" height="196" rx="3"
+        fill="#000000" opacity="0.35"
+        filter={`url(#${gId('book-shadow')})`} />
+
+      {/* ── COVER ── */}
+      <rect x="30" y="8" width="840" height="194" rx="2"
+        fill={`url(#${gId('leather')})`} />
+      {Array.from({ length: 18 }, (_, i) => (
+        <line key={i}
+          x1="30" y1={8 + i * 11}
+          x2="870" y2={10 + i * 11}
+          stroke="#0e0804" strokeWidth="0.8" opacity="0.30"
+          clipPath={`url(#${gId('book-clip')})`}
+        />
+      ))}
+
+      {/* ── LEFT PAGE ── */}
+      <rect x="38" y="16" width="404" height="176"
+        fill={`url(#${gId('parch-l')})`} />
+      <rect x="38" y="16" width="404" height="176"
+        fill="#8a6030" opacity="0.04" />
+
+      {/* Margin annotations */}
+      {Array.from({ length: 8 }, (_, i) => (
+        <line key={i}
+          x1="42" y1={30 + i * 19}
+          x2={50 + (i % 3) * 3} y2={30 + i * 19}
+          stroke="#1a1008" strokeWidth="0.7" opacity="0.28"
+        />
+      ))}
+
+      {/* Astrological wheel */}
+      <g clipPath={`url(#${gId('page-l-clip')})`}>
+        <circle cx="165" cy="72" r="48"
+          stroke="#1a1008" strokeWidth="1.0" opacity="0.55" fill="none" />
+        <circle cx="165" cy="72" r="32"
+          stroke="#1a1008" strokeWidth="0.6" opacity="0.40" fill="none" />
+        <circle cx="165" cy="72" r="8"
+          stroke="#1a1008" strokeWidth="0.8" opacity="0.55"
+          fill="#e0d4b8" />
+        {Array.from({ length: 8 }, (_, i) => {
+          const a = (i * 45 * Math.PI) / 180
+          return (
+            <line key={i}
+              x1={165 + 8 * Math.cos(a)}
+              y1={72 + 8 * Math.sin(a)}
+              x2={165 + 48 * Math.cos(a)}
+              y2={72 + 48 * Math.sin(a)}
+              stroke="#1a1008" strokeWidth="0.6" opacity="0.38"
+            />
+          )
+        })}
+        {Array.from({ length: 8 }, (_, i) => {
+          const a = ((i * 45 + 22.5) * Math.PI) / 180
+          const mx = 165 + 44 * Math.cos(a)
+          const my = 72 + 44 * Math.sin(a)
+          const perp = a + Math.PI / 2
+          return (
+            <line key={i}
+              x1={mx - 3 * Math.cos(perp)}
+              y1={my - 3 * Math.sin(perp)}
+              x2={mx + 3 * Math.cos(perp)}
+              y2={my + 3 * Math.sin(perp)}
+              stroke="#1a1008" strokeWidth="0.8" opacity="0.45"
+            />
+          )
+        })}
+        {Array.from({ length: 8 }, (_, i) => {
+          const a = ((i * 45 + 22.5) * Math.PI) / 180
+          const sx = 165 + 20 * Math.cos(a)
+          const sy = 72 + 20 * Math.sin(a)
+          return (
+            <text key={i}
+              x={sx} y={sy + 2.5}
+              textAnchor="middle"
+              fontFamily="serif"
+              fontSize="7"
+              fill="#1a1008"
+              opacity="0.50"
+              transform={`rotate(${i * 45 + 22.5} ${sx} ${sy})`}
+            >
+              {GRIMOIRE_WHEEL_SYMBOLS[i]}
+            </text>
+          )
+        })}
+      </g>
+
+      {/* Text lines — section 1 */}
+      {Array.from({ length: 5 }, (_, i) => (
+        <path key={i}
+          d={`M 245 ${28 + i * 8}
+              C 290 ${27 + i * 8 + (i % 2)},
+                350 ${29 + i * 8 - (i % 3)},
+                ${415 - (i % 3) * 8} ${28 + i * 8}`}
+          stroke="#1a1008" strokeWidth="0.9" fill="none" opacity="0.42"
+        />
+      ))}
+
+      {/* Text lines — section 2 */}
+      {Array.from({ length: 6 }, (_, i) => (
+        <path key={i}
+          d={`M 62 ${132 + i * 7}
+              C 130 ${131 + i * 7 + (i % 2)},
+                260 ${133 + i * 7 - (i % 3)},
+                ${415 - (i % 4) * 6} ${132 + i * 7}`}
+          stroke="#1a1008" strokeWidth="0.8" fill="none" opacity="0.38"
+        />
+      ))}
+
+      {/* Text lines — section 3 (sparser) */}
+      {Array.from({ length: 4 }, (_, i) => (
+        <path key={i}
+          d={`M 245 ${138 + i * 10}
+              C 300 ${137 + i * 10},
+                360 ${139 + i * 10},
+                ${410 - (i % 2) * 10} ${138 + i * 10}`}
+          stroke="#1a1008" strokeWidth="0.7" fill="none" opacity="0.30"
+        />
+      ))}
+
+      {/* Botanical illustration */}
+      <g clipPath={`url(#${gId('page-l-clip')})`}>
+        <line x1="360" y1="155" x2="360" y2="185"
+          stroke="#4a3018" strokeWidth="1.0" opacity="0.55" />
+        {[165, 173, 181].map((y, i) => (
+          <g key={i}>
+            <ellipse cx={352 - i} cy={y} rx={8 - i} ry={3.5 - i * 0.5}
+              stroke="#4a3018" strokeWidth="0.7" fill="none"
+              opacity="0.50"
+              transform={`rotate(-30 ${352 - i} ${y})`}
+            />
+            <ellipse cx={368 + i} cy={y} rx={8 - i} ry={3.5 - i * 0.5}
+              stroke="#4a3018" strokeWidth="0.7" fill="none"
+              opacity="0.50"
+              transform={`rotate(30 ${368 + i} ${y})`}
+            />
+          </g>
+        ))}
+        <circle cx="360" cy="155" r="5"
+          stroke="#4a3018" strokeWidth="0.7" fill="none" opacity="0.48" />
+        <circle cx="360" cy="155" r="2" fill="#4a3018" opacity="0.40" />
+        <text x="360" y="193"
+          textAnchor="middle"
+          fontFamily="EB Garamond, serif"
+          fontSize="7" fontStyle="italic"
+          fill="#4a3018" opacity="0.55"
+        >
+          Verbena off.
+        </text>
+      </g>
+
+      {/* Ink blot */}
+      <g clipPath={`url(#${gId('page-l-clip')})`}>
+        <ellipse cx="200" cy="110" rx="10" ry="7"
+          fill="#0a0808" opacity="0.45"
+          transform="rotate(-15 200 110)"
+        />
+        <circle cx="194" cy="106" r="5" fill="#0a0808" opacity="0.38" />
+        <circle cx="208" cy="114" r="4" fill="#0a0808" opacity="0.35" />
+        <circle cx="188" cy="115" r="2" fill="#0a0808" opacity="0.30" />
+        <circle cx="214" cy="108" r="1.5" fill="#0a0808" opacity="0.28" />
+        <circle cx="198" cy="120" r="1.8" fill="#0a0808" opacity="0.25" />
+      </g>
+
+      {/* Broken wax seal */}
+      <g clipPath={`url(#${gId('page-l-clip')})`}>
+        <path d="M 70 185 L 110 175 L 115 190 L 70 200"
+          fill="#ede0c0" opacity="0.65"
+          stroke="#c0b090" strokeWidth="0.6"
+        />
+        <circle cx="90" cy="178" r="14"
+          fill={`url(#${gId('wax')})`} opacity="0.75"
+        />
+        <circle cx="90" cy="178" r="12"
+          stroke="#c03028" strokeWidth="0.5"
+          fill="none" opacity="0.45"
+        />
+        {Array.from({ length: 5 }, (_, i) => {
+          const a = ((i * 72 - 90) * Math.PI) / 180
+          const aNext = (((i + 1) * 72 - 90) * Math.PI) / 180
+          const bx = 90 + 8 * Math.cos(a)
+          const by = 178 + 8 * Math.sin(a)
+          const nx = 90 + 8 * Math.cos(aNext)
+          const ny = 178 + 8 * Math.sin(aNext)
+          return i < 4 ? (
+            <line key={i}
+              x1={bx} y1={by} x2={nx} y2={ny}
+              stroke="#7a0810" strokeWidth="0.8" opacity="0.55"
+            />
+          ) : null
+        })}
+        <path d="M 80 170 C 85 175, 92 180, 100 185"
+          stroke="#5a0808" strokeWidth="1.2"
+          strokeLinecap="round" fill="none" opacity="0.55"
+        />
+      </g>
+
+      {/* ── RIGHT PAGE ── */}
+      <rect x="458" y="16" width="404" height="176"
+        fill={`url(#${gId('parch-r')})`} />
+      <rect x="458" y="16" width="404" height="176"
+        fill="#8a6030" opacity="0.02" />
+
+      {/* Corner flourishes */}
+      {GRIMOIRE_FLOURISH_CORNERS.map((c, i) => (
+        <path key={i}
+          d={`M ${c.x} ${c.y}
+              C ${c.x + c.rx * 12} ${c.y},
+                ${c.x + c.rx * 18} ${c.y + c.ry * 8},
+                ${c.x + c.rx * 14} ${c.y + c.ry * 14}
+              C ${c.x + c.rx * 10} ${c.y + c.ry * 18},
+                ${c.x + c.rx * 6} ${c.y + c.ry * 14},
+                ${c.x + c.rx * 8} ${c.y + c.ry * 10}`}
+          stroke="#1a1008" strokeWidth="0.8"
+          fill="none" opacity="0.32"
+          strokeLinecap="round"
+        />
+      ))}
+
+      {/* Moon phase circle diagram */}
+      <g clipPath={`url(#${gId('page-r-clip')})`}>
+        <circle cx={WHEEL_CX} cy={WHEEL_CY} r="72"
+          stroke="#1a1008" strokeWidth="0.8" opacity="0.45" fill="none" />
+
+        {stars.map((s, i) => (
+          <circle key={i} cx={s.x} cy={s.y} r="1.5"
+            fill="#1a1008" opacity="0.38" />
+        ))}
+
+        {phases.map((_, i) => {
+          const a = ((i * 45 - 90) * Math.PI) / 180
+          return (
+            <line key={i}
+              x1={WHEEL_CX + 18 * Math.cos(a)}
+              y1={WHEEL_CY + 18 * Math.sin(a)}
+              x2={WHEEL_CX + 44 * Math.cos(a)}
+              y2={WHEEL_CY + 44 * Math.sin(a)}
+              stroke="#1a1008" strokeWidth="0.5" opacity="0.30"
+            />
+          )
+        })}
+
+        {phases.map((p, i) => {
+          const r = 9
+          const isFull = i === 0
+          const isNew = i === 4
+          const isQuarter = i === 2 || i === 6
+          const isGibbous = i === 1 || i === 7
+          const isCrescent = i === 3 || i === 5
+
+          return (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r={r}
+                fill={isFull ? '#d8d0e8' : '#e8e0d0'}
+                stroke="#1a1008" strokeWidth="0.6" opacity="0.55"
+              />
+              {isNew && (
+                <circle cx={p.x} cy={p.y} r={r - 0.5}
+                  fill="#1a1610" opacity="0.65" />
+              )}
+              {isQuarter && (
+                <path
+                  d={i === 2
+                    ? `M ${p.x} ${p.y - r} A ${r} ${r} 0 0 0 ${p.x} ${p.y + r} Z`
+                    : `M ${p.x} ${p.y - r} A ${r} ${r} 0 0 1 ${p.x} ${p.y + r} Z`}
+                  fill="#1a1610" opacity="0.60"
+                />
+              )}
+              {isCrescent && (
+                <circle
+                  cx={i === 3 ? p.x - 4 : p.x + 4}
+                  cy={p.y} r={r - 2}
+                  fill="#1a1610" opacity="0.65"
+                />
+              )}
+              {isGibbous && (
+                <circle
+                  cx={i === 1 ? p.x + 4 : p.x - 4}
+                  cy={p.y} r={r - 4}
+                  fill="#1a1610" opacity="0.55"
+                />
+              )}
+              <text
+                x={p.x + (p.x - WHEEL_CX) * 0.30}
+                y={p.y + (p.y - WHEEL_CY) * 0.30 + 3}
+                textAnchor="middle"
+                fontFamily="EB Garamond, serif"
+                fontSize="4.5" fontStyle="italic"
+                fill="#1a1008" opacity="0.45"
+              >
+                {p.label}
+              </text>
+            </g>
+          )
+        })}
+
+        <circle cx={WHEEL_CX} cy={WHEEL_CY} r="16"
+          fill={`url(#${gId('moon-hub')})`}
+          stroke="#1a1008" strokeWidth="0.8" opacity="0.70"
+        />
+        <circle cx={WHEEL_CX - 4} cy={WHEEL_CY - 4} r="6"
+          fill="white" opacity="0.25"
+        />
+        <circle cx={WHEEL_CX} cy={WHEEL_CY} r="18"
+          stroke="#1a1008" strokeWidth="0.5"
+          fill="none" opacity="0.35"
+        />
+      </g>
+
+      {/* Page number */}
+      <text x="848" y="188"
+        textAnchor="end"
+        fontFamily="Cinzel, serif"
+        fontSize="9" fill="#1a1008" opacity="0.42"
+      >
+        XLVII
+      </text>
+
+      {/* ── THE QUILL ── */}
+
+      <ellipse
+        cx={(SHAFT_START.x + SHAFT_END.x) / 2 + 3}
+        cy={(SHAFT_START.y + SHAFT_END.y) / 2 + 4}
+        rx={shaftLen / 2}
+        ry={8}
+        fill="#000000"
+        opacity="0.18"
+        transform={`rotate(${shaftAngleDeg}
+          ${(SHAFT_START.x + SHAFT_END.x) / 2 + 3}
+          ${(SHAFT_START.y + SHAFT_END.y) / 2 + 4})`}
+        filter={`url(#${gId('quill-shadow')})`}
+      />
+
+      <path
+        d={leftVanePath}
+        fill={`url(#${gId('vane-l')})`}
+        opacity="0.88"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+
+      <path
+        d={rightVanePath}
+        fill="#201810"
+        opacity="0.72"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+
+      {barbs.filter((_, i) => i % 2 === 0).map((b, i) => (
+        <g key={i}>
+          <line x1={b.bx} y1={b.by} x2={b.lb.x2} y2={b.lb.y2}
+            stroke="#0a0808" strokeWidth="0.5" opacity="0.20" />
+          <line x1={b.bx} y1={b.by} x2={b.rb.x2} y2={b.rb.y2}
+            stroke="#0a0808" strokeWidth="0.4" opacity="0.15" />
+        </g>
+      ))}
+
+      <path
+        d={`M ${SHAFT_START.x} ${SHAFT_START.y}
+            C ${SHAFT_START.x - 60} ${SHAFT_START.y + 22},
+              ${SHAFT_END.x + 60} ${SHAFT_END.y - 22},
+              ${SHAFT_END.x} ${SHAFT_END.y}`}
+        stroke="#0e0a06"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+      <path
+        d={`M ${SHAFT_START.x - 1} ${SHAFT_START.y - 1}
+            C ${SHAFT_START.x - 61} ${SHAFT_START.y + 21},
+              ${SHAFT_END.x + 59} ${SHAFT_END.y - 23},
+              ${SHAFT_END.x - 1} ${SHAFT_END.y - 1}`}
+        stroke="#3a2810"
+        strokeWidth="0.6"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.45"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+
+      <path
+        d={`M ${SHAFT_END.x} ${SHAFT_END.y}
+            L ${SHAFT_END.x - ux * 22} ${SHAFT_END.y - uy * 22}`}
+        stroke="#4a2c14"
+        strokeWidth="2.0"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.75"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+
+      <path
+        d={`M ${SHAFT_END.x} ${SHAFT_END.y}
+            L ${SHAFT_END.x - ux * 8 + px * 4} ${SHAFT_END.y - uy * 8 + py * 4}
+            L ${SHAFT_END.x - ux * 14} ${SHAFT_END.y - uy * 14}
+            L ${SHAFT_END.x - ux * 8 - px * 4} ${SHAFT_END.y - uy * 8 - py * 4}
+            Z`}
+        fill="#0a0808"
+        opacity="0.85"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+      <line
+        x1={SHAFT_END.x}
+        y1={SHAFT_END.y}
+        x2={SHAFT_END.x - ux * 12}
+        y2={SHAFT_END.y - uy * 12}
+        stroke="#2a1808" strokeWidth="0.5" opacity="0.60"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+
+      <ellipse
+        cx={SHAFT_END.x - ux * 3 + px * 1}
+        cy={SHAFT_END.y - uy * 3 + py * 1}
+        rx="5" ry="3"
+        fill="#050408" opacity="0.70"
+        transform={`rotate(${shaftAngleDeg}
+          ${SHAFT_END.x - ux * 3}
+          ${SHAFT_END.y - uy * 3})`}
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+      <path
+        d={`M ${SHAFT_END.x} ${SHAFT_END.y}
+            C ${SHAFT_END.x - ux * 5 + px * 2} ${SHAFT_END.y - uy * 5 + py * 2},
+              ${SHAFT_END.x - ux * 10} ${SHAFT_END.y - uy * 10},
+              ${SHAFT_END.x - ux * 14 + px} ${SHAFT_END.y - uy * 14 + py}`}
+        stroke="#050408" strokeWidth="0.8"
+        strokeLinecap="round" fill="none" opacity="0.55"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+      <circle
+        cx={SHAFT_END.x + px * 6 - ux * 2}
+        cy={SHAFT_END.y + py * 6 - uy * 2}
+        r="1.8" fill="#050408" opacity="0.50"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+      <circle
+        cx={SHAFT_END.x + px * 9 - ux * 5}
+        cy={SHAFT_END.y + py * 9 - uy * 5}
+        r="1.2" fill="#050408" opacity="0.40"
+        clipPath={`url(#${gId('page-r-clip')})`}
+      />
+
+      {/* ── BINDING AND BOOK STRUCTURE ── */}
+
+      <rect x="442" y="8" width="16" height="194"
+        fill={`url(#${gId('bind')})`} />
+
+      {Array.from({ length: 6 }, (_, i) => (
+        <rect key={i}
+          x={862 + i * 1.2}
+          y={18 + i * 0.5}
+          width="1.2"
+          height={174 - i}
+          fill={i % 2 === 0 ? '#e8dcc0' : '#d4c4a4'}
+          opacity="0.70"
+        />
+      ))}
+
+      {GRIMOIRE_CORNERS.map((c, i) => {
+        const hx = c.xDir > 0 ? c.cx : c.cx - 16
+        const hy = c.yDir > 0 ? c.cy : c.cy - 3
+        const vx = c.xDir > 0 ? c.cx : c.cx - 3
+        const vy = c.yDir > 0 ? c.cy : c.cy - 16
+        return (
+          <g key={i}>
+            <rect x={hx} y={hy} width="16" height="3"
+              fill={`url(#${gId('brass')})`} opacity="0.85" />
+            <rect x={vx} y={vy} width="3" height="16"
+              fill={`url(#${gId('brass')})`} opacity="0.85" />
+            <circle
+              cx={c.cx + c.xDir * 1.5}
+              cy={c.cy + c.yDir * 1.5}
+              r="2"
+              fill="#c8a840" opacity="0.80"
+            />
+          </g>
+        )
+      })}
+
+      {GRIMOIRE_RIBBONS.map((r, i) => (
+        <g key={i}>
+          <rect x={r.x - 3} y="196" width="6" height="22"
+            fill={r.color} opacity={r.opacity} />
+          <path
+            d={`M ${r.x - 3} 218 L ${r.x} 214 L ${r.x + 3} 218`}
+            fill={r.color} opacity={r.opacity}
+          />
+        </g>
+      ))}
+
+      <g transform="translate(862 100)">
+        <path d="M 0 0 C 5 -6, 12 -6, 12 0 C 12 6, 5 6, 0 6"
+          stroke="#a07828" strokeWidth="2"
+          fill="none" opacity="0.70"
+        />
+        <rect x="-3" y="1" width="6" height="8" rx="1"
+          fill="#a07828" opacity="0.65"
+        />
+      </g>
+
+      {/* ── LIGHTING OVERLAY ── */}
+      <rect x="30" y="8" width="840" height="194"
+        fill={`url(#${gId('light')})`}
+        clipPath={`url(#${gId('book-clip')})`}
+      />
+    </svg>
+  )
+}
