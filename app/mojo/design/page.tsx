@@ -3,6 +3,11 @@ import { SvgPageHeaderRule } from '@/app/mojo/components/MojoSvgAssets'
 
 const DESIGNS = [
   {
+    slug: 'svg-library',
+    title: '◈ SVG Asset Library',
+    description: 'All 76 SVG exports in MojoSvgAssets.tsx rendered as previews. New exports appear automatically. Groups: Wide Panoramic, Square, Tall Vertical, Medium Decorative, Small Navigation, Ungrouped.',
+  },
+  {
     slug: 'library-study',
     title: 'Library — Old Study / Hearth',
     description: 'Stone fireplace in a forgotten scholar\'s study. Books stacked around the hearth, ivy on stone, mantle candles. Option B for The Library page.',
