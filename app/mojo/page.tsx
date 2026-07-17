@@ -56,7 +56,7 @@ export default async function MojoDashboardPage() {
       <div className="mojo-stats-strip" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
         <MojoDashboardStatTile href="/mojo" value={stats.activeRpCount} label="Active RPs" watermark="☽" />
         <MojoDashboardStatTile href="/mojo" value={stats.characterCount} label="Characters" watermark="♃" />
-        <MojoDashboardStatTile href="/mojo" value={stats.activeThreadCount} label="Active Threads" watermark="∞" />
+        <MojoDashboardStatTile href="/mojo/threads" value={stats.activeThreadCount} label="Active Threads" watermark="∞" />
         <MojoDashboardStatTile href="/mojo/library" value={stats.snippetCount} label="Snippets" watermark="☿" />
         <MojoDashboardStatTile href="/mojo/partners" value={stats.partnerCount} label="Partners" watermark="♆" />
         <MojoDashboardStatTile href="/mojo/stacks" value={stats.stackCount} label="Stacks" watermark="⬡" />
