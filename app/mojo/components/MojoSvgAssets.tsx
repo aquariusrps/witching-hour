@@ -8631,3 +8631,826 @@ export function SvgPortraitHall({
     </svg>
   )
 }
+
+export function SvgPortraitHallV2({
+  className = '',
+  idSuffix = 'phv2',
+}: {
+  className?: string
+  idSuffix?: string
+}) {
+  const gId = (name: string) => `${name}-${idSuffix}`
+
+  // Warlock portrait data — same frame geometry as SvgPortraitHall,
+  // new element/robe/mask fields in place of skin/shadow/eyeColor
+  type WarlockPortrait = {
+    id: string
+    cx: number; cy: number; w: number; h: number
+    shape: 'rect' | 'oval'
+    fw: number
+    frameStyle: 'baroque'|'gothic'|'neoclassical'|'rope'|'victorian'
+    bg: string
+    elementColor: string
+    robeColor: string
+    element: 'shadow'|'lightning'|'water'|'earth'|'fire'|'air'|'light'
+    maskTilt: number
+  }
+
+  const warlocks: WarlockPortrait[] = [
+    // Top row
+    { id:'w1', cx:148, cy:70,  w:88,  h:98,  shape:'oval', fw:9,
+      frameStyle:'victorian',
+      bg:'#0e0614', elementColor:'#7020c0', robeColor:'#1a0828',
+      element:'shadow', maskTilt:-8 },
+    { id:'w2', cx:450, cy:62,  w:112, h:102, shape:'rect', fw:12,
+      frameStyle:'gothic',
+      bg:'#0c0c10', elementColor:'#d0c020', robeColor:'#1c1a0c',
+      element:'lightning', maskTilt:0 },
+    { id:'w3', cx:752, cy:70,  w:88,  h:98,  shape:'oval', fw:9,
+      frameStyle:'victorian',
+      bg:'#060c18', elementColor:'#2060c0', robeColor:'#081424',
+      element:'water', maskTilt:6 },
+    // Main row
+    { id:'w4', cx:188, cy:152, w:92,  h:116, shape:'rect', fw:10,
+      frameStyle:'neoclassical',
+      bg:'#080c06', elementColor:'#508020', robeColor:'#101408',
+      element:'earth', maskTilt:-5 },
+    { id:'w5', cx:360, cy:155, w:108, h:124, shape:'rect', fw:14,
+      frameStyle:'baroque',
+      bg:'#100402', elementColor:'#c83010', robeColor:'#180604',
+      element:'fire', maskTilt:3 },
+    { id:'w6', cx:540, cy:155, w:108, h:124, shape:'rect', fw:11,
+      frameStyle:'rope',
+      bg:'#08080e', elementColor:'#8090c0', robeColor:'#10101a',
+      element:'air', maskTilt:-3 },
+    { id:'w7', cx:712, cy:152, w:92,  h:116, shape:'rect', fw:10,
+      frameStyle:'neoclassical',
+      bg:'#100c02', elementColor:'#c0a020', robeColor:'#181006',
+      element:'light', maskTilt:7 },
+  ]
+
+  // Helper: render a hooded, masked warlock within a canvas area.
+  // Same signature shape as SvgPortraitHall's renderFace() — no
+  // explicit return type, TypeScript infers it (no React import
+  // in this file — automatic JSX runtime, per FIX-029 Q1).
+  function renderWarlock(
+    w: WarlockPortrait,
+    cx: number, cy: number, cw: number, ch: number,
+    clipId: string
+  ) {
+    const cLeft   = cx - cw / 2
+    const cTop    = cy - ch / 2
+    const cBottom = cy + ch / 2
+    const maskCy  = cy - ch * 0.06
+    const maskHW  = cw * 0.32
+    const maskHH  = ch * 0.28
+    const maskTop = maskCy - maskHH
+    const tilt = `rotate(${w.maskTilt} ${cx} ${maskCy})`
+
+    return (
+      <g clipPath={`url(#${clipId})`}>
+
+        {/* 1. ELEMENTAL BACKGROUND */}
+        {w.element === 'shadow' && (
+          <>
+            <ellipse cx={cx} cy={cy} rx={cw * 0.7} ry={ch * 0.7}
+              fill={`url(#${gId('shadow-glow')})`}
+            />
+            <path
+              d={`M ${cLeft + cw * 0.12} ${cBottom}
+                  C ${cLeft + cw * 0.08} ${cy}, ${cLeft + cw * 0.18} ${cy - ch * 0.3}, ${cLeft + cw * 0.25} ${cTop}`}
+              stroke={w.elementColor} strokeWidth="1.5" fill="none" opacity="0.18"
+            />
+            <path
+              d={`M ${cLeft + cw * 0.75} ${cBottom}
+                  C ${cLeft + cw * 0.80} ${cy}, ${cLeft + cw * 0.72} ${cy - ch * 0.3}, ${cLeft + cw * 0.65} ${cTop}`}
+              stroke={w.elementColor} strokeWidth="1.5" fill="none" opacity="0.18"
+            />
+          </>
+        )}
+
+        {w.element === 'lightning' && (
+          <>
+            <path
+              d={`M ${cx - cw * 0.1} ${cTop + ch * 0.05}
+                  L ${cx - cw * 0.18} ${cy - ch * 0.2}
+                  L ${cx - cw * 0.08} ${cy - ch * 0.1}
+                  L ${cx - cw * 0.22} ${cBottom - ch * 0.1}`}
+              stroke={w.elementColor} strokeWidth="0.8" fill="none" opacity="0.22"
+            />
+            <path
+              d={`M ${cx} ${cTop}
+                  L ${cx + cw * 0.12} ${cy - ch * 0.15}
+                  L ${cx + cw * 0.02} ${cy}
+                  L ${cx + cw * 0.15} ${cy + ch * 0.2}`}
+              stroke={w.elementColor} strokeWidth="0.8" fill="none" opacity="0.22"
+            />
+            <path
+              d={`M ${cx + cw * 0.15} ${cTop + ch * 0.1}
+                  L ${cx + cw * 0.05} ${cy - ch * 0.05}
+                  L ${cx + cw * 0.20} ${cy + ch * 0.1}`}
+              stroke={w.elementColor} strokeWidth="0.8" fill="none" opacity="0.22"
+            />
+          </>
+        )}
+
+        {w.element === 'water' && (
+          [0, 1, 2, 3].map((i) => (
+            <path key={i}
+              d={`M ${cLeft} ${cy + ch * (0.05 * i)}
+                  C ${cLeft + cw * 0.25} ${cy + ch * (0.05 * i - 0.02)},
+                    ${cLeft + cw * 0.75} ${cy + ch * (0.05 * i + 0.02)},
+                    ${cLeft + cw} ${cy + ch * (0.05 * i)}`}
+              stroke={w.elementColor} strokeWidth="0.7" fill="none" opacity="0.14"
+            />
+          ))
+        )}
+
+        {w.element === 'earth' && (
+          [0, 1, 2, 3].map((i) => (
+            <path key={i}
+              d={`M ${cLeft} ${cy + ch * (0.05 + 0.06 * i)}
+                  C ${cLeft + cw * 0.3} ${cy + ch * (0.05 + 0.06 * i) + 1},
+                    ${cLeft + cw * 0.7} ${cy + ch * (0.05 + 0.06 * i) - 1},
+                    ${cLeft + cw} ${cy + ch * (0.05 + 0.06 * i)}`}
+              stroke={w.elementColor} strokeWidth="0.6" fill="none" opacity="0.13"
+            />
+          ))
+        )}
+
+        {w.element === 'fire' && (
+          <>
+            <ellipse cx={cx} cy={cy + ch * 0.1} rx={cw * 0.7} ry={ch * 0.7}
+              fill={`url(#${gId('fire-glow')})`}
+            />
+            <path
+              d={`M ${cx - cw * 0.06} ${cBottom}
+                  C ${cx - cw * 0.08} ${cy + ch * 0.1}, ${cx - cw * 0.02} ${cy - ch * 0.05}, ${cx} ${cTop + ch * 0.15}`}
+              stroke={w.elementColor} strokeWidth="1.2" fill="none" opacity="0.20"
+            />
+            <path
+              d={`M ${cx} ${cBottom}
+                  C ${cx + cw * 0.04} ${cy}, ${cx - cw * 0.04} ${cy - ch * 0.2}, ${cx + cw * 0.02} ${cTop + ch * 0.05}`}
+              stroke={w.elementColor} strokeWidth="1.2" fill="none" opacity="0.20"
+            />
+            <path
+              d={`M ${cx + cw * 0.08} ${cBottom}
+                  C ${cx + cw * 0.10} ${cy + ch * 0.1}, ${cx + cw * 0.04} ${cy - ch * 0.05}, ${cx + cw * 0.02} ${cTop + ch * 0.20}`}
+              stroke={w.elementColor} strokeWidth="1.2" fill="none" opacity="0.20"
+            />
+          </>
+        )}
+
+        {w.element === 'air' && (
+          [0, 1, 2, 3].map((i) => (
+            <path key={i}
+              d={`M ${cx - cw * (0.2 + 0.08 * i)} ${cy}
+                  A ${cw * (0.2 + 0.08 * i)} ${ch * (0.18 + 0.07 * i)}
+                    0 1 1 ${cx + cw * (0.2 + 0.08 * i)} ${cy}`}
+              stroke={w.elementColor} strokeWidth="0.5" fill="none" opacity="0.11"
+            />
+          ))
+        )}
+
+        {w.element === 'light' && (
+          <>
+            <ellipse cx={cx} cy={cy - ch * 0.1} rx={cw * 0.7} ry={ch * 0.7}
+              fill={`url(#${gId('light-glow')})`}
+            />
+            {Array.from({ length: 8 }, (_, i) => {
+              const angle = ((i * 45 - 90) * Math.PI) / 180
+              const rayR = Math.min(cw, ch) * 0.45
+              return (
+                <line key={i}
+                  x1={cx + Math.cos(angle) * cw * 0.08}
+                  y1={cy - ch * 0.1 + Math.sin(angle) * ch * 0.08}
+                  x2={cx + Math.cos(angle) * rayR}
+                  y2={cy - ch * 0.1 + Math.sin(angle) * rayR}
+                  stroke={w.elementColor} strokeWidth="0.5" opacity="0.12"
+                />
+              )
+            })}
+          </>
+        )}
+
+        {/* 2. HOODED ROBE */}
+        <path
+          d={`M ${cLeft} ${cBottom}
+              L ${cLeft} ${cy + ch * 0.15}
+              C ${cLeft} ${cy - ch * 0.05},
+                ${cx - cw * 0.3} ${maskTop - ch * 0.15},
+                ${cx} ${maskTop - ch * 0.30}
+              C ${cx + cw * 0.3} ${maskTop - ch * 0.15},
+                ${cx + cw * 0.5} ${cy - ch * 0.05},
+                ${cx + cw * 0.5} ${cy + ch * 0.15}
+              L ${cx + cw * 0.5} ${cBottom} Z`}
+          fill={w.robeColor}
+          opacity="0.90"
+        />
+        {/* Hood inner shadow — the void within the hood */}
+        <ellipse
+          cx={cx} cy={maskCy + ch * 0.04}
+          rx={cw * 0.28} ry={ch * 0.30}
+          fill="#000000" opacity="0.55"
+        />
+
+        {/* 3. MASK BODY */}
+        <g transform={tilt}>
+          {/* Mask alabaster surface */}
+          <path
+            d={`M ${cx - maskHW} ${maskCy}
+                C ${cx - maskHW} ${maskTop + ch * 0.02},
+                  ${cx - maskHW * 0.6} ${maskTop - ch * 0.04},
+                  ${cx} ${maskTop - ch * 0.04}
+                C ${cx + maskHW * 0.6} ${maskTop - ch * 0.04},
+                  ${cx + maskHW} ${maskTop + ch * 0.02},
+                  ${cx + maskHW} ${maskCy}
+                L ${cx + maskHW} ${maskCy + maskHH}
+                L ${cx - maskHW} ${maskCy + maskHH} Z`}
+            fill={`url(#${gId(`mask-grad-${w.id}`)})`}
+            stroke={w.elementColor}
+            strokeWidth="0.6"
+            opacity="0.38"
+          />
+
+          {/* 4a. Runic lines */}
+          {[-ch * 0.08, -ch * 0.01, ch * 0.06].map((yOff, ri) => (
+            <line key={ri}
+              x1={cx - maskHW * 0.72} y1={maskCy + yOff}
+              x2={cx + maskHW * 0.72} y2={maskCy + yOff}
+              stroke={w.elementColor} strokeWidth="0.35"
+              opacity="0.30"
+            />
+          ))}
+
+          {/* 4b. Eye apertures — element glow then void */}
+          {[-cw * 0.13, cw * 0.13].map((xOff, ei) => (
+            <g key={ei}>
+              <ellipse
+                cx={cx + xOff} cy={maskCy - ch * 0.05}
+                rx={cw * 0.085} ry={ch * 0.065}
+                fill={w.elementColor} opacity="0.22"
+              />
+              <ellipse
+                cx={cx + xOff} cy={maskCy - ch * 0.05}
+                rx={cw * 0.07} ry={ch * 0.055}
+                fill="#000000"
+              />
+            </g>
+          ))}
+
+          {/* 4c. Brow ridge */}
+          <path
+            d={`M ${cx - maskHW * 0.65} ${maskCy - ch * 0.09}
+                Q ${cx} ${maskCy - ch * 0.13}
+                  ${cx + maskHW * 0.65} ${maskCy - ch * 0.09}`}
+            stroke={w.elementColor} strokeWidth="0.5"
+            fill="none" opacity="0.25"
+          />
+
+          {/* 4d. Nasal bridge */}
+          <path
+            d={`M ${cx - cw * 0.04} ${maskCy}
+                L ${cx} ${maskCy + ch * 0.06}
+                L ${cx + cw * 0.04} ${maskCy}`}
+            stroke="#a09888" strokeWidth="0.4"
+            fill="none" opacity="0.30"
+          />
+
+          {/* 4e. Forehead jewel */}
+          <circle cx={cx} cy={maskCy - ch * 0.14}
+            r={Math.max(5, cw * 0.035)}
+            fill={w.elementColor} opacity="0.80" />
+          <circle cx={cx} cy={maskCy - ch * 0.14}
+            r={Math.max(2.5, cw * 0.018)}
+            fill="#ffffff" opacity="0.60" />
+          <circle cx={cx} cy={maskCy - ch * 0.14}
+            r={Math.max(7, cw * 0.05)}
+            stroke={w.elementColor} strokeWidth="0.5"
+            fill="none" opacity="0.35" />
+
+          {/* 4f. Side ornaments (mask attachment points) */}
+          {[-maskHW * 0.9, maskHW * 0.9].map((xOff, si) => (
+            <circle key={si}
+              cx={cx + xOff} cy={maskCy}
+              r="2" fill={w.elementColor} opacity="0.40"
+            />
+          ))}
+
+          {/* 5. Specular highlight on mask */}
+          <ellipse
+            cx={cx - maskHW * 0.25} cy={maskCy - ch * 0.08}
+            rx={maskHW * 0.4} ry={maskHH * 0.3}
+            fill="#ffffff" opacity="0.12"
+          />
+        </g>
+
+      </g>
+    )
+  }
+
+  return (
+    <svg
+      width="100%"
+      height="210"
+      viewBox="0 0 900 210"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ pointerEvents: 'none', overflow: 'visible' }}
+    >
+      <defs>
+        {/* ── WALL PANELING (verbatim from SvgPortraitHall) ── */}
+        <linearGradient id={gId('wall')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#141008" />
+          <stop offset="100%" stopColor="#0e0c06" />
+        </linearGradient>
+
+        {/* ── GILT FRAME GOLD (verbatim) ── */}
+        <linearGradient id={gId('gilt')} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#7a5010" />
+          <stop offset="25%"  stopColor="#c8a840" />
+          <stop offset="50%"  stopColor="#f0d060" />
+          <stop offset="75%"  stopColor="#c8a840" />
+          <stop offset="100%" stopColor="#6a4008" />
+        </linearGradient>
+        <linearGradient id={gId('gilt-v')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#f0d060" />
+          <stop offset="50%"  stopColor="#c8a840" />
+          <stop offset="100%" stopColor="#7a5010" />
+        </linearGradient>
+        <linearGradient id={gId('gilt-dark')} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stopColor="#4a2c08" />
+          <stop offset="50%"  stopColor="#8a6018" />
+          <stop offset="100%" stopColor="#3a2006" />
+        </linearGradient>
+
+        {/* ── SCONCE GLOW (verbatim) ── */}
+        <radialGradient id={gId('sconce')} cx="50%" cy="0%" r="80%">
+          <stop offset="0%"   stopColor="#c87800" stopOpacity="0.45" />
+          <stop offset="40%"  stopColor="#c87000" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#c86000" stopOpacity="0" />
+        </radialGradient>
+
+        {/* ── NAMEPLATE (brass, verbatim) ── */}
+        <linearGradient id={gId('brass')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#6a4808" />
+          <stop offset="40%"  stopColor="#a07828" />
+          <stop offset="60%"  stopColor="#c8a040" />
+          <stop offset="100%" stopColor="#6a4808" />
+        </linearGradient>
+
+        {/* ── VIGNETTE (verbatim) ── */}
+        <radialGradient id={gId('vignette')} cx="50%" cy="50%" r="60%">
+          <stop offset="40%"  stopColor="#000000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.65" />
+        </radialGradient>
+
+        {/* ── MASK GRADIENTS — one per warlock ── */}
+        {warlocks.map(w => (
+          <linearGradient key={w.id}
+            id={gId(`mask-grad-${w.id}`)}
+            x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#e8e0d8" />
+            <stop offset="100%" stopColor="#c4bcb4" />
+          </linearGradient>
+        ))}
+
+        {/* ── ELEMENTAL GLOW GRADIENTS ── */}
+        <radialGradient id={gId('shadow-glow')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#200840" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#200840" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={gId('fire-glow')} cx="50%" cy="60%" r="50%">
+          <stop offset="0%"   stopColor="#c83010" stopOpacity="0.30" />
+          <stop offset="100%" stopColor="#c83010" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={gId('light-glow')} cx="50%" cy="40%" r="50%">
+          <stop offset="0%"   stopColor="#c0a020" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#c0a020" stopOpacity="0" />
+        </radialGradient>
+
+        {/* ── CANVAS CLIP PATHS (one per portrait, verbatim pattern) ── */}
+        {warlocks.map(w => {
+          const left  = w.cx - w.w/2 + w.fw
+          const top   = w.cy - w.h/2 + w.fw
+          const cw    = w.w - w.fw*2
+          const ch    = w.h - w.fw*2
+          return w.shape === 'oval' ? (
+            <clipPath key={w.id} id={gId(`clip-${w.id}`)}>
+              <ellipse cx={w.cx} cy={w.cy} rx={cw/2} ry={ch/2} />
+            </clipPath>
+          ) : (
+            <clipPath key={w.id} id={gId(`clip-${w.id}`)}>
+              <rect x={left} y={top} width={cw} height={ch} />
+            </clipPath>
+          )
+        })}
+      </defs>
+
+      {/* ══════════════════════════════════════
+          LAYER 1 — DARK WOOD WALL (verbatim)
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="210"
+        fill={`url(#${gId('wall')})`}
+      />
+      {[90, 180, 270, 360, 450, 540, 630, 720, 810].map((x, i) => (
+        <line key={i} x1={x} y1="0" x2={x} y2="210"
+          stroke="#1e1a0e" strokeWidth="1.5" opacity="0.40"
+        />
+      ))}
+      <rect x="0" y="8"   width="900" height="2"
+        fill="#1e1a0e" opacity="0.45" />
+      <rect x="0" y="200" width="900" height="2"
+        fill="#1e1a0e" opacity="0.45" />
+
+      {/* ══════════════════════════════════════
+          LAYER 2 — FRIEZE (verbatim)
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="10"
+        fill="#181408" />
+      <line x1="0" y1="10" x2="900" y2="10"
+        stroke="#c8a840" strokeWidth="0.8" opacity="0.30" />
+      {Array.from({ length: 36 }, (_, i) => (
+        i % 2 === 0 ? (
+          <ellipse key={i}
+            cx={12 + i * 25} cy="5" rx="6" ry="3"
+            fill="#c8a840" opacity="0.18"
+          />
+        ) : (
+          <line key={i}
+            x1={12 + i * 25} y1="3"
+            x2={12 + i * 25} y2="7"
+            stroke="#c8a840" strokeWidth="1.5" opacity="0.14"
+          />
+        )
+      ))}
+
+      {/* ══════════════════════════════════════
+          LAYER 3 — SCONCE GLOWS (verbatim)
+          ══════════════════════════════════════ */}
+      {warlocks.map(w => (
+        <ellipse key={w.id}
+          cx={w.cx}
+          cy={w.cy - w.h/2 - 5}
+          rx={w.w * 0.65}
+          ry={w.h * 0.60}
+          fill={`url(#${gId('sconce')})`}
+        />
+      ))}
+
+      {/* ══════════════════════════════════════
+          LAYER 4 — FRAMES (verbatim from SvgPortraitHall)
+          ══════════════════════════════════════ */}
+      {warlocks.map(w => {
+        const left   = w.cx - w.w/2
+        const top    = w.cy - w.h/2
+        const right  = w.cx + w.w/2
+        const bottom = w.cy + w.h/2
+        const fw = w.fw
+
+        if (w.frameStyle === 'victorian' && w.shape === 'oval') {
+          return (
+            <g key={w.id}>
+              <ellipse cx={w.cx} cy={w.cy}
+                rx={w.w/2} ry={w.h/2}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              <ellipse cx={w.cx} cy={w.cy}
+                rx={w.w/2 - 2} ry={w.h/2 - 2}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="4" fill="none"
+              />
+              <ellipse cx={w.cx} cy={w.cy}
+                rx={w.w/2 - 7} ry={w.h/2 - 7}
+                stroke="#c8a840" strokeWidth="0.8"
+                fill="none" opacity="0.50"
+              />
+              <ellipse cx={w.cx} cy={top + 2}
+                rx="8" ry="5"
+                fill={`url(#${gId('gilt')})`} opacity="0.80"
+              />
+              <ellipse cx={w.cx} cy={top + 2}
+                rx="4" ry="3"
+                fill="#f0d060" opacity="0.60"
+              />
+              <ellipse cx={w.cx} cy={bottom - 2}
+                rx="8" ry="5"
+                fill={`url(#${gId('gilt')})`} opacity="0.75"
+              />
+            </g>
+          )
+        }
+
+        if (w.frameStyle === 'gothic') {
+          const archH = 22
+          return (
+            <g key={w.id}>
+              <rect x={left} y={top} width={w.w} height={w.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              <rect x={left+2} y={top+2}
+                width={w.w-4} height={w.h-4}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="5" fill="none"
+              />
+              <path
+                d={`M ${left+4} ${top}
+                    Q ${left+4} ${top-archH*0.8}
+                      ${w.cx} ${top-archH}
+                    Q ${right-4} ${top-archH*0.8}
+                      ${right-4} ${top}`}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="5" fill={`url(#${gId('gilt-dark')})`}
+              />
+              <path
+                d={`M ${w.cx - 10} ${top}
+                    Q ${w.cx - 10} ${top-archH*0.5}
+                      ${w.cx} ${top-archH*0.8}
+                    Q ${w.cx + 10} ${top-archH*0.5}
+                      ${w.cx + 10} ${top}`}
+                stroke="#c8a840" strokeWidth="0.8"
+                fill="none" opacity="0.55"
+              />
+              <ellipse cx={w.cx} cy={top - archH}
+                rx="6" ry="4"
+                fill={`url(#${gId('gilt')})`} opacity="0.85"
+              />
+              {[[left, top],[right, top]].map(([cx2, cy2], i) => (
+                <ellipse key={i}
+                  cx={cx2} cy={cy2}
+                  rx="6" ry="4"
+                  fill={`url(#${gId('gilt')})`} opacity="0.75"
+                />
+              ))}
+              <rect x={left} y={bottom-4}
+                width={w.w} height="4"
+                fill={`url(#${gId('gilt')})`} opacity="0.65"
+              />
+            </g>
+          )
+        }
+
+        if (w.frameStyle === 'baroque') {
+          return (
+            <g key={w.id}>
+              <rect x={left} y={top} width={w.w} height={w.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.5"
+              />
+              <rect x={left+2} y={top+2}
+                width={w.w-4} height={w.h-4}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="8" fill="none"
+              />
+              <rect x={left + fw - 2} y={top + fw - 2}
+                width={w.w - (fw-2)*2} height={w.h - (fw-2)*2}
+                stroke="#f0d060" strokeWidth="0.8"
+                fill="none" opacity="0.55"
+              />
+              {[
+                [left+fw*0.5, top+fw*0.5],
+                [right-fw*0.5, top+fw*0.5],
+                [left+fw*0.5, bottom-fw*0.5],
+                [right-fw*0.5, bottom-fw*0.5],
+              ].map(([scx, scy], i) => (
+                <g key={i}>
+                  <circle cx={scx} cy={scy} r={fw*0.38}
+                    fill={`url(#${gId('gilt')})`} opacity="0.85" />
+                  <circle cx={scx} cy={scy} r={fw*0.20}
+                    fill="#f0d060" opacity="0.60" />
+                </g>
+              ))}
+              <path
+                d={`M ${w.cx-12} ${top+3}
+                    C ${w.cx-12} ${top-6},
+                      ${w.cx+12} ${top-6},
+                      ${w.cx+12} ${top+3}`}
+                fill={`url(#${gId('gilt')})`}
+                stroke="#c8a840" strokeWidth="0.8"
+                opacity="0.80"
+              />
+              <ellipse cx={w.cx} cy={top-3}
+                rx="5" ry="4"
+                fill="#f0d060" opacity="0.65"
+              />
+            </g>
+          )
+        }
+
+        if (w.frameStyle === 'rope') {
+          return (
+            <g key={w.id}>
+              <rect x={left} y={top} width={w.w} height={w.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              {Array.from({ length: Math.floor(w.w / 7) }, (_, i) => (
+                <line key={i}
+                  x1={left + i * 7} y1={top}
+                  x2={left + i * 7 + fw} y2={top + fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.55"
+                />
+              ))}
+              {Array.from({ length: Math.floor(w.w / 7) }, (_, i) => (
+                <line key={i}
+                  x1={left + i * 7} y1={bottom}
+                  x2={left + i * 7 + fw} y2={bottom - fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.50"
+                />
+              ))}
+              {Array.from({ length: Math.floor(w.h / 7) }, (_, i) => (
+                <line key={i}
+                  x1={left} y1={top + i * 7}
+                  x2={left + fw} y2={top + i * 7 + fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.50"
+                />
+              ))}
+              {Array.from({ length: Math.floor(w.h / 7) }, (_, i) => (
+                <line key={i}
+                  x1={right} y1={top + i * 7}
+                  x2={right - fw} y2={top + i * 7 + fw}
+                  stroke="#c8a840" strokeWidth="1.2" opacity="0.50"
+                />
+              ))}
+              {[
+                [left, top], [right, top],
+                [left, bottom], [right, bottom],
+              ].map(([bx, by], i) => (
+                <circle key={i} cx={bx} cy={by} r="6"
+                  fill={`url(#${gId('gilt')})`} opacity="0.80"
+                />
+              ))}
+              <rect x={left} y={top} width={w.w} height={w.h}
+                stroke="#c8a840" strokeWidth="0.8"
+                fill="none" opacity="0.45"
+              />
+              <rect x={left+fw} y={top+fw}
+                width={w.w - fw*2} height={w.h - fw*2}
+                stroke="#c8a840" strokeWidth="0.6"
+                fill="none" opacity="0.40"
+              />
+            </g>
+          )
+        }
+
+        if (w.frameStyle === 'neoclassical') {
+          return (
+            <g key={w.id}>
+              <rect x={left} y={top} width={w.w} height={w.h}
+                fill={`url(#${gId('gilt-dark')})`}
+                stroke="#3a2808" strokeWidth="1.0"
+              />
+              <rect x={left+3} y={top+3}
+                width={w.w-6} height={w.h-6}
+                stroke={`url(#${gId('gilt')})`}
+                strokeWidth="4" fill="none"
+              />
+              <rect x={left+7} y={top+7}
+                width={w.w-14} height={w.h-14}
+                stroke={`url(#${gId('gilt-dark')})`}
+                strokeWidth="2" fill="none"
+              />
+              {[-14,-8,-2].map((dx, i) => (
+                <ellipse key={i}
+                  cx={w.cx + dx} cy={top + fw*0.5}
+                  rx={4 - i*0.5} ry={2.5}
+                  fill="#c8a840" opacity={0.55 - i*0.08}
+                  transform={`rotate(${-30 + i*15} ${w.cx + dx} ${top + fw*0.5})`}
+                />
+              ))}
+              {[2,8,14].map((dx, i) => (
+                <ellipse key={i}
+                  cx={w.cx + dx} cy={top + fw*0.5}
+                  rx={3.5 - i*0.3} ry={2.5}
+                  fill="#c8a840" opacity={0.55 - i*0.08}
+                  transform={`rotate(${30 - i*15} ${w.cx + dx} ${top + fw*0.5})`}
+                />
+              ))}
+              <circle cx={w.cx} cy={top + fw*0.5}
+                r="3" fill="#f0d060" opacity="0.65"
+              />
+            </g>
+          )
+        }
+
+        return null
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 5 — CANVAS BACKGROUNDS
+          ══════════════════════════════════════ */}
+      {warlocks.map(w => {
+        const left = w.cx - w.w/2 + w.fw
+        const top  = w.cy - w.h/2 + w.fw
+        const cw   = w.w - w.fw*2
+        const ch   = w.h - w.fw*2
+        const clipId = gId(`clip-${w.id}`)
+
+        return w.shape === 'oval' ? (
+          <ellipse key={w.id}
+            cx={w.cx} cy={w.cy}
+            rx={cw/2} ry={ch/2}
+            fill={w.bg}
+            clipPath={`url(#${clipId})`}
+          />
+        ) : (
+          <rect key={w.id}
+            x={left} y={top} width={cw} height={ch}
+            fill={w.bg}
+            clipPath={`url(#${clipId})`}
+          />
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 6 — WARLOCKS (canvas contents)
+          ══════════════════════════════════════ */}
+      {warlocks.map(w => {
+        const cw = w.w - w.fw*2
+        const ch = w.h - w.fw*2
+        return (
+          <g key={w.id}>
+            {renderWarlock(w, w.cx, w.cy, cw, ch, gId(`clip-${w.id}`))}
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 7 — NAMEPLATES (verbatim)
+          ══════════════════════════════════════ */}
+      {warlocks.map(w => {
+        const plateW = w.w * 0.58
+        const plateH = 7
+        const plateX = w.cx - plateW/2
+        const plateY = w.cy + w.h/2 + 5
+
+        return (
+          <g key={w.id}>
+            <rect x={plateX} y={plateY}
+              width={plateW} height={plateH}
+              rx="0.5"
+              fill={`url(#${gId('brass')})`}
+              opacity="0.80"
+            />
+            <line x1={plateX+5} y1={plateY+2.5}
+              x2={plateX+plateW-5} y2={plateY+2.5}
+              stroke="#ede0c0" strokeWidth="0.8" opacity="0.20"
+            />
+            <line x1={plateX+10} y1={plateY+4.5}
+              x2={plateX+plateW-10} y2={plateY+4.5}
+              stroke="#ede0c0" strokeWidth="0.6" opacity="0.14"
+            />
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 8 — SCONCE FIXTURES (verbatim)
+          ══════════════════════════════════════ */}
+      {warlocks.map(w => {
+        const scX = w.cx
+        const scY = w.cy - w.h/2 - 8
+
+        return (
+          <g key={w.id}>
+            <path
+              d={`M ${scX} ${scY + 6}
+                  C ${scX - 4} ${scY + 4},
+                    ${scX - 5} ${scY + 1},
+                    ${scX} ${scY}`}
+              stroke="#8a6018" strokeWidth="1.5"
+              fill="none" opacity="0.70"
+            />
+            <rect x={scX-4} y={scY+4}
+              width="8" height="4" rx="1"
+              fill="#6a4810" opacity="0.65"
+            />
+            <ellipse cx={scX} cy={scY}
+              rx="4" ry="5"
+              fill="#f0c840" opacity="0.55"
+            />
+            <ellipse cx={scX} cy={scY}
+              rx="2" ry="3"
+              fill="#fff8e0" opacity="0.70"
+            />
+          </g>
+        )
+      })}
+
+      {/* ══════════════════════════════════════
+          LAYER 9 — VIGNETTE (verbatim)
+          ══════════════════════════════════════ */}
+      <rect x="0" y="0" width="900" height="210"
+        fill={`url(#${gId('vignette')})`}
+      />
+      <rect x="0" y="200" width="900" height="10"
+        fill="#000000" opacity="0.45"
+      />
+
+    </svg>
+  )
+}
