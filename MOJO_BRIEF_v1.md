@@ -1,7 +1,7 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.5
-### Last updated: July 2026 — through MOJO-FIX-017c (commit 59439f5)
+### Created: July 2026 | Current version: v1.6
+### Last updated: July 2026 — through MOJO-FIX-028 (commit 1f8a81c)
 ### BUILD STATUS: ACTIVE MAINTENANCE
 
 This is the single authoritative document for the Mojo personal RP
@@ -49,6 +49,10 @@ Features include:
   characters and RPs, grouped by character, sorted by urgency
 - The Familiar (/mojo/familiar) — AI companion with conversation memory,
   internal data tools, web search, creative writing generation
+- Upcoming thread type ("On Deck") — planned threads held indefinitely,
+  excluded from active tracking, auto-activate when URL is added
+- The Atelier (/mojo/design) — private SVG design preview system for
+  evaluating new illustrated header art before applying to production pages
 
 Mojo is operator-only. No public registration. No other users.
 Auth is the existing TWH super admin session.
@@ -385,6 +389,50 @@ MojoThreadAutoRefresh.tsx.
 All visual work in 7B–7K uses: CSS, inline SVG in JSX, canvas.
 No additional npm packages in any visual pass prompt.
 
+### Flame Animation Pattern (FIX-026 — CRITICAL)
+className="mojo-flame-main" or className="mojo-flame-inner" on an
+SVG element does NOT animate it. No CSS class rule assigns the
+animation properties — only @keyframes and a prefers-reduced-motion
+selector exist. Elements with className only are silently static.
+
+The ONLY working pattern is inline style props (confirmed in
+SvgCandleRealistic, applied as the fix in FIX-026):
+  style={{
+    animationName: 'mojo-flame-main',
+    animationDuration: '1.8s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+    animationDelay: someDelay,
+  }}
+For inner flame: animationName: 'mojo-flame-inner', duration: '1.2s'.
+All SVGs built after FIX-026 use this inline pattern.
+SvgCandelabra and SvgLibraryStudy were fixed in FIX-026.
+
+### Deterministic Trig in SVGs (confirmed FIX-023/024/025/027)
+Math.cos/Math.sin/Math.atan2/Math.sqrt are acceptable in SVG
+component functions when computing fixed geometric positions —
+results are deterministic and do NOT cause hydration issues.
+(Same precedent as SvgLeatherTexture which uses Math.sin.)
+Math.random() remains prohibited everywhere. No exceptions.
+
+### Inner Helper Functions in SVG Components
+SVG components may define inner helper functions inside the
+component body (e.g. gId(), renderFace(), leftVanePath).
+JSX-returning inner functions require explicit return type:
+  function renderFace(...): React.ReactElement { ... }
+Pre-computing complex path strings as const variables before
+the return statement avoids nested template literal issues:
+  const leftVanePath = `M ${...} ...`
+  return <path d={leftVanePath} />
+
+### Negative Rect Dimensions — Avoid in SVG
+SVG <rect> elements with negative width or height render
+inconsistently. Use data-driven xDir/yDir approach instead:
+  const xDir = i % 2 === 0 ? 1 : -1
+  <rect x={cx} y={cy} width={xDir > 0 ? 16 : 0}  // absolute
+Established pattern in SvgGrimoire (FIX-025 Q2), confirmed
+in SvgWitchesAttic (FIX-027 Q2).
+
 ### Canvas Rendering Hex Values
 MojoAvatarCrop.tsx uses the HTML Canvas API for the crop overlay.
 Canvas strokeStyle/fillStyle must use literal hex values — CSS variables
@@ -443,6 +491,11 @@ Applied migrations:
     to mojo_threads (FIX-013)
   mojo_010_familiar — creates mojo_familiar_conversations and
     mojo_familiar_messages tables (FIX-017a)
+  mojo_011_thread_type_upcoming — widens mojo_threads.thread_type
+    CHECK constraint to include 'upcoming' (FIX-018).
+    Postgres CHECK constraints cannot be modified in place —
+    dropped and recreated. New constraint:
+    CHECK (thread_type IN ('rp', 'class', 'upcoming'))
 
 Pending migrations:
   (none)
@@ -500,10 +553,16 @@ mojo_threads:
   manual_whose_turn text CHECK (mine/theirs)  -- NULL = use auto-detection
   -- Reply order for ordered/combat threads (added mojo_008):
   reply_order text,  -- comma-separated names, NULL = freeform mode
-  -- Thread type and class assignment tracking (added mojo_009):
-  thread_type text NOT NULL DEFAULT 'rp' CHECK (thread_type IN ('rp','class')),
+  -- Thread type and class assignment tracking (added mojo_009/mojo_011):
+  thread_type text NOT NULL DEFAULT 'rp'
+    CHECK (thread_type IN ('rp','class','upcoming')),
   assignment_due_at timestamptz,  -- optional due date for class threads
   completed_at timestamptz,       -- set when class submission detected
+  -- NOTE: thread_type='upcoming' = On Deck state (planned, not active).
+  --   Auto-transitions to 'rp' when URL is added via updateMojoThread
+  --   (app-layer logic in the server action, not a DB trigger).
+  --   Upcoming threads: excluded from Zone 2 mini-cards; shown at
+  --   bottom of Chronicle groups under "On Deck" divider.
   -- Indexes: rp_id, character_id, status
   -- NOTE: url IS NULL = 'awaiting_start' state (thread not yet begun)
   -- NOTE: fetch_status='unsupported' + detected_platform='jcink' =
@@ -785,16 +844,23 @@ Exports:
     (teal gradient), mojo-turn-waiting (teal, shows waiting-on name),
     mojo-turn-pending (amber — DUE + AWAITING STARTER), mojo-turn-unknown.
 
-  getThreadStatePriority(state) → number  (FIX-016)
-    Sort helper. due=0, mine=1, waiting=2, theirs=3, unknown=4,
-    awaiting_start=5, submitted=6. Lower = more urgent.
+  getThreadStatePriority(state) → number  (FIX-016, revised FIX-018)
+    Sort helper (lower = more urgent):
+    due=0, mine=1, awaiting_start=2, waiting=3, theirs=4,
+    unknown=5, upcoming=6, submitted=7
 
   detectPlatformClient(url) → 'tumblr' | 'jcink' | 'generic' | 'unknown'
   formatRelativeTime(isoString) → string
 
-ThreadDisplayState type (FIX-013):
+ThreadDisplayState type (FIX-013, extended FIX-018):
   'mine' | 'theirs' | 'waiting' | 'unknown' |
-  'awaiting_start' | 'due' | 'submitted'
+  'awaiting_start' | 'due' | 'submitted' | 'upcoming'
+
+CRITICAL: In getThreadDisplayState(), 'upcoming' is checked FIRST
+before the url-null check. An upcoming thread has url=null AND
+thread_type='upcoming' — without this priority order, upcoming
+threads would incorrectly return 'awaiting_start'.
+Order: upcoming → awaiting_start → submitted → due → mine/waiting/theirs/unknown
 
 Why separate from thread-fetchers.ts:
   lib/mojo/thread-fetchers.ts uses process.env and Node.js APIs —
@@ -894,7 +960,8 @@ app/
       MojoRichTextEditor.tsx  (outer — readonly gate, no hooks)
       MojoRichTextEditorInner (inner — always calls useEditor, edit only)
       -- Visual design assets (MOJO-7B onward)
-      MojoSvgAssets.tsx  (SVG component library — 57 exports as of FIX-017b)
+      MojoSvgAssets.tsx  (SVG component library — 74 exports as of FIX-027;
+        FIX-029 will add SvgPortraitHall → 75)
       MojoMoonPhases.tsx  (MOJO-7C — live lunar phase calculator + display)
     rps/page.tsx (redirect), rps/[rpId]/page.tsx, rps/[rpId]/edit/page.tsx
       (RP detail page: single-page layout, character portrait spread,
@@ -912,6 +979,14 @@ app/
     search/page.tsx  (full global search — built MOJO-7A; awaits searchParams)
     threads/page.tsx  (The Chronicle — FIX-012b)
     familiar/page.tsx  (The Familiar — FIX-017a/b; thin shell, uses Wrapper)
+    design/page.tsx  (The Atelier index — FIX-021; lists all design candidates)
+    design/library-bookshelf/page.tsx  (FIX-021 — chosen, applied to production)
+    design/library-study/page.tsx      (FIX-021 — not chosen, reference)
+    design/hall-of-mirrors/page.tsx    (FIX-023 — Stacks concept, pending)
+    design/divining-chamber/page.tsx   (FIX-024 — Search concept, pending)
+    design/grimoire/page.tsx           (FIX-025 — Chronicle concept, pending)
+    design/witches-attic/page.tsx      (FIX-027 — Images concept, pending)
+    (design/portrait-hall/page.tsx     pending FIX-029 — Faceclaims concept)
   i/[token]/route.ts  (public, no auth)
   api/mojo/
     fetch-image/route.ts
@@ -943,7 +1018,7 @@ app/api/mojo/
 
 ## 10. Navigation
 
-Sidebar nav order (as of FIX-017a):
+Sidebar nav order (as of FIX-021, confirmed against live MojoSidebar.tsx):
   1. Dashboard → /mojo
   2. Images → /mojo/images
   3. Faceclaims → /mojo/faceclaims
@@ -951,9 +1026,19 @@ Sidebar nav order (as of FIX-017a):
   5. Wishlist → /mojo/wishlist
   6. Partners → /mojo/partners
   7. Stacks → /mojo/stacks
-  8. The Chronicle → /mojo/threads  (FIX-012a — between Stacks and Search)
+  8. Chronicle → /mojo/threads  (label is "Chronicle" in MojoSidebar.tsx —
+     NOT "Tracker"; a rename to "Tracker" was discussed but not applied)
   9. Search → /mojo/search
-  10. The Familiar → /mojo/familiar  (FIX-017a — at end, special tool)
+  10. The Familiar → /mojo/familiar
+  11. The Atelier → /mojo/design  (FIX-021 — design preview, bottom of nav)
+     Active state: pathname.startsWith('/mojo/design')
+     Icon: SvgNavDesign (compass rose glyph)
+     Position: last item, above version footer
+
+  Note on Chronicle label: the named space is "The Chronicle" (and
+  pending rename to "The Grimoire" once approved in Atelier). A sidebar
+  label change to "Tracker" was discussed but MojoSidebar.tsx still
+  reads label: 'Chronicle' as of FIX-028 — see TD-18.
 
 ---
 
@@ -998,31 +1083,47 @@ Hiatus and Ended: collapsed section at bottom, same structure, muted.
 
 No separate /mojo/roleplays route. Dashboard IS the roleplays page.
 
-Visual elements added in MOJO-7C (The Sanctum):
-- SvgLargeCrescent (260px) — replaced SvgMoon (FIX-006); crescent
-  with atmospheric halos, star catch-lights, glowing amber glow filter;
-  position absolute top-right, partially clipped, mojo-moon-breathe
-- MojoMoonPhases — live lunar phase calculator, 8-phase SVG row,
-  current phase highlighted with mojo-moon-breathe pulse
-- SvgCandle (pair) — flanking the "Active Roleplays" heading, left
-  candle delay=0s, right candle delay=0.35s (never in perfect sync)
+Visual elements — current state (after FIX-006/019/020):
+- SvgLargeCrescent (260px) — top-right, partially clipped, mojo-moon-breathe
+  (replaced SvgMoon in FIX-006)
+- MojoMoonPhases — redesigned in FIX-019/020:
+  * 8 unique illustrated phase SVGs (SvgPhaseNewMoon through SvgPhaseWaningCrescent)
+  * Rotating display: current phase always centered (position 3 of 8)
+    using displayOrder = Array.from({length:8},(_,i) => (currentIndex-3+i+8)%8)
+  * Night-sky card container: radial-gradient(ellipse, #0e0e20, #080810, #050508)
+  * Non-active phases: opacity 0.45 on icon, opacity 1.0 on label (FIX-028)
+  * Active phase: size=56, others size=40; all vertically centered (no translateY)
+  * Card padding: 10px 12px (reduced from 20px 24px in FIX-028)
+  * 6 fixed-position star dots in card background (no Math.random)
+  * Active Threads stat tile links to /mojo/threads (FIX-020)
+- SvgCandleRealistic (pair, idSuffix "sanctum-left"/"sanctum-right") —
+  flanking "Active Roleplays" heading; replaced SvgCandle in FIX-019.
+  Uses inline animationName props (not className — see flame pattern §4).
 - SvgPageHeaderRule — elaborate decorative hr below page title
 - Stat tile watermark symbols: ☽ RPs · ♃ Characters · ∞ Threads
   · ☿ Snippets · ♆ Partners · ⬡ Stacks (via watermark prop, 7% opacity)
-- SvgCornerBracket (×4 per RP panel) — L-shaped accents in rp.color_hex
-  inset 2px (overflow: hidden preserved for border-radius clipping)
-- MojoPortraitCard (size="sm") tarot card portraits in character row
-  (FIX-004 — replaced circular medallion everywhere site-wide)
-- Whose-turn badge: unified gradient badge system (FIX-010/013)
-  mojo-turn-mine (garnet), mojo-turn-theirs (teal), mojo-turn-pending
-  (amber for DUE/AWAITING STARTER), mojo-turn-unknown (faded)
-- SvgFiligreeRule divider above collapsed RPs section
+- MojoPortraitCard size="md" (180×300px) — upgraded from size="sm" (FIX-019)
+- RP panels — ornate treatment (FIX-019):
+  * Full perimeter border: border: `1px solid ${rp.color_hex}33`
+  * Inner glow: box-shadow: `inset 0 0 0 1px ${rp.color_hex}14`
+  * Background tint: radial-gradient from rp.color_hex at ~4% opacity
+  * Corner brackets: SvgCornerBracket size=24 (was 16)
+  * RP name: Cormorant Upright 32px, colored in rp.color_hex
+  * Site name: EB Garamond italic 15px var(--mist)
+  * Status: MojoRpStatusMenu restyled (Cinzel 9px + pip) — NOT replaced
+    with dead span (would have deleted working functionality — FIX-019 Q2)
+  * Two SvgFiligreeRule dividers (header→characters, characters→footer)
+  * Thread count footer: Cinzel 9px, active count in rp.color_hex
+- Whose-turn badge: mojo-turn-upcoming (indigo) added for On Deck state
 
 ---
 
 ## 12. Personal Image Repository
 Functional: COMPLETE — MOJO-6C (commit 3ca7020)
 Visual pass: COMPLETE — MOJO-7J "The Darkroom" (commit dd8bdb4)
+Replacement concept: SvgWitchesAttic ("The Witch's Attic") in The
+Atelier at /mojo/design/witches-attic — pending approval before
+applying to production. SvgDarkroomHeader stays in assets.
 
 Route: /mojo/images
 Sidebar: Second position (between Dashboard and Faceclaims)
@@ -1198,10 +1299,24 @@ A ··· trigger in the thread card action row toggles an inline
 override row per thread. openOverride state keyed by thread ID.
 Clicking an option sets the override and collapses the row.
 
+### Upcoming Thread Type ("On Deck" — FIX-018)
+thread_type='upcoming': planned thread held indefinitely.
+Badge: "On Deck" (.mojo-turn-upcoming — indigo/blue gradient).
+Priority: 6 (always last — below even awaiting_start).
+Auto-transition: updateMojoThread pre-reads existing thread_type;
+  if 'upcoming' and a URL is provided, silently sets type to 'rp'.
+  No user confirmation needed — seamless activation.
+Zone 2 exclusion: upcoming threads filtered from character page
+  mini-cards (header area only). Zone 3 Correspondence shows them.
+Chronicle: upcoming appear at bottom of each character group under
+  an "On Deck" divider. Opacity 0.70 to distinguish from active threads.
+
 ### The Chronicle (/mojo/threads — FIX-012)
 Master thread tracker across all characters and RPs.
 Theme: scriptorium — parchment, leather, quill, candlelight.
 Header: SvgOpenLedger (grand open ledger illustration, 180px tall).
+Pending rename to "The Grimoire" once SvgGrimoire is approved in
+The Atelier and applied to production.
 
 getMojoAllThreads(): three-query pattern:
   1. All threads (select *)
@@ -1384,6 +1499,22 @@ TD-15: Primary portrait in Zone 2 (character page) is server-rendered
   updates client-side strip state. After clicking Set Primary, the large
   portrait in the left column won't update until page reload. Fix: lift
   primaryToken state into a shared client wrapper around Zone 2.
+
+TD-16: Vestigial <g style={{ animationDelay: ... }}> wrappers remain
+  in SvgCandelabra from before FIX-026. The <g> element has no
+  animationName so the delay has no effect — harmless dead code.
+  FIX-026 added correct inline animationName props on each animated
+  ellipse but left the wrapper <g> elements in place per scope rules.
+  Low priority cleanup.
+
+TD-17: scene-clip clipPath defined in SvgWitchesAttic <defs> is never
+  referenced in the SVG body — inert dead code matching the original
+  spec exactly. Harmless. (FIX-027 Q5)
+
+TD-18: Sidebar Chronicle label rename to "Tracker" was discussed but
+  NOT applied — confirmed live in MojoSidebar.tsx as of FIX-028, the
+  nav item still reads label: 'Chronicle'. If the rename is wanted,
+  it requires an explicit follow-up prompt; do not assume it is done.
 
 ---
 
@@ -1588,6 +1719,19 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-FIX-017b   | ✅ Complete | 6262d27 | The Familiar — full visual treatment, memory sidebar, auto-titling |
 | MOJO-FIX-017c   | ✅ Complete | 59439f5 | The Familiar — voice rewrite (he/him), markdown rendering, max_tokens 8000 |
 | MOJO-BRIEF v1.5 | ✅ Complete | 6e322ce | Brief updated through FIX-017c |
+| MOJO-FIX-018    | ✅ Complete | f63550f | Upcoming thread type, On Deck display, auto-transition to rp on URL add |
+| MOJO-FIX-019    | ✅ Complete | a2e9d6a | Dashboard overhaul: char cards md, ornate RP panels, realistic candles, moon phase SVG redesign |
+| MOJO-FIX-020    | ✅ Complete | 538a999 | Moon phases card, rotating display order, centered alignment, Chronicle stat link |
+| MOJO-FIX-021    | ✅ Complete | 157f15f | The Atelier design preview system, SvgLibraryBookshelf, SvgLibraryStudy, SvgNavDesign |
+| MOJO-FIX-022    | ✅ Complete | d7a4f77 | Library page: illustrated bookshelf + candelabra + ivy columns |
+| MOJO-FIX-023    | ✅ Complete | e179b77 | SvgHallOfMirrors — gothic perspective corridor, Atelier preview |
+| MOJO-FIX-024    | ✅ Complete | 97454d0 | SvgDiviningChamber — divination table, Atelier preview |
+| MOJO-FIX-025    | ✅ Complete | f89d4b0 | SvgGrimoire — open spell book, Atelier preview |
+| MOJO-FIX-026    | ✅ Complete | c797ccc | Flame animation fix: SvgCandelabra + SvgLibraryStudy inline animationName |
+| MOJO-FIX-027    | ✅ Complete | 7ab2feb | SvgWitchesAttic — atmospheric witch's attic, Atelier preview |
+| MOJO-FIX-028    | ✅ Complete | 1f8a81c | Moon phases card padding reduction, non-active label opacity to 1.0 |
+| MOJO-FIX-029    | ⏳ Pending  | —       | SvgPortraitHall — Hall of Legends, Atelier preview for Faceclaims page |
+| MOJO-BRIEF v1.6 | ✅ Complete | [hash]  | Brief updated through FIX-028 |
 
 ---
 
@@ -1659,7 +1803,24 @@ Version history:
     search complete, TD-2/TD-6/TD-7 resolved, TD-10/TD-11 added,
     server actions updated to 52, getMojoWanted added, build status
     expanded through MOJO-7L, file structure updated with new components
-  v1.5 — through FIX-017c: thread system overhaul (reply order, class
+  v1.6 — through FIX-028: upcoming thread type ("On Deck") with
+    auto-transition, indigo badge, Zone 2 exclusion, Chronicle On Deck
+    divider; dashboard overhaul (character cards md, ornate RP panels with
+    per-color borders/tints, Cormorant Upright 32px names, SvgCandleRealistic
+    replacing SvgCandle, 8 illustrated moon phase SVGs, rotating centered
+    display, night-sky card, padding/opacity fixes); Active Threads stat
+    links to Chronicle; Library page redesign (SvgLibraryBookshelf +
+    SvgCandelabra + SvgIvyColumn); The Atelier design preview system
+    (6 candidate SVGs: Hall of Mirrors, Divining Chamber, Grimoire,
+    Witch's Attic, Portrait Hall pending); flame animation bug fixed
+    (SvgCandelabra + SvgLibraryStudy — inline animationName pattern);
+    SVG library 57→74; TD-16/17/18 added; navigation updated to 11 items;
+    Faceclaims rename to Hall of Legends approved (pending production);
+    Chronicle rename to Grimoire approved (pending production); sidebar
+    Chronicle label confirmed still "Chronicle" — rename to "Tracker"
+    discussed but NOT applied (see TD-18).
+
+v1.5 — through FIX-017c: thread system overhaul (reply order, class
     threads, awaiting starter, auto-archive, auto-refresh, WAITING ON
     badge, badge unification, ··· override collapse), The Chronicle
     master tracker page, The Familiar AI companion (agent route,
@@ -1719,6 +1880,10 @@ Sidebar: vertical repeating-linear-gradient texture (aged wood/velvet
   (alchemical symbol), "THE CIRCLE" label in Cinzel
 
 ### Animation Library (globals.css — defined once, used by all pages)
+CRITICAL: @keyframes alone do NOT animate elements. No CSS class rule
+(.mojo-flame-main { animation: ... }) exists. Must use inline style
+animationName props. See §4 Flame Animation Pattern for full details.
+
 10 @keyframes (mojo-rune-fade removed MOJO-7N; two new added in 7J/7K):
   mojo-moon-breathe  — gentle glow pulse, 5s (moon, active phase)
   mojo-flame-main    — candle outer flame flicker, 1.8s
@@ -1763,9 +1928,10 @@ Mobile (MOJO-7O):
 Portrait card system (FIX-004):
   .mojo-portrait-frame, .mojo-portrait-card-wrap, .mojo-portrait-placeholder,
   .mojo-portrait-sm, .mojo-portrait-md, .mojo-portrait-lg
-Thread badge system (FIX-010/013):
+Thread badge system (FIX-010/013/018):
   .mojo-turn-badge, .mojo-turn-mine, .mojo-turn-theirs,
-  .mojo-turn-waiting, .mojo-turn-pending, .mojo-turn-unknown
+  .mojo-turn-waiting, .mojo-turn-pending, .mojo-turn-unknown,
+  .mojo-turn-upcoming (indigo/blue gradient, "On Deck" label — FIX-018)
 Thread override (FIX-010):
   .mojo-override-trigger, .mojo-override-row, .mojo-override-btn,
   .mojo-override-btn-active
@@ -1810,7 +1976,8 @@ The Familiar (FIX-017a/b):
   .mojo-familiar-input-hint
 
 ### SVG Asset Library (app/mojo/components/MojoSvgAssets.tsx)
-All reusable SVG decorative components. 57 exports as of FIX-017b.
+All reusable SVG decorative components. 74 exports as of FIX-027.
+FIX-029 will add SvgPortraitHall → 75.
 All are inline JSX — no external SVG files. Append-only: never
 modify existing exports.
 
@@ -1916,6 +2083,83 @@ The Familiar (FIX-017a — +2):
     iris gradient, vertical slit pupil with tapered ends, two catch-
     light reflections, limbal ring, ambient glow filter; page header
 
+Dashboard moon phases (FIX-019 — +8 illustrated phase SVGs):
+  All share props: { size?: number; active?: boolean; className?: string; idSuffix?: string }
+  Design language: layered gradients, deep blue-purple shadow (#0a0818),
+  warm silver-white illuminated portions, catch-lights, active glow ring.
+  SvgPhaseNewMoon — dark disc, faint silver limb ring, two star points
+  SvgPhaseWaxingCrescent — thin right crescent with glow filter
+  SvgPhaseFirstQuarter — right half lit, linear gradient, soft terminator
+  SvgPhaseWaxingGibbous — mostly lit, dark crescent on left
+  SvgPhaseFullMoon — fully lit showpiece: 3 halo rings, glow filter,
+    limb darkening, 3 catch-lights, amplified active glow (2 rings)
+  SvgPhaseWaningGibbous — mostly lit, dark crescent on right
+  SvgPhaseLastQuarter — left half lit, mirror of FirstQuarter
+  SvgPhaseWaningCrescent — thin left crescent, mirror of WaxingCrescent
+
+Library page redesign (FIX-021/022 — +3):
+  SvgLibraryBookshelf(className, idSuffix) — illustrated old tomes on
+    aged wood shelves. 60 books across two shelves (leather spines, gilt
+    lettering), cobwebs in upper corners. No ivy, no candle (removed
+    FIX-022). Replaces SvgBookshelf on library/page.tsx.
+    SvgBookshelf (original) stays in assets — append-only rule.
+  SvgCandelabra(height, idSuffix, flameDelay) — gothic wrought-iron
+    three-arm candelabra. Dark iron, S-curve arms, crescent moon in
+    base. Three candles (center tallest), three animated flames with
+    staggered delays (+0.4s, +0.7s). Wax drips. Flanks SvgLibraryBookshelf
+    on Library page (idSuffix "lib-left"/"lib-right", scaleX(-1) mirror).
+    Uses inline animationName props — not className (see §4 flame pattern).
+  SvgIvyColumn(height, flip, idSuffix, className) — narrow vertical ivy
+    vine for page side columns. 20 branching leaves, 5 wildflowers, 4
+    tendrils. flip=true mirrors via scaleX(-1). idSuffix prop unused
+    (no gradients) — TD-10 category forward-compatible prop.
+    Used on Library page absolutely positioned left/right of content.
+
+The Atelier design candidates (FIX-021/023/024/025/027 — +6 pending):
+All are Atelier-only previews. Production pages untouched until approved.
+  SvgNavDesign(active) — 14px compass-rose glyph for The Atelier sidebar.
+    currentColor, 4 cardinal points with north emphasized.
+  SvgLibraryStudy(className, idSuffix) — stone fireplace in scholar's
+    study. Animated fire (3 flame layers + tongues), books on floor/mantle,
+    ivy on left pillar, two mantle candles, fire/room glow.
+    Library option B — not chosen (SvgLibraryBookshelf was chosen).
+  SvgHallOfMirrors(className, idSuffix) — gothic perspective corridor.
+    One-point perspective (VP at 450,95). Six gilt-framed mirrors (3 per
+    side, depths t=0.15/0.45/0.68), each with pointed gothic arch frame,
+    glass with ghost shape (figure/swirl/crescent/bands), specular highlight.
+    Stone arch entrance, diamond tile floor, single VP candle (animated),
+    candlelight wash, floor mist, vignette. Proposed: Stacks page.
+  SvgDiviningChamber(className, idSuffix) — candlelit divination table
+    viewed from above. 7 tarot cards (5 face-down, Moon+Eye face-up),
+    8 rune stones with angular symbols, crystal pendulum with dashed chain
+    and prismatic scatter, open grimoire corner, 2 candles with animated
+    flames, velvet cloth with gold embroidery, vignette.
+    Proposed: Search page. (Uses inline animationName — see §4.)
+  SvgGrimoire(className, idSuffix) — open ancient spell book. Left page:
+    astrological wheel (8 divisions, symbols, hub), 3 text-line sections,
+    margin annotations, botanical illustration ("Verbena off."), ink blot,
+    broken wax seal. Right page: moon phase circle (8 phases, 12 zodiac
+    stars, glowing hub), 4 corner flourishes, "XLVII" page number. Hero
+    element: quill (287px shaft, pre-computed vane paths, barbs, calamus,
+    nib, ink pool/trail/drops). Static illustration — no animations.
+    Proposed: Chronicle/Grimoire page.
+  SvgWitchesAttic(className, idSuffix) — witch's attic interior. Peaked
+    roof beams (rear/middle/front horizontal + ridge + rafters), circular
+    moonlit window with 8 bolts, moonlight cone with 9 dust motes, 10
+    hanging herb bundles (lavender/rosemary/tansy/mugwort), empty birdcage
+    with spectral glow, 5-bottle shelf, large closed trunk, small open
+    trunk with fabric, spinning wheel (partially cropped right), stacked
+    books + 2 scrolls, brass lantern with warm glow, 2 corner cobwebs +
+    1 beam cobweb. Static — no animations. Proposed: Images page.
+
+Pending (FIX-029):
+  SvgPortraitHall(className, idSuffix) — seven oil portraits on dark
+    wood paneling. Five frame styles (Victorian oval, Gothic arch,
+    Neoclassical laurel, Baroque cartouche, Rope-twist). Painted faces
+    as layered ellipses (renderFace() inner function). Seven canvas
+    clipPaths. Individual sconce glows + fixtures. Brass nameplates.
+    Gilt frieze. Vignette. Proposed: Faceclaims / Hall of Legends page.
+
 MojoMoonPhases.tsx (MOJO-7C) — Client Component:
   getLunarPhaseIndex() → 0-7 based on real synodic month calculation
   8 SVG phase icons, current phase highlighted with mojo-moon-breathe
@@ -1927,8 +2171,8 @@ Each page receives a focused visual pass in its own prompt.
 |---------|------------|---------------------|--------------|
 | MOJO-7C | Dashboard  | The Sanctum         | ✅ 1efaabe   |
 | MOJO-7D | Characters | The Dossier         | ✅ 2c06adf   |
-| MOJO-7E | Faceclaims | The Portrait Gallery | ✅ 9c39260  |
-| MOJO-7F | Library    | The Library         | ✅ 2c100f1   |
+| MOJO-7E | Faceclaims | The Hall of Legends (renamed from The Portrait Gallery — FIX-029 pending) | ✅ 9c39260 |
+| MOJO-7F | Library    | The Library (header replaced: SvgLibraryBookshelf + SvgCandelabra + SvgIvyColumn — FIX-022) | ✅ 2c100f1 |
 | MOJO-7G | Wishlist   | Desires             | ✅ f2b860e   |
 | MOJO-7H | Partners   | The Black Book      | ✅ 0f49c5f   |
 | MOJO-7I | Stacks     | The Reliquary       | ✅ 7adfb91   |
@@ -2042,6 +2286,36 @@ Key mobile decisions:
   - Manuscript tabs: horizontal scroll on mobile (.mojo-tab-bar)
   - prefers-reduced-motion: all mojo animations disabled via @media
   - viewport meta: maximum-scale=1 added to app/layout.tsx (was missing)
+
+### The Atelier (/mojo/design — FIX-021)
+Private design preview system for SVG illustration candidates.
+Auth: inherited from app/mojo/layout.tsx — superadmin only.
+Sidebar: "The Atelier" (item 11, last) with SvgNavDesign compass glyph.
+Active state: pathname.startsWith('/mojo/design') (sub-pages stay active).
+
+Each preview page shows: SVG at full width on var(--char) dark background,
+Cinzel label above (9px uppercase), EB Garamond italic description below.
+Clean, no production mock, SVG speaks for itself.
+
+Current designs index (app/mojo/design/page.tsx):
+  slug                  title/purpose                       status
+  library-bookshelf     Library header option A             Applied (FIX-022)
+  library-study         Library header option B             Not chosen (reference)
+  hall-of-mirrors       Stacks page concept                 Pending approval
+  divining-chamber      Search page concept                 Pending approval
+  grimoire              Chronicle/Grimoire page concept     Pending approval
+  witches-attic         Images page concept                 Pending approval
+  portrait-hall         Faceclaims/Hall of Legends concept  Pending FIX-029
+
+Rule: Production pages are NEVER modified by adding a design to the
+Atelier. Production changes require a separate prompt after explicit
+approval. The Atelier is observation only.
+
+Applied from Atelier → production:
+  library-bookshelf → app/mojo/library/page.tsx (FIX-022):
+    SvgLibraryBookshelf in center flex, SvgCandelabra left+right,
+    SvgIvyColumn absolutely positioned left/right of content.
+    Old SvgBookshelf stays in MojoSvgAssets.tsx (append-only rule).
 
 ### MOJO-7M Audit Summary
 54 checks across 8 categories. 48 pass, 6 flags, 0 fails.
