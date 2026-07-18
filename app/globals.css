@@ -2355,9 +2355,10 @@ body {
   margin-top: 4px;
 }
 
-/* Upcoming threads inside a card — slightly dimmed */
+/* Upcoming threads inside a card — semantic wrapper only.
+   Dimming is handled by inline opacity on individual thread
+   items (established FIX-018). Do not add opacity here. */
 .mojo-corr-upcoming {
-  opacity: 0.70;
 }
 
 /* Mobile: single column */
