@@ -15,6 +15,7 @@ type MojoImageStackMember = Tables<'mojo_image_stack_members'>
 type MojoImageFolder = Tables<'mojo_image_folders'>
 type MojoPersonalImage = Tables<'mojo_personal_images'>
 type MojoWanted = Tables<'mojo_wanted'>
+type MojoGradeSubmission = Tables<'mojo_grade_submissions'>
 
 function sortResourcesByTypeThenOrder(resources: MojoResource[]): MojoResource[] {
   return [...resources].sort((a, b) => {
@@ -1011,4 +1012,70 @@ export async function deleteMojoFamiliarConversation(
     .from('mojo_familiar_conversations')
     .delete()
     .eq('id', conversationId)
+}
+
+// ─── PROFESSOR MODE: GRADE SUBMISSIONS QUERY ────────────────
+// (FIX-045-B)
+
+export type GradeSubmission = Pick<
+  MojoGradeSubmission,
+  | 'id'
+  | 'student_name'
+  | 'student_first_posted_at'
+  | 'grade_points'
+  | 'bonus_points'
+  | 'graded_at'
+  | 'grade_text'
+  | 'thread_id'
+> & {
+  thread_title: string
+  thread_url: string | null
+  class_name: string | null
+}
+
+export async function getMojoGradeSubmissions(characterId: string): Promise<{
+  pending: GradeSubmission[]
+  graded: GradeSubmission[]
+}> {
+  const admin = getAdminClient()
+
+  const { data: threads, error: threadsError } = await admin
+    .from('mojo_threads')
+    .select('id, title, url, class_name')
+    .eq('character_id', characterId)
+    .eq('thread_mode', 'professor')
+
+  if (threadsError || !threads?.length) return { pending: [], graded: [] }
+
+  const threadIds = threads.map((t) => t.id)
+  const threadMap = new Map(threads.map((t) => [t.id, t]))
+
+  const { data: submissions, error: submissionsError } = await admin
+    .from('mojo_grade_submissions')
+    .select('*')
+    .in('thread_id', threadIds)
+
+  if (submissionsError || !submissions?.length) return { pending: [], graded: [] }
+
+  const merged: GradeSubmission[] = submissions.map((s) => {
+    const thread = threadMap.get(s.thread_id)
+    return {
+      id: s.id,
+      student_name: s.student_name,
+      student_first_posted_at: s.student_first_posted_at,
+      grade_points: s.grade_points,
+      bonus_points: s.bonus_points,
+      graded_at: s.graded_at,
+      grade_text: s.grade_text,
+      thread_id: s.thread_id,
+      thread_title: thread?.title ?? '',
+      thread_url: thread?.url ?? null,
+      class_name: thread?.class_name ?? null,
+    }
+  })
+
+  return {
+    pending: merged.filter((s) => s.graded_at === null),
+    graded: merged.filter((s) => s.graded_at !== null),
+  }
 }

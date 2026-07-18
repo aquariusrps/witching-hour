@@ -1901,3 +1901,92 @@ export async function renameFamiliarConversation(
   revalidatePath('/mojo/familiar')
   return { success: true as const }
 }
+
+// ─── PROFESSOR MODE: GRADING ACTION ─────────────────────────
+// (FIX-045-B)
+
+const WEEK_WORDS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5,
+  six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14,
+  fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18,
+  nineteen: 19, twenty: 20,
+}
+
+export async function submitGrade(
+  submissionId: string,
+  gradePoints: number,
+  bonusPoints: number
+): Promise<{ error?: string }> {
+  const userId = await requireSuperAdmin()
+  if (!userId) return { error: 'Unauthorized' }
+
+  if (gradePoints < 1 || gradePoints > 5) {
+    return { error: 'Grade points must be 1–5' }
+  }
+  if (bonusPoints < 0 || bonusPoints > 3) {
+    return { error: 'Bonus points must be 0–3' }
+  }
+
+  const admin = getAdminClient()
+
+  // Codebase convention: no embedded PostgREST joins anywhere in this
+  // file — fetch related rows separately and merge (matches
+  // getMojoAllThreads()'s pattern in lib/db/mojo.ts).
+  const { data: submission } = await admin
+    .from('mojo_grade_submissions')
+    .select('id, student_name, graded_at, thread_id')
+    .eq('id', submissionId)
+    .single()
+
+  if (!submission) return { error: 'Submission not found' }
+  if (submission.graded_at) return { error: 'Already graded' }
+
+  const { data: thread } = await admin
+    .from('mojo_threads')
+    .select('id, title, class_name, character_id')
+    .eq('id', submission.thread_id)
+    .single()
+
+  if (!thread) return { error: 'Submission not found' }
+
+  const { data: character } = await admin
+    .from('mojo_characters')
+    .select('name')
+    .eq('id', thread.character_id)
+    .single()
+
+  if (!character) return { error: 'Submission not found' }
+
+  // Parse week number from thread title, e.g. "Week Three: Applied Heroics"
+  const weekMatch = thread.title.match(/week\s+(\w+)/i)
+  const weekWord = weekMatch?.[1]?.toLowerCase() ?? null
+  const weekNumber = weekWord ? (WEEK_WORDS[weekWord] ?? null) : null
+
+  const lines = [
+    `Student Name: ${submission.student_name}`,
+    `Student Lesson Grade: ${gradePoints} Points`,
+  ]
+  if (bonusPoints > 0) {
+    lines.push(`Bonus Point(s): ${bonusPoints}`)
+  }
+  lines.push(
+    `Signed, ${character.name} — ${thread.class_name ?? 'Class'} Lesson ${weekNumber ?? weekWord ?? '?'}`
+  )
+  const gradeText = lines.join('\n')
+
+  const { error } = await admin
+    .from('mojo_grade_submissions')
+    .update({
+      grade_points: gradePoints,
+      bonus_points: bonusPoints,
+      graded_at: new Date().toISOString(),
+      grade_text: gradeText,
+    })
+    .eq('id', submissionId)
+
+  if (error) return { error: 'Failed to submit grade' }
+
+  revalidatePath('/mojo/characters/' + thread.character_id)
+  return {}
+}

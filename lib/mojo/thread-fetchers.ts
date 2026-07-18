@@ -8,6 +8,14 @@ export type FetchResult = {
   // true if that name was found among ANY post author on the page
   // (not just the last poster). Used for class thread auto-archive.
   my_post_found?: boolean
+  // FIX-045-B — only present alongside my_post_found (JCINK class-
+  // thread scrapes). all_authors preserves post order (first to
+  // last) for professor-mode detection (first poster = professor).
+  all_authors?: string[]
+  // FIX-045-B — JCINK breadcrumb subforum name, extracted only for
+  // class-thread scrapes. null if the breadcrumb selector/link count
+  // didn't match — extraction never throws.
+  scraped_class_name?: string | null
 }
 
 export function detectPlatform(
@@ -228,6 +236,8 @@ export async function fetchJcink(
     // additive — existing behavior above and below is unchanged when
     // characterName is not passed.
     let my_post_found: boolean | undefined = undefined
+    let all_authors: string[] | undefined = undefined
+    let scraped_class_name: string | null | undefined = undefined
 
     if (characterName) {
       const lowerName = characterName.toLowerCase().trim()
@@ -266,6 +276,31 @@ export async function fetchJcink(
           author.toLowerCase().includes(lowerName) ||
           lowerName.includes(author.toLowerCase())
       )
+      all_authors = allAuthors
+
+      // ── BREADCRUMB / SUBFORUM EXTRACTION (FIX-045-B) ──
+      // JCINK/IPB breadcrumb: Home > Category > Subforum > Thread Title.
+      // Subforum is the second-to-last <a> in the chain (the last <a>
+      // is the thread title itself). Never throws — null on any failure.
+      scraped_class_name = null
+      try {
+        const breadcrumbRoot = parse(html)
+        const breadcrumbSelectors = ['#nav', '.navbar', 'nav[id="nav"]', '.breadcrumb']
+        for (const selector of breadcrumbSelectors) {
+          const container = breadcrumbRoot.querySelector(selector)
+          if (!container) continue
+          const links = container.querySelectorAll('a')
+          if (links.length >= 2) {
+            const text = links[links.length - 2].text?.trim()
+            if (text && text.length > 0) {
+              scraped_class_name = text
+              break
+            }
+          }
+        }
+      } catch {
+        scraped_class_name = null
+      }
     }
 
     if (!lastPoster) {
@@ -274,6 +309,8 @@ export async function fetchJcink(
         fetch_status: 'uncertain',
         detected_platform: platform,
         ...(my_post_found !== undefined ? { my_post_found } : {}),
+        ...(all_authors !== undefined ? { all_authors } : {}),
+        ...(scraped_class_name !== undefined ? { scraped_class_name } : {}),
       }
     }
 
@@ -282,6 +319,8 @@ export async function fetchJcink(
       fetch_status: 'success',
       detected_platform: platform,
       ...(my_post_found !== undefined ? { my_post_found } : {}),
+      ...(all_authors !== undefined ? { all_authors } : {}),
+      ...(scraped_class_name !== undefined ? { scraped_class_name } : {}),
     }
   } catch (err) {
     console.error('JCINK fetch error:', err)

@@ -59,6 +59,63 @@ export async function POST(request: Request) {
     const result = await fetchThreadStatus(thread.url, characterName ?? undefined)
     const lastCheckedAt = new Date().toISOString()
 
+    // Professor mode detection (FIX-045-B) — must run and short-circuit
+    // BEFORE the student-path auto-archive check below. A professor's
+    // own first post on their own class thread would otherwise satisfy
+    // result.my_post_found === true (the character posted somewhere on
+    // the page) and incorrectly trigger the student-path archive.
+    if (
+      thread.thread_type === 'class' &&
+      characterName &&
+      result.all_authors &&
+      result.all_authors.length > 0
+    ) {
+      const allAuthors = result.all_authors
+      const firstAuthor = allAuthors[0] ?? null
+      const isProfessor =
+        firstAuthor !== null &&
+        firstAuthor.trim().toLowerCase() === characterName.trim().toLowerCase()
+
+      if (isProfessor) {
+        const professorUpdate: TablesUpdate<'mojo_threads'> = {
+          thread_mode: 'professor',
+          first_poster: firstAuthor,
+          fetch_status: result.fetch_status,
+          last_checked_at: lastCheckedAt,
+        }
+        // Only overwrite class_name when this scrape actually found a
+        // breadcrumb — preserve any existing value on extraction failure.
+        if (result.scraped_class_name) {
+          professorUpdate.class_name = result.scraped_class_name
+        }
+
+        await admin
+          .from('mojo_threads')
+          .update(professorUpdate)
+          .eq('id', threadId)
+
+        const nonProfessorAuthors = allAuthors.filter(
+          (a) => a.trim().toLowerCase() !== characterName.trim().toLowerCase()
+        )
+        const uniqueStudents = [...new Set(nonProfessorAuthors.map((a) => a.trim()))]
+
+        if (uniqueStudents.length > 0) {
+          await admin
+            .from('mojo_grade_submissions')
+            .upsert(
+              uniqueStudents.map((student_name) => ({ thread_id: threadId, student_name })),
+              { onConflict: 'thread_id,student_name', ignoreDuplicates: true }
+            )
+        }
+
+        return NextResponse.json({
+          success: true,
+          professor_mode: true,
+          message: 'Professor mode thread updated',
+        })
+      }
+    }
+
     // Class thread auto-archive: character's post detected among any
     // author on the page — the assignment is submitted.
     if (thread.thread_type === 'class' && result.my_post_found === true) {
@@ -69,6 +126,7 @@ export async function POST(request: Request) {
           completed_at: lastCheckedAt,
           fetch_status: 'success',
           last_checked_at: lastCheckedAt,
+          thread_mode: 'student',
         })
         .eq('id', threadId)
 
@@ -83,6 +141,9 @@ export async function POST(request: Request) {
       fetch_status: result.fetch_status,
       detected_platform: result.detected_platform,
       last_checked_at: lastCheckedAt,
+    }
+    if (thread.thread_type === 'class') {
+      updatePayload.thread_mode = 'student'
     }
     // Only overwrite last_poster when the scrape returned a usable value —
     // a failed/timed-out fetch returns null and must not destroy the last
