@@ -1816,7 +1816,7 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-FIX-037    | ✅ Complete | cd552ae | Chronicle — remove double-opacity on upcoming threads (.mojo-corr-upcoming wrapper) |
 | MOJO-FIX-038    | ✅ Complete | 31543a9 | Masked Coven applied to Faceclaims page; Atelier portrait-hall cleanup |
 | MOJO-FIX-039    | ✅ Complete | 2a991d3 | Chronicle cards constrained width + top bar header; Atelier portrait-hall-v2 cleanup |
-| MOJO-BRIEF v1.7 | ✅ Complete | [hash]  | Brief updated through FIX-039 — full document audit |
+| MOJO-BRIEF v1.7 | ✅ Complete | d066958 | Brief updated through FIX-039 — full document audit |
 
 ---
 
