@@ -259,7 +259,7 @@ export default async function ChronicleThreadsPage() {
                 <MojoPortraitCard
                   token={group.avatarToken}
                   alt={group.characterName}
-                  size="sm"
+                  size="md"
                   showFrame={false}
                   idSuffix={`chr-card-${group.characterId}`}
                 />
@@ -277,7 +277,7 @@ export default async function ChronicleThreadsPage() {
                       key={thread.id}
                       className="mojo-thread-card"
                       style={{
-                        padding: '12px 16px',
+                        padding: '10px 16px',
                         borderBottom: i < activeGroupThreads.length - 1
                           ? '1px solid rgba(255,255,255,0.04)'
                           : 'none',
@@ -286,14 +286,13 @@ export default async function ChronicleThreadsPage() {
                           : 'transparent',
                       }}
                     >
-                      {/* Title row + badge */}
+                      {/* Row 1 — title (left, wraps) + badge (right) */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         gap: '12px',
-                        marginBottom: '6px',
-                        flexWrap: 'wrap',
+                        marginBottom: '4px',
                       }}>
                         {thread.url ? (
                           <a
@@ -305,6 +304,8 @@ export default async function ChronicleThreadsPage() {
                               fontSize: '15px',
                               color: 'var(--roseash)',
                               textDecoration: 'none',
+                              flex: '1 1 auto',
+                              minWidth: 0,
                             }}
                           >
                             {thread.title}
@@ -314,49 +315,58 @@ export default async function ChronicleThreadsPage() {
                             fontFamily: 'Playfair Display, serif',
                             fontSize: '15px',
                             color: 'var(--mist)',
+                            flex: '1 1 auto',
+                            minWidth: 0,
                           }}>
                             {thread.title}
                           </span>
                         )}
-                        <span className={badgeClass}>
+                        <span className={badgeClass} style={{ flexShrink: 0 }}>
                           {badgeLabel}
                         </span>
                       </div>
 
-                      {/* Meta row */}
+                      {/* Row 2 — partner/last-poster info (left) + timestamp (right) */}
                       <div style={{
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'baseline',
+                        justifyContent: 'space-between',
                         gap: '12px',
                         flexWrap: 'wrap',
                       }}>
-                        {thread.partner_names && (
-                          <span style={{
-                            fontFamily: 'EB Garamond, serif',
-                            fontSize: '13px',
-                            fontStyle: 'italic',
-                            color: 'var(--mist)',
-                          }}>
-                            with {thread.partner_names}
-                          </span>
-                        )}
-                        {thread.last_poster && (
-                          <span style={{
-                            fontFamily: 'Cinzel, serif',
-                            fontSize: '9px',
-                            letterSpacing: '0.10em',
-                            color: 'var(--faded)',
-                          }}>
-                            ↳ {thread.last_poster}
-                          </span>
-                        )}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          gap: '10px',
+                          flexWrap: 'wrap',
+                        }}>
+                          {thread.partner_names && (
+                            <span style={{
+                              fontFamily: 'EB Garamond, serif',
+                              fontSize: '13px',
+                              fontStyle: 'italic',
+                              color: 'var(--mist)',
+                            }}>
+                              with {thread.partner_names}
+                            </span>
+                          )}
+                          {thread.last_poster && (
+                            <span style={{
+                              fontFamily: 'Cinzel, serif',
+                              fontSize: '9px',
+                              letterSpacing: '0.10em',
+                              color: 'var(--faded)',
+                            }}>
+                              ↳ {thread.last_poster}
+                            </span>
+                          )}
+                        </div>
                         {thread.last_checked_at && (
                           <span style={{
                             fontFamily: 'Cinzel, serif',
                             fontSize: '8px',
                             color: 'var(--faded)',
                             opacity: 0.6,
-                            marginLeft: 'auto',
                           }}>
                             {formatRelativeTime(thread.last_checked_at)}
                           </span>
@@ -385,20 +395,19 @@ export default async function ChronicleThreadsPage() {
                       className="mojo-thread-card"
                       style={{
                         opacity: 0.70,
-                        padding: '10px 16px',
+                        padding: '8px 16px',
                         borderBottom: i < onDeckThreads.length - 1
                           ? '1px solid rgba(255,255,255,0.03)'
                           : 'none',
                       }}
                     >
-                      {/* Title row + badge */}
+                      {/* Row 1 — title (left, wraps) + badge (right) */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         gap: '12px',
-                        marginBottom: '6px',
-                        flexWrap: 'wrap',
+                        marginBottom: thread.partner_names ? '4px' : 0,
                       }}>
                         {thread.url ? (
                           <a
@@ -410,6 +419,8 @@ export default async function ChronicleThreadsPage() {
                               fontSize: '15px',
                               color: 'var(--roseash)',
                               textDecoration: 'none',
+                              flex: '1 1 auto',
+                              minWidth: 0,
                             }}
                           >
                             {thread.title}
@@ -419,20 +430,23 @@ export default async function ChronicleThreadsPage() {
                             fontFamily: 'Playfair Display, serif',
                             fontSize: '15px',
                             color: 'var(--mist)',
+                            flex: '1 1 auto',
+                            minWidth: 0,
                           }}>
                             {thread.title}
                           </span>
                         )}
-                        <span className={badgeClass}>
+                        <span className={badgeClass} style={{ flexShrink: 0 }}>
                           {badgeLabel}
                         </span>
                       </div>
 
-                      {/* Meta row — no last_checked_at, upcoming threads aren't scraped */}
+                      {/* Row 2 — partner info (left); no last_checked_at, upcoming threads aren't scraped */}
                       {thread.partner_names && (
                         <div style={{
                           display: 'flex',
-                          alignItems: 'center',
+                          alignItems: 'baseline',
+                          justifyContent: 'space-between',
                           gap: '12px',
                           flexWrap: 'wrap',
                         }}>

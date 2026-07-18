@@ -2279,11 +2279,12 @@ body {
   margin-bottom: 24px;
 }
 
-/* Constrained wrapper — cards don't span full content width */
+/* Constrained wrapper — cards fill the content window with the
+   standard Mojo page gutter (28px, matching Library/Stacks/Dashboard) */
 .mojo-corr-container {
-  max-width: 860px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 28px;
 }
 
 /* 2-column grid of character correspondence cards */
@@ -2321,17 +2322,19 @@ body {
   min-height: 0;
 }
 
-/* Left column: portrait + character name + RP name */
+/* Left column: portrait only — sized to the "md" MojoPortraitCard
+   (180px) with minimal padding so the portrait fills the column
+   edge-to-edge instead of floating in dead space (FIX-040) */
 .mojo-corr-card-left {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 14px 12px;
+  padding: 10px 6px;
   background: rgba(0, 0, 0, 0.18);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
-  width: 130px;
+  width: 190px;
 }
 
 .mojo-corr-card-char-name {
