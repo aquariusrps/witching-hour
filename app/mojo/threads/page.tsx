@@ -20,6 +20,33 @@ import {
   formatRelativeTime,
 } from '@/lib/mojo/utils'
 
+// A thread "owes a reply" when its computed display state is 'mine'
+// (Your Turn badge) or 'due' (Due badge) — see getDisplayBadge() in
+// lib/mojo/utils.ts for the state → label mapping (FIX-042).
+type ThreadForOwedSort = Parameters<typeof getThreadDisplayState>[0] & {
+  last_checked_at: string | null
+}
+
+function getOwedThreads<T extends ThreadForOwedSort>(
+  threads: T[],
+  characterName: string
+): T[] {
+  return threads.filter((t) => {
+    const state = getThreadDisplayState(t, characterName)
+    return state === 'mine' || state === 'due'
+  })
+}
+
+// Oldest last_checked_at among a character's owed threads — a never-
+// checked thread (null) counts as maximally overdue.
+function earliestOwedTimestamp(threads: ThreadForOwedSort[]): number {
+  return Math.min(
+    ...threads.map((t) =>
+      t.last_checked_at ? new Date(t.last_checked_at).getTime() : -Infinity
+    )
+  )
+}
+
 export default async function ChronicleThreadsPage() {
   // Auth: handled entirely by app/mojo/layout.tsx (getServerClient +
   // isSuperAdmin + redirect). No page-level auth check — matches
@@ -84,19 +111,28 @@ export default async function ChronicleThreadsPage() {
     )
   }
 
-  // Sort groups by their highest-priority (lowest number) thread state
+  // Sort character cards by owed-reply urgency (FIX-042):
+  //   1. Owed count (YOUR TURN + DUE threads) descending — more owed first
+  //   2. Among ties, earliest last_checked_at among owed threads ascending
+  //      — the most overdue owed thread sorts its character first
+  //   3. Among remaining ties, character name ascending (case-insensitive)
   groups.sort((a, b) => {
-    const aPriority = Math.min(
-      ...a.threads.map((t) =>
-        getThreadStatePriority(getThreadDisplayState(t, a.characterName))
-      )
-    )
-    const bPriority = Math.min(
-      ...b.threads.map((t) =>
-        getThreadStatePriority(getThreadDisplayState(t, b.characterName))
-      )
-    )
-    return aPriority - bPriority
+    const aOwed = getOwedThreads(a.threads, a.characterName)
+    const bOwed = getOwedThreads(b.threads, b.characterName)
+
+    if (aOwed.length !== bOwed.length) {
+      return bOwed.length - aOwed.length
+    }
+
+    if (aOwed.length > 0) {
+      const aEarliest = earliestOwedTimestamp(aOwed)
+      const bEarliest = earliestOwedTimestamp(bOwed)
+      if (aEarliest !== bEarliest) {
+        return aEarliest - bEarliest
+      }
+    }
+
+    return a.characterName.toLowerCase().localeCompare(b.characterName.toLowerCase())
   })
 
   return (
