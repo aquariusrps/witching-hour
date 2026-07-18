@@ -1,81 +1,120 @@
 import { getMojoFaceclaims } from '@/lib/db/mojo'
 import MojoCreateFaceclaim from '@/app/mojo/components/MojoCreateFaceclaim'
 import MojoFaceclaimRow from '@/app/mojo/components/MojoFaceclaimRow'
-import { SvgGalleryCorridor, SvgPageHeaderRule } from '@/app/mojo/components/MojoSvgAssets'
+import { SvgPortraitHallV2, SvgIvyColumn, SvgPageHeaderRule } from '@/app/mojo/components/MojoSvgAssets'
 
 export default async function MojoFaceclaimsPage() {
   const faceclaims = await getMojoFaceclaims()
 
   return (
     <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', padding: '32px 28px 64px' }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '200px',
-          color: 'var(--mist)',
-          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.07), transparent)',
-          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.07), transparent)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      >
-        <SvgGalleryCorridor width={900} height={200} />
-      </div>
+      {/* ── THE HALL OF LEGENDS HEADER ── */}
+      <div style={{ marginBottom: '24px' }}>
 
-      <div style={{ position: 'relative', zIndex: 1, marginBottom: '24px' }}>
-        <h1 style={{
-          fontFamily: 'Cormorant Upright, serif',
-          fontSize: '36px',
-          fontWeight: 600,
-          color: 'var(--gold)',
-          margin: '0 0 4px',
-          letterSpacing: '0.02em',
-        }}>
-          The Portrait Gallery
-        </h1>
+        {/* Masked Coven illustration — full width */}
+        <div style={{ marginBottom: '0', overflow: 'hidden', borderRadius: '3px' }}>
+          <SvgPortraitHallV2 idSuffix="faceclaims-header" />
+        </div>
+
+        {/* Page title — unchanged */}
+        <div style={{ marginTop: '20px', marginBottom: '6px' }}>
+          <h1 style={{
+            fontFamily: 'Cormorant Upright, serif',
+            fontSize: '38px',
+            fontWeight: 600,
+            color: 'var(--roseash)',
+            margin: 0,
+            letterSpacing: '0.02em',
+          }}>
+            The Hall of Legends
+          </h1>
+        </div>
+
+        {/* Subtitle */}
         <p style={{
           fontFamily: 'EB Garamond, serif',
           fontSize: '15px',
           fontStyle: 'italic',
           color: 'var(--mist)',
-          margin: '0 0 14px',
+          margin: '0 0 16px',
         }}>
-          Every face that belongs to you.
+          Faces held in record. Each one known.
         </p>
+
         <div style={{ color: 'var(--elevated)' }}>
           <SvgPageHeaderRule />
         </div>
+
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <MojoCreateFaceclaim />
-      </div>
+      {/* Content zone with ivy flanking */}
+      <div style={{ position: 'relative' }}>
 
-      {faceclaims.length === 0 ? (
-        <p style={{ position: 'relative', zIndex: 1, fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
-          No faceclaims yet. Add one above.
-        </p>
-      ) : (
+        {/* Left ivy column */}
         <div
-          className="mojo-gallery-grid"
+          aria-hidden="true"
           style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '28px',
-            padding: '4px 0',
+            position: 'absolute',
+            left: '-28px',
+            top: '0',
+            bottom: '0',
+            width: '24px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
           }}
         >
-          {faceclaims.map((fc) => (
-            <MojoFaceclaimRow key={fc.id} fc={fc} avatarToken={fc.avatar_token} />
-          ))}
+          <SvgIvyColumn
+            height={9999}
+            flip={false}
+            idSuffix="fc-ivy-l"
+          />
         </div>
-      )}
+
+        <div>
+          <MojoCreateFaceclaim />
+        </div>
+
+        {faceclaims.length === 0 ? (
+          <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', color: 'var(--faded)' }}>
+            No faceclaims yet. Add one above.
+          </p>
+        ) : (
+          <div
+            className="mojo-gallery-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap: '28px',
+              padding: '4px 0',
+            }}
+          >
+            {faceclaims.map((fc) => (
+              <MojoFaceclaimRow key={fc.id} fc={fc} avatarToken={fc.avatar_token} />
+            ))}
+          </div>
+        )}
+
+        {/* Right ivy column */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            right: '-28px',
+            top: '0',
+            bottom: '0',
+            width: '24px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <SvgIvyColumn
+            height={9999}
+            flip={true}
+            idSuffix="fc-ivy-r"
+          />
+        </div>
+
+      </div>
     </div>
   )
 }

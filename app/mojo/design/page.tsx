@@ -17,11 +17,6 @@ const DESIGNS = [
     title: 'Faceclaims — The Hall of Legends',
     description: 'Seven oil portraits on dark paneled walls — five frame styles (baroque, gothic, neoclassical, rope-twist, Victorian oval), painted faces in different eras, individual sconce lighting, brass nameplates. Proposed header for The Hall of Legends (Faceclaims) page.',
   },
-  {
-    slug: 'portrait-hall-v2',
-    title: 'Faceclaims — The Masked Coven',
-    description: 'Seven hooded warlocks in element-colored robes, each wearing the same ornate occult mask. Shadow, Lightning, Water, Earth, Fire, Air, Light. A second option for The Hall of Legends page.',
-  },
 ]
 
 export default function DesignIndexPage() {
