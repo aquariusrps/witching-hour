@@ -1,7 +1,7 @@
 # Mojo — Master Brief, Process & Roadmap
 ### MOJO_BRIEF_v1.md
-### Created: July 2026 | Current version: v1.6
-### Last updated: July 2026 — through MOJO-FIX-028 (commit 1f8a81c)
+### Created: July 2026 | Current version: v1.7
+### Last updated: July 2026 — through MOJO-FIX-039 (commit 2a991d3)
 ### BUILD STATUS: ACTIVE MAINTENANCE
 
 This is the single authoritative document for the Mojo personal RP
@@ -52,7 +52,9 @@ Features include:
 - Upcoming thread type ("On Deck") — planned threads held indefinitely,
   excluded from active tracking, auto-activate when URL is added
 - The Atelier (/mojo/design) — private SVG design preview system for
-  evaluating new illustrated header art before applying to production pages
+  evaluating new illustrated header art before applying to production pages;
+  includes a permanent SVG Asset Library at /mojo/design/svg-library that
+  dynamically displays all 76 exported SVG components grouped by shape category
 
 Mojo is operator-only. No public registration. No other users.
 Auth is the existing TWH super admin session.
@@ -120,7 +122,9 @@ Every Mojo Claude Code prompt must open with this block verbatim:
   provide the build instructions.
 
 Also required: Enable live task tracking in Terminal before beginning
-any build work.
+any build work. Use Step A / Step B / Step C / Step D format in the
+prompt, aligned with the numbered steps provided. Each step must be
+completed and verified before moving to the next.
 
 ---
 
@@ -275,8 +279,10 @@ Display: use MojoRichTextEditor in readonly mode:
 This is the single sanitisation path (MOJO-6A Q1 decision).
 Do NOT use dangerouslySetInnerHTML inline — always use readonly mode.
 
-### Visual Pass Law (MOJO-7B onward)
-Every visual pass prompt (7B through 7O) is presentational ONLY.
+### Visual Pass Law
+Every visual/presentational pass is presentational ONLY — this applies
+to all FIX-NNN prompts that touch page headers, SVG components, CSS
+classes, or layout structure.
 No logic, no state, no action calls, no data fetches change.
 Before touching any file: read it in full, identify functional vs
 presentational lines, touch only the presentational lines.
@@ -386,8 +392,8 @@ Consistent with existing exhaustive-deps disable precedent in
 MojoThreadAutoRefresh.tsx.
 
 ### No New npm Packages in Visual Passes
-All visual work in 7B–7K uses: CSS, inline SVG in JSX, canvas.
-No additional npm packages in any visual pass prompt.
+All visual work uses: CSS, inline SVG in JSX, canvas.
+No additional npm packages in any visual/presentational pass prompt.
 
 ### Flame Animation Pattern (FIX-026 — CRITICAL)
 className="mojo-flame-main" or className="mojo-flame-inner" on an
@@ -418,8 +424,14 @@ Math.random() remains prohibited everywhere. No exceptions.
 ### Inner Helper Functions in SVG Components
 SVG components may define inner helper functions inside the
 component body (e.g. gId(), renderFace(), leftVanePath).
-JSX-returning inner functions require explicit return type:
-  function renderFace(...): React.ReactElement { ... }
+JSX-returning inner functions: MojoSvgAssets.tsx uses automatic JSX
+runtime with no React import. Return type annotation must NOT use
+React.ReactElement (React namespace not in scope — will fail tsc).
+TypeScript infers the JSX return type correctly. No annotation needed:
+  function renderWarlock(...) { return (<g>...</g>) }
+Confirmed: FIX-029 Q1 (renderFace), FIX-034 Q5 (renderWarlock).
+Also confirmed: React.ReactNode works in Server Components and pages
+that do have React in scope via Next.js ambient types (FIX-035).
 Pre-computing complex path strings as const variables before
 the return statement avoids nested template literal issues:
   const leftVanePath = `M ${...} ...`
@@ -960,8 +972,8 @@ app/
       MojoRichTextEditor.tsx  (outer — readonly gate, no hooks)
       MojoRichTextEditorInner (inner — always calls useEditor, edit only)
       -- Visual design assets (MOJO-7B onward)
-      MojoSvgAssets.tsx  (SVG component library — 74 exports as of FIX-027;
-        FIX-029 will add SvgPortraitHall → 75)
+      MojoSvgAssets.tsx  (SVG component library — 76 exports as of FIX-034.
+        Append-only: never modify or delete existing exports.)
       MojoMoonPhases.tsx  (MOJO-7C — live lunar phase calculator + display)
     rps/page.tsx (redirect), rps/[rpId]/page.tsx, rps/[rpId]/edit/page.tsx
       (RP detail page: single-page layout, character portrait spread,
@@ -979,14 +991,25 @@ app/
     search/page.tsx  (full global search — built MOJO-7A; awaits searchParams)
     threads/page.tsx  (The Chronicle — FIX-012b)
     familiar/page.tsx  (The Familiar — FIX-017a/b; thin shell, uses Wrapper)
-    design/page.tsx  (The Atelier index — FIX-021; lists all design candidates)
-    design/library-bookshelf/page.tsx  (FIX-021 — chosen, applied to production)
-    design/library-study/page.tsx      (FIX-021 — not chosen, reference)
-    design/hall-of-mirrors/page.tsx    (FIX-023 — Stacks concept, pending)
-    design/divining-chamber/page.tsx   (FIX-024 — Search concept, pending)
-    design/grimoire/page.tsx           (FIX-025 — Chronicle concept, pending)
-    design/witches-attic/page.tsx      (FIX-027 — Images concept, pending)
-    (design/portrait-hall/page.tsx     pending FIX-029 — Faceclaims concept)
+    design/page.tsx         (The Atelier index — 2 active entries: svg-library,
+                              library-study. All others applied to production or
+                              removed. FIX-021 original; cleaned FIX-039.)
+    design/library-study/page.tsx  (FIX-021 — not chosen, kept for future reference)
+    design/svg-library/page.tsx    (FIX-035 — permanent SVG Asset Library tool;
+                              dynamically renders all 76 SVG exports in grouped cards)
+    design/svg-library/svgLibraryMeta.ts  (FIX-035 — metadata file mapping
+                              each SVG export to display group, displayName,
+                              cardHeight, renderProps. New SVGs auto-appear in
+                              'Ungrouped' section; add an entry here to group them.)
+    NOTE: The following preview pages were created and later deleted after their
+    SVGs were applied to production pages:
+      library-bookshelf (applied FIX-022 → Library page)
+      hall-of-mirrors   (applied FIX-031 → Stacks page)
+      divining-chamber  (applied FIX-032 → Search/Divining Chamber page)
+      grimoire          (applied FIX-033 → Chronicle/Grimoire page)
+      witches-attic     (applied FIX-030 → Images/Witch's Attic page)
+      portrait-hall     (built FIX-029, applied FIX-038 → Faceclaims page, deleted FIX-039)
+      portrait-hall-v2  (built FIX-034, applied FIX-038 → Faceclaims page, deleted FIX-038)
   i/[token]/route.ts  (public, no auth)
   api/mojo/
     fetch-image/route.ts
@@ -1002,7 +1025,7 @@ lib/
                           Class thread mode: scans ALL post authors for
                           characterName, returns my_post_found boolean
     utils.ts           -- client-safe utilities (see §8b)
-  actions/mojo.ts  (59 actions as of FIX-017a)
+  actions/mojo.ts  (59 actions — count unchanged since FIX-017a)
   db/mojo.ts
 app/api/mojo/
   fetch-image/route.ts
@@ -1026,19 +1049,16 @@ Sidebar nav order (as of FIX-021, confirmed against live MojoSidebar.tsx):
   5. Wishlist → /mojo/wishlist
   6. Partners → /mojo/partners
   7. Stacks → /mojo/stacks
-  8. Chronicle → /mojo/threads  (label is "Chronicle" in MojoSidebar.tsx —
-     NOT "Tracker"; a rename to "Tracker" was discussed but not applied)
-  9. Search → /mojo/search
+  8. Chronicle → /mojo/threads  (sidebar label confirmed "Chronicle" in
+     MojoSidebar.tsx. Page itself is now named "The Grimoire" — applied
+     FIX-033 — but sidebar label was never updated. See TD-18.)
+  9. Search → /mojo/search  (page theme: The Divining Chamber — FIX-032)
   10. The Familiar → /mojo/familiar
-  11. The Atelier → /mojo/design  (FIX-021 — design preview, bottom of nav)
+  11. The Atelier → /mojo/design  (FIX-021 — design system tool, bottom of nav)
      Active state: pathname.startsWith('/mojo/design')
      Icon: SvgNavDesign (compass rose glyph)
-     Position: last item, above version footer
-
-  Note on Chronicle label: the named space is "The Chronicle" (and
-  pending rename to "The Grimoire" once approved in Atelier). A sidebar
-  label change to "Tracker" was discussed but MojoSidebar.tsx still
-  reads label: 'Chronicle' as of FIX-028 — see TD-18.
+     Current DESIGNS entries: svg-library (top, permanent tool),
+       library-study (reference, kept for future use)
 
 ---
 
@@ -1121,9 +1141,16 @@ Visual elements — current state (after FIX-006/019/020):
 ## 12. Personal Image Repository
 Functional: COMPLETE — MOJO-6C (commit 3ca7020)
 Visual pass: COMPLETE — MOJO-7J "The Darkroom" (commit dd8bdb4)
-Replacement concept: SvgWitchesAttic ("The Witch's Attic") in The
-Atelier at /mojo/design/witches-attic — pending approval before
-applying to production. SvgDarkroomHeader stays in assets.
+Redesign APPLIED — FIX-030 "The Witch's Attic" (commit c871281):
+  Header: SvgWitchesAttic (idSuffix "images-header"), lantern
+    repositioned to right of trunk (translate 272 140, was 240 128)
+  Title: "The Witch's Attic"
+  Subtitle: "Your private collection."
+  SvgPageHeaderRule below title
+  SvgIvyColumn: absolutely positioned left (img-ivy-l) and
+    right (img-ivy-r) of MojoPersonalImageManager content zone
+  SvgDarkroomHeader: stays in MojoSvgAssets.tsx (append-only rule)
+  Atelier preview page for witches-attic: deleted (FIX-030)
 
 Route: /mojo/images
 Sidebar: Second position (between Dashboard and Faceclaims)
@@ -1311,14 +1338,22 @@ Zone 2 exclusion: upcoming threads filtered from character page
 Chronicle: upcoming appear at bottom of each character group under
   an "On Deck" divider. Opacity 0.70 to distinguish from active threads.
 
-### The Chronicle (/mojo/threads — FIX-012)
+### The Grimoire (/mojo/threads — FIX-012, renamed FIX-033)
 Master thread tracker across all characters and RPs.
-Theme: scriptorium — parchment, leather, quill, candlelight.
-Header: SvgOpenLedger (grand open ledger illustration, 180px tall).
-Pending rename to "The Grimoire" once SvgGrimoire is approved in
-The Atelier and applied to production.
+Theme: ancient spell book — parchment, leather, quill, candlelight.
+Header: SvgGrimoire (idSuffix "chronicle-header") — applied FIX-033.
+  Open ancient spell book: astrological wheel, moon phase circle,
+  botanical illustration, quill (translucent, opacity 0.32/0.22 on
+  vane fills), brass corner fittings (arm 26px, thickness 6px — FIX-033).
+Title: "The Grimoire"
+Subtitle: "Every thread, every word. The record is kept."
+SvgPageHeaderRule below subtitle.
+SvgIvyColumn: absolutely positioned left (chr-ivy-l) and right
+  (chr-ivy-r) of the content zone below the header.
+SvgOpenLedger: stays in MojoSvgAssets.tsx (append-only rule).
+Sidebar label: still "Chronicle" in MojoSidebar.tsx — see TD-18.
 
-getMojoAllThreads(): three-query pattern:
+getMojoAllThreads(): three-query pattern (four queries total):
   1. All threads (select *)
   2. Characters by character_id (id, name, status, rp_id)
   3. RPs by rp_id (id, name, color_hex)
@@ -1327,12 +1362,32 @@ getMojoAllThreads(): three-query pattern:
     rp_color_hex, character_avatar_token on each thread.
 
 Page layout (top to bottom):
-  Zone 1: SvgOpenLedger header, "The Chronicle" / subtitle
+  Zone 1: SvgGrimoire header, "The Grimoire" / subtitle / rule
   Zone 2: MojoChronicleAddForm (character selector + all fields)
-  Zone 3: Active Correspondence — grouped by character, candle heading,
-    sorted by state priority, YOUR TURN groups first
+  Zone 3: Active Correspondences — 2-column character card grid
+    (FIX-036/039 — see card layout below)
   Zone 4: Closed Correspondence — archived threads, wax seal heading,
     dimmed 0.65 opacity, SvgChronicleQuill + SvgScrollEnd at bottom
+
+Active Correspondences card layout (FIX-036/039):
+  Container: .mojo-corr-container (max-width 860px, centered,
+    padding 0 20px — constrains cards from filling full content width)
+  Grid: .mojo-corr-grid (2-column, gap 16px)
+  Each card: .mojo-corr-card (flex-direction: column)
+    Top bar: .mojo-corr-card-header (full card width)
+      Character name at 20px Cormorant Upright (roseash)
+      RP name at 12px EB Garamond italic (faded)
+    Body row: .mojo-corr-card-body (flex-direction: row)
+      Left: .mojo-corr-card-left (130px, portrait only — MojoPortraitCard
+        size="sm", showFrame={false})
+      Right: .mojo-corr-card-right (flex: 1, thread list)
+        Active threads rendered as-is (badge + title + partners)
+        On Deck divider (.mojo-corr-on-deck-divider) before upcoming
+        Upcoming threads: .mojo-corr-upcoming wrapper (opacity 0.70
+          applied per-thread inline — NOT on wrapper, see FIX-037)
+  Mobile (<768px): single column, body row stacks to column
+  Heading "Active Correspondences" (plural) centered with
+    candle flanking treatment from .mojo-chronicle-section-heading
 
 Auto-refresh: MojoThreadAutoRefresh fires on mount.
 
@@ -1513,8 +1568,27 @@ TD-17: scene-clip clipPath defined in SvgWitchesAttic <defs> is never
 
 TD-18: Sidebar Chronicle label rename to "Tracker" was discussed but
   NOT applied — confirmed live in MojoSidebar.tsx as of FIX-028, the
-  nav item still reads label: 'Chronicle'. If the rename is wanted,
-  it requires an explicit follow-up prompt; do not assume it is done.
+  nav item still reads label: 'Chronicle'. The page itself is now
+  named "The Grimoire" (FIX-033) but the sidebar label was never
+  updated. Requires explicit follow-up prompt.
+
+TD-19: Orphaned Atelier preview directories — five directories remain
+  in app/mojo/design/ with no corresponding DESIGNS index entry:
+  divining-chamber, grimoire, hall-of-mirrors, library-bookshelf,
+  witches-attic. Their SVGs were applied to production (FIX-030 through
+  FIX-033) and their DESIGNS entries removed, but the page.tsx files
+  and directories were not deleted at that time (unlike portrait-hall
+  and portrait-hall-v2 which were deleted in FIX-038/039). Not causing
+  harm — no broken imports, no tsc errors. Low priority cleanup.
+
+TD-20: Masked Coven cross artifact on neoclassical frames (w4 Earth,
+  w7 Light) in SvgPortraitHallV2. A cross/T shape appears on the
+  bottom-left and bottom-right portraits as seen on the Faceclaims
+  page at /mojo/faceclaims. Investigation in FIX-038 ruled out the
+  neoclassical frame branch, nameplates, and sconce fixtures as the
+  source — no bottom-positioned element was found in the live code.
+  The cause is currently unknown. Unresolved — flagged for future
+  investigation when browser access allows live DOM inspection.
 
 ---
 
@@ -1730,8 +1804,19 @@ Build report required with: commit hash, files list, grep results, Q-items.
 | MOJO-FIX-026    | ✅ Complete | c797ccc | Flame animation fix: SvgCandelabra + SvgLibraryStudy inline animationName |
 | MOJO-FIX-027    | ✅ Complete | 7ab2feb | SvgWitchesAttic — atmospheric witch's attic, Atelier preview |
 | MOJO-FIX-028    | ✅ Complete | 1f8a81c | Moon phases card padding reduction, non-active label opacity to 1.0 |
-| MOJO-FIX-029    | ⏳ Pending  | —       | SvgPortraitHall — Hall of Legends, Atelier preview for Faceclaims page |
+| MOJO-FIX-029    | ✅ Complete | 101638e | SvgPortraitHall — Hall of Legends, Atelier preview for Faceclaims page |
 | MOJO-BRIEF v1.6 | ✅ Complete | 62152c4 | Brief updated through FIX-028 |
+| MOJO-FIX-030    | ✅ Complete | c871281 | Witch's Attic applied to Images page; lantern repositioned; Atelier cleanup |
+| MOJO-FIX-031    | ✅ Complete | 33339f4 | Hall of Mirrors — flame fix, mirror cleanup, crescent above candle; applied to Stacks page |
+| MOJO-FIX-032    | ✅ Complete | 88e688e | Divining Chamber — grimoire removed, celestial map, larger cards; applied to Search page |
+| MOJO-FIX-033    | ✅ Complete | f8fb4b0 | Grimoire — ink blot removed, quill translucent, brass thickened; applied to Chronicle page |
+| MOJO-FIX-034    | ✅ Complete | 10b8e90 | SvgPortraitHallV2 — seven masked warlocks with elemental powers, Atelier preview |
+| MOJO-FIX-035    | ✅ Complete | a2fbcb2 | SVG Asset Library — dynamic Atelier page displaying all 76 SVG exports by group |
+| MOJO-FIX-036    | ✅ Complete | b4a1191 | Chronicle Active Correspondences — 2-col character cards, avatar+name left/threads right |
+| MOJO-FIX-037    | ✅ Complete | cd552ae | Chronicle — remove double-opacity on upcoming threads (.mojo-corr-upcoming wrapper) |
+| MOJO-FIX-038    | ✅ Complete | 31543a9 | Masked Coven applied to Faceclaims page; Atelier portrait-hall cleanup |
+| MOJO-FIX-039    | ✅ Complete | 2a991d3 | Chronicle cards constrained width + top bar header; Atelier portrait-hall-v2 cleanup |
+| MOJO-BRIEF v1.7 | ✅ Complete | [hash]  | Brief updated through FIX-039 — full document audit |
 
 ---
 
@@ -1803,6 +1888,19 @@ Version history:
     search complete, TD-2/TD-6/TD-7 resolved, TD-10/TD-11 added,
     server actions updated to 52, getMojoWanted added, build status
     expanded through MOJO-7L, file structure updated with new components
+  v1.7 — through FIX-039: Atelier applied SVGs to all remaining pages
+    (Witch's Attic→Images FIX-030, Hall of Mirrors→Stacks FIX-031,
+    Divining Chamber→Search FIX-032, Grimoire→Chronicle FIX-033,
+    Masked Coven→Faceclaims FIX-038); SvgPortraitHall+V2 built
+    (FIX-029/034); SVG Asset Library permanent Atelier tool (FIX-035);
+    Chronicle cards redesigned — 2-col constrained grid with top bar
+    header (FIX-036/039); double-opacity bug fixed (FIX-037); Atelier
+    cleaned to 2 entries (FIX-038/039); TD-19 (orphaned dirs) +
+    TD-20 (Masked Coven cross artifact) added; full document audit:
+    stale Atelier table removed, SVG count corrected to 76, stale
+    page theme descriptions updated, Chronicle/Grimoire rename
+    documented, file structure updated.
+
   v1.6 — through FIX-028: upcoming thread type ("On Deck") with
     auto-transition, indigo badge, Zone 2 exclusion, Chronicle On Deck
     divider; dashboard overhaul (character cards md, ornate RP panels with
@@ -1948,7 +2046,7 @@ RP note panels (FIX-007b):
   .mojo-rp-note-body, .mojo-rp-columns, .mojo-rp-side-panel,
   .mojo-rp-banner, .mojo-rp-banner-bar, .mojo-character-spread,
   .mojo-thread-card, .mojo-candle-heading
-The Chronicle (FIX-012b):
+The Chronicle / Grimoire (FIX-012b, FIX-036, FIX-039):
   .mojo-chronicle-page, .mojo-chronicle-header, .mojo-thread-group,
   .mojo-thread-group-header, .mojo-thread-group-name,
   .mojo-thread-group-rp, .mojo-thread-group-body,
@@ -1957,6 +2055,21 @@ The Chronicle (FIX-012b):
   .mojo-thread-archived-card, .mojo-thread-archived-title,
   .mojo-thread-archived-meta, .mojo-chronicle-section-heading,
   .mojo-chronicle-section-rule
+Active Correspondences card system (FIX-036/039):
+  .mojo-corr-container (max-width 860px, centered, padding 0 20px)
+  .mojo-corr-grid (2-column grid, gap 16px)
+  .mojo-corr-card (flex-direction: column, background var(--raised))
+  .mojo-corr-card-header (top bar: name+RP, dark bg, border-bottom)
+  .mojo-corr-card-body (inner row: flex-direction row)
+  .mojo-corr-card-left (130px portrait column, dark bg, border-right)
+  .mojo-corr-card-right (flex: 1 thread list column)
+  .mojo-corr-card-char-name (20px Cormorant Upright, roseash)
+  .mojo-corr-card-rp-name (12px EB Garamond italic, faded)
+  .mojo-corr-on-deck-divider (8px Cinzel, faded, border-top)
+  .mojo-corr-upcoming (semantic wrapper only — NO opacity; per-thread
+    inline opacity 0.70 handles dimming; see FIX-037 bug fix)
+  .mojo-corr-heading (centered heading — note: requires justifyContent:
+    'center' inline on flex containers; text-align alone insufficient)
 The Familiar (FIX-017a/b):
   .mojo-familiar-layout, .mojo-familiar-sidebar,
   .mojo-familiar-sidebar-heading, .mojo-familiar-new-btn,
@@ -1976,10 +2089,11 @@ The Familiar (FIX-017a/b):
   .mojo-familiar-input-hint
 
 ### SVG Asset Library (app/mojo/components/MojoSvgAssets.tsx)
-All reusable SVG decorative components. 74 exports as of FIX-027.
-FIX-029 will add SvgPortraitHall → 75.
+All reusable SVG decorative components. 76 exports as of FIX-034.
 All are inline JSX — no external SVG files. Append-only: never
-modify existing exports.
+modify or delete existing exports.
+New exports: add metadata entry to design/svg-library/svgLibraryMeta.ts
+to include them in the grouped SVG library page (see §9 file structure).
 
 Global chrome (MOJO-7B — 13 exports):
   SvgCrescent(size, idSuffix) — crescent moon with star
@@ -2083,6 +2197,28 @@ The Familiar (FIX-017a — +2):
     iris gradient, vertical slit pupil with tapered ends, two catch-
     light reflections, limbal ring, ambient glow filter; page header
 
+The Faceclaims pages (FIX-029/034 — +2 portrait hall variants):
+  SvgPortraitHall(className, idSuffix) — seven oil portraits on dark
+    wood paneling. Five frame styles (Victorian oval, Gothic arch,
+    Neoclassical laurel, Baroque cartouche, Rope-twist). Painted faces
+    as layered ellipses (renderFace() inner function). Seven canvas
+    clipPaths. Individual sconce glows + fixtures. Brass nameplates.
+    Gilt frieze. Vignette. Default idSuffix: 'ph'.
+    Now in production: kept in assets (append-only rule). Was applied
+    to Faceclaims page but superseded by SvgPortraitHallV2 (FIX-038).
+  SvgPortraitHallV2(className, idSuffix) — "The Masked Coven".
+    Same seven positions, same five frame styles as SvgPortraitHall.
+    Faces replaced with seven hooded male warlocks, each wearing the
+    same ornate occult mask (alabaster surface, runic lines, void eye
+    apertures with element-color glow, forehead jewel) and a different
+    colored robe. Each warlock displays a different elemental power:
+    Shadow (violet), Lightning (gold), Water (blue), Earth (green),
+    Fire (crimson), Air (steel blue), Light (amber gold). Elemental
+    backgrounds per portrait. renderWarlock() inner function. Mask tilt
+    varies -8° to +7° per figure. Default idSuffix: 'phv2'.
+    Applied to Faceclaims page (FIX-038). TD-20: cross artifact on
+    neoclassical frames (w4/w7) — cause unresolved.
+
 Dashboard moon phases (FIX-019 — +8 illustrated phase SVGs):
   All share props: { size?: number; active?: boolean; className?: string; idSuffix?: string }
   Design language: layered gradients, deep blue-purple shadow (#0a0818),
@@ -2115,26 +2251,28 @@ Library page redesign (FIX-021/022 — +3):
     (no gradients) — TD-10 category forward-compatible prop.
     Used on Library page absolutely positioned left/right of content.
 
-The Atelier design candidates (FIX-021/023/024/025/027 — +6 pending):
-All are Atelier-only previews. Production pages untouched until approved.
+The Atelier design candidates, built FIX-021/023/024/025/027 — all
+now APPLIED to production (FIX-030 through FIX-033/038). Preview pages
+deleted; SVG exports remain in MojoSvgAssets.tsx (append-only rule):
   SvgNavDesign(active) — 14px compass-rose glyph for The Atelier sidebar.
     currentColor, 4 cardinal points with north emphasized.
   SvgLibraryStudy(className, idSuffix) — stone fireplace in scholar's
     study. Animated fire (3 flame layers + tongues), books on floor/mantle,
     ivy on left pillar, two mantle candles, fire/room glow.
     Library option B — not chosen (SvgLibraryBookshelf was chosen).
+    Still the reference candidate in the Atelier (library-study).
   SvgHallOfMirrors(className, idSuffix) — gothic perspective corridor.
     One-point perspective (VP at 450,95). Six gilt-framed mirrors (3 per
     side, depths t=0.15/0.45/0.68), each with pointed gothic arch frame,
     glass with ghost shape (figure/swirl/crescent/bands), specular highlight.
     Stone arch entrance, diamond tile floor, single VP candle (animated),
-    candlelight wash, floor mist, vignette. Proposed: Stacks page.
+    candlelight wash, floor mist, vignette. Applied: Stacks page (FIX-031).
   SvgDiviningChamber(className, idSuffix) — candlelit divination table
     viewed from above. 7 tarot cards (5 face-down, Moon+Eye face-up),
     8 rune stones with angular symbols, crystal pendulum with dashed chain
     and prismatic scatter, open grimoire corner, 2 candles with animated
     flames, velvet cloth with gold embroidery, vignette.
-    Proposed: Search page. (Uses inline animationName — see §4.)
+    Applied: Search page (FIX-032). (Uses inline animationName — see §4.)
   SvgGrimoire(className, idSuffix) — open ancient spell book. Left page:
     astrological wheel (8 divisions, symbols, hub), 3 text-line sections,
     margin annotations, botanical illustration ("Verbena off."), ink blot,
@@ -2142,7 +2280,7 @@ All are Atelier-only previews. Production pages untouched until approved.
     stars, glowing hub), 4 corner flourishes, "XLVII" page number. Hero
     element: quill (287px shaft, pre-computed vane paths, barbs, calamus,
     nib, ink pool/trail/drops). Static illustration — no animations.
-    Proposed: Chronicle/Grimoire page.
+    Applied: Chronicle/Grimoire page (FIX-033).
   SvgWitchesAttic(className, idSuffix) — witch's attic interior. Peaked
     roof beams (rear/middle/front horizontal + ridge + rafters), circular
     moonlit window with 8 bolts, moonlight cone with 9 dust motes, 10
@@ -2150,15 +2288,10 @@ All are Atelier-only previews. Production pages untouched until approved.
     with spectral glow, 5-bottle shelf, large closed trunk, small open
     trunk with fabric, spinning wheel (partially cropped right), stacked
     books + 2 scrolls, brass lantern with warm glow, 2 corner cobwebs +
-    1 beam cobweb. Static — no animations. Proposed: Images page.
+    1 beam cobweb. Static — no animations. Applied: Images page (FIX-030).
 
-Pending (FIX-029):
-  SvgPortraitHall(className, idSuffix) — seven oil portraits on dark
-    wood paneling. Five frame styles (Victorian oval, Gothic arch,
-    Neoclassical laurel, Baroque cartouche, Rope-twist). Painted faces
-    as layered ellipses (renderFace() inner function). Seven canvas
-    clipPaths. Individual sconce glows + fixtures. Brass nameplates.
-    Gilt frieze. Vignette. Proposed: Faceclaims / Hall of Legends page.
+Note: SvgPortraitHall and SvgPortraitHallV2 (FIX-029/034) are documented
+above under "The Faceclaims pages (FIX-029/034)" — not repeated here.
 
 MojoMoonPhases.tsx (MOJO-7C) — Client Component:
   getLunarPhaseIndex() → 0-7 based on real synodic month calculation
@@ -2171,13 +2304,14 @@ Each page receives a focused visual pass in its own prompt.
 |---------|------------|---------------------|--------------|
 | MOJO-7C | Dashboard  | The Sanctum         | ✅ 1efaabe   |
 | MOJO-7D | Characters | The Dossier         | ✅ 2c06adf   |
-| MOJO-7E | Faceclaims | The Hall of Legends (renamed from The Portrait Gallery — FIX-029 pending) | ✅ 9c39260 |
-| MOJO-7F | Library    | The Library (header replaced: SvgLibraryBookshelf + SvgCandelabra + SvgIvyColumn — FIX-022) | ✅ 2c100f1 |
+| MOJO-7E | Faceclaims | The Hall of Legends — SvgPortraitHallV2 "The Masked Coven" applied FIX-038 | ✅ 9c39260 |
+| MOJO-7F | Library    | The Library — SvgLibraryBookshelf + SvgCandelabra + SvgIvyColumn (FIX-022) | ✅ 2c100f1 |
 | MOJO-7G | Wishlist   | Desires             | ✅ f2b860e   |
 | MOJO-7H | Partners   | The Black Book      | ✅ 0f49c5f   |
-| MOJO-7I | Stacks     | The Reliquary       | ✅ 7adfb91   |
-| MOJO-7J | Images     | The Darkroom        | ✅ dd8bdb4   |
-| MOJO-7K | Search     | The Oracle          | ✅ ae72b23   |
+| MOJO-7I | Stacks     | The Hall of Mirrors — SvgHallOfMirrors applied FIX-031 | ✅ 7adfb91 |
+| MOJO-7J | Images     | The Witch's Attic — SvgWitchesAttic applied FIX-030 | ✅ dd8bdb4 |
+| MOJO-7K | Search     | The Divining Chamber — SvgDiviningChamber applied FIX-032 | ✅ ae72b23 |
+| —       | Chronicle  | The Grimoire — SvgGrimoire applied FIX-033 | ✅ fbfd872 |
 
 ### The Dossier — Character Sheet (MOJO-7D) Key Notes
 - Character header banner: SvgIvyTrail flanking the name (left normal,
@@ -2195,16 +2329,25 @@ Each page receives a focused visual pass in its own prompt.
 - Avatar URL computed from characterStacks/characterAvatars already in
   page scope — same priority logic as getMojoDashboardData().
 
-### The Portrait Gallery — Faceclaims (MOJO-7E) Key Notes
+### The Hall of Legends — Faceclaims (MOJO-7E, renamed FIX-029/038) Key Notes
 - Index redesigned as CSS grid (auto-fill minmax 200px) — was a flat row list
 - MojoFaceclaimRow.tsx redesigned as portrait card; MojoFaceclaimNameEdit
   preserved intact (on "Do NOT modify" list) — name renders at ~30px not 48px
-- SvgGalleryCorridor on both index and detail pages as faint bg strip
 - SvgCandleFlame hover: .mojo-portrait-card:hover .mojo-portrait-flame
   (CSS-only, no useState — established hover pattern)
 - SvgPortraitFrame color prop requires literal hex (not CSS var)
 - Quick copy panel redesigned as contact sheet with film strip edge
 - No faceclaim avatars available at index level — silhouette placeholder only
+- Page title: "The Hall of Legends" (renamed from Portrait Gallery — FIX-038
+  completes the rename that FIX-029 approved but didn't apply to production;
+  live title was still "The Portrait Gallery" before FIX-038)
+- Header: SvgPortraitHallV2 "The Masked Coven" (idSuffix "faceclaims-header"),
+  applied FIX-038. SvgGalleryCorridor stays in assets (append-only rule).
+- Subtitle: "Faces held in record. Each one known."
+- SvgIvyColumn: absolutely positioned left (fc-ivy-l) and right (fc-ivy-r)
+  flanking MojoFaceclaimRow grid content zone.
+- TD-20: cross/T artifact on neoclassical frame portraits (w4, w7) — source
+  unidentified; does not correspond to any element in the live SVG code.
 - MojoLibraryTabs is a 6-way snippet-type filter, NOT a Snippets/Resources
   switcher as originally assumed — archive-drawer style applied to all 6
 
@@ -2235,7 +2378,16 @@ Each page receives a focused visual pass in its own prompt.
 - No list heading found in MojoPartnerList — Part E's heading instruction
   did not apply
 
-### The Reliquary — Stacks (MOJO-7I) Key Notes
+### The Hall of Mirrors — Stacks (MOJO-7I origin, redesigned FIX-031) Key Notes
+- Header replaced FIX-031: SvgHallOfMirrors (idSuffix "stacks-header").
+  Title: "The Hall of Mirrors". Subtitle: "One token. Many reflections."
+  SvgCabinetOfCuriosities stays in assets (append-only rule).
+- Mirror surface summary (after FIX-031): Left 0 (nearest) tall figure
+  ellipse / Left 1 (middle) swirl of light / Left 2 (farthest) faint glow /
+  Right 0 (nearest) faint glow / Right 1 (middle) faint glow /
+  Right 2 (farthest) crescent moon. Crescent above VP candle at cx=450 cy=72.
+- VP candle flame: inline animationName (1.8s outer, 1.2s inner, 0.15s core
+  offset) — confirmed working in FIX-031 (was already correct in live code).
 - getSpecimenNumber(createdAt): uses timestamp % 1000 for stable 3-digit ID
 - getModeColor/getModeLabel replaced old ROTATION_BADGE_COLOR/ROTATION_LABEL
   Record constants
@@ -2255,13 +2407,17 @@ Each page receives a focused visual pass in its own prompt.
 - Drop zone text: "Drop your negatives here." / "or click to expose"
 - Safelight: radial gradient using --gold hex (#a02840) at 8-9% opacity
 
-### The Oracle — Search (MOJO-7K) Key Notes
-- Three bowl sizes: 220px (no query) / 140px (has query) / 120px (no results)
+### The Divining Chamber — Search (MOJO-7K origin, redesigned FIX-032) Key Notes
+- Header replaced in FIX-032: SvgDiviningChamber (static, idSuffix
+  "search-header"). The old three-size dynamic bowl logic (220/140/120px)
+  was removed with the header zone. SvgScryingBowl stays in assets +
+  is still used in the search results empty state ("The waters are still"
+  at size={120}) — NOT fully removed from the page (FIX-032 Q2).
+- Page title: "The Divining Chamber". Subtitle: "Ask. The chamber answers."
 - searchParams is awaited Promise in Next.js 16 — existing pattern preserved
 - Result rows: className="mojo-oracle-result" + animationDelay per row index
 - Submit button: just SvgNavSearch icon — no text, no conventional styling
-- SvgScryingBowl glowId filter was dead on creation; activated in MOJO-7N
-- All search query logic byte-for-byte identical to pre-visual state
+- All search query logic byte-for-byte identical to pre-FIX-032 visual state
 
 ### Mobile Responsive System (MOJO-7O)
 Breakpoints: mobile < 768px / tablet 768-1023px / desktop >= 1024px
@@ -2288,34 +2444,61 @@ Key mobile decisions:
   - viewport meta: maximum-scale=1 added to app/layout.tsx (was missing)
 
 ### The Atelier (/mojo/design — FIX-021)
-Private design preview system for SVG illustration candidates.
+Private design system tool — SVG illustration preview + asset library.
 Auth: inherited from app/mojo/layout.tsx — superadmin only.
 Sidebar: "The Atelier" (item 11, last) with SvgNavDesign compass glyph.
 Active state: pathname.startsWith('/mojo/design') (sub-pages stay active).
 
-Each preview page shows: SVG at full width on var(--char) dark background,
-Cinzel label above (9px uppercase), EB Garamond italic description below.
-Clean, no production mock, SVG speaks for itself.
+Current DESIGNS index (app/mojo/design/page.tsx — as of FIX-039):
+  slug              purpose/status
+  svg-library       ◈ Permanent tool — SVG Asset Library (FIX-035)
+  library-study     Fireplace/hearth concept, kept for future reference
 
-Current designs index (app/mojo/design/page.tsx):
-  slug                  title/purpose                       status
-  library-bookshelf     Library header option A             Applied (FIX-022)
-  library-study         Library header option B             Not chosen (reference)
-  hall-of-mirrors       Stacks page concept                 Pending approval
-  divining-chamber      Search page concept                 Pending approval
-  grimoire              Chronicle/Grimoire page concept     Pending approval
-  witches-attic         Images page concept                 Pending approval
-  portrait-hall         Faceclaims/Hall of Legends concept  Pending FIX-029
+All other design candidates have been applied to production and their
+preview pages deleted. The Atelier is kept lean — only active tools
+and genuine future candidates remain.
+
+SVG Asset Library (/mojo/design/svg-library — FIX-035):
+  Dynamically renders all SVG exports from MojoSvgAssets.tsx using
+  namespace import (import * as SvgAssets from '...').
+  New exports appear automatically in 'Ungrouped' section.
+  Groups: Wide Panoramic, Square, Tall Vertical, Medium Decorative,
+    Small Navigation, Ungrouped.
+  Metadata in design/svg-library/svgLibraryMeta.ts — add one entry
+  per new SVG to assign it to the correct group and card height.
+  Small Navigation group uses CSS transform: scale(3) on the preview
+  container (those components hardcode 14px dimensions — no size prop).
+  Direct function call pattern for render: Component({idSuffix, ...props})
+  rather than JSX — this executes synchronously and actually catches
+  errors in the try/catch (JSX only creates a descriptor, not executed).
 
 Rule: Production pages are NEVER modified by adding a design to the
 Atelier. Production changes require a separate prompt after explicit
-approval. The Atelier is observation only.
+approval.
 
-Applied from Atelier → production:
-  library-bookshelf → app/mojo/library/page.tsx (FIX-022):
-    SvgLibraryBookshelf in center flex, SvgCandelabra left+right,
-    SvgIvyColumn absolutely positioned left/right of content.
-    Old SvgBookshelf stays in MojoSvgAssets.tsx (append-only rule).
+Applied from Atelier → production (complete history):
+  library-bookshelf → Library page (FIX-022): SvgLibraryBookshelf +
+    SvgCandelabra + SvgIvyColumn. Page: "The Library".
+  witches-attic → Images page (FIX-030): SvgWitchesAttic + SvgIvyColumn.
+    Page: "The Witch's Attic". Lantern at translate(272 140).
+  hall-of-mirrors → Stacks page (FIX-031): SvgHallOfMirrors + title
+    "The Hall of Mirrors". Subtitle: "One token. Many reflections."
+    Fixes in FIX-031: flame animation (inline animationName), removed
+    three horizontal bands from right mirror i=1, moved crescent to
+    right mirror i=2, added crescent above VP candle (cx=450 cy=72).
+  divining-chamber → Search page (FIX-032): SvgDiviningChamber + title
+    "The Divining Chamber". Subtitle: "Ask. The chamber answers."
+    Fixes in FIX-032: grimoire removed, celestial map added (center
+    cx=490 cy=152), cards scaled (CARD_W=52 CARD_H=86), pendulum
+    repositioned from (490,0) to (498,70).
+  grimoire → Chronicle page (FIX-033): SvgGrimoire + SvgIvyColumn.
+    Page renamed "The Grimoire". Fixes: ink blot removed, quill vane
+    opacity 0.32/0.22, brass corners thickened (arm 26px, w 6px).
+  portrait-hall → Faceclaims page candidate (FIX-029 built, FIX-038
+    applied SvgPortraitHallV2 instead — portrait-hall superseded).
+  portrait-hall-v2 → Faceclaims page (FIX-038): SvgPortraitHallV2 +
+    SvgIvyColumn. Page: "The Hall of Legends". Subtitle: "Faces held
+    in record. Each one known."
 
 ### MOJO-7M Audit Summary
 54 checks across 8 categories. 48 pass, 6 flags, 0 fails.
