@@ -12,11 +12,6 @@ const DESIGNS = [
     title: 'Library — Old Study / Hearth',
     description: 'Stone fireplace in a forgotten scholar\'s study. Books stacked around the hearth, ivy on stone, mantle candles. Option B for The Library page.',
   },
-  {
-    slug: 'portrait-hall',
-    title: 'Faceclaims — The Hall of Legends',
-    description: 'Seven oil portraits on dark paneled walls — five frame styles (baroque, gothic, neoclassical, rope-twist, Victorian oval), painted faces in different eras, individual sconce lighting, brass nameplates. Proposed header for The Hall of Legends (Faceclaims) page.',
-  },
 ]
 
 export default function DesignIndexPage() {

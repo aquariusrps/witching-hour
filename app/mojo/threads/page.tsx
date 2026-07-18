@@ -227,6 +227,7 @@ export default async function ChronicleThreadsPage() {
             No active threads. Begin a new entry above.
           </p>
         ) : (
+          <div className="mojo-corr-container">
           <div className="mojo-corr-grid">
           {groups.map((group) => {
             const activeGroupThreads = group.threads.filter((t) =>
@@ -239,15 +240,8 @@ export default async function ChronicleThreadsPage() {
             return (
             <div key={group.characterId} className="mojo-corr-card">
 
-              {/* LEFT COLUMN — portrait + identity */}
-              <div className="mojo-corr-card-left">
-                <MojoPortraitCard
-                  token={group.avatarToken}
-                  alt={group.characterName}
-                  size="sm"
-                  showFrame={false}
-                  idSuffix={`chr-card-${group.characterId}`}
-                />
+              {/* TOP BAR — character name + RP name, full width */}
+              <div className="mojo-corr-card-header">
                 <div className="mojo-corr-card-char-name">
                   {group.characterName}
                 </div>
@@ -256,6 +250,19 @@ export default async function ChronicleThreadsPage() {
                     {group.rpName}
                   </div>
                 )}
+              </div>
+
+              <div className="mojo-corr-card-body">
+
+              {/* LEFT COLUMN — portrait only */}
+              <div className="mojo-corr-card-left">
+                <MojoPortraitCard
+                  token={group.avatarToken}
+                  alt={group.characterName}
+                  size="sm"
+                  showFrame={false}
+                  idSuffix={`chr-card-${group.characterId}`}
+                />
               </div>
 
               {/* RIGHT COLUMN — thread list */}
@@ -444,9 +451,12 @@ export default async function ChronicleThreadsPage() {
                 })}
                 </div>
               </div>
+
+              </div>
             </div>
             )
           })}
+          </div>
           </div>
         )}
       </div>

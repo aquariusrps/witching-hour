@@ -2279,6 +2279,13 @@ body {
   margin-bottom: 24px;
 }
 
+/* Constrained wrapper — cards don't span full content width */
+.mojo-corr-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
 /* 2-column grid of character correspondence cards */
 .mojo-corr-grid {
   display: grid;
@@ -2290,12 +2297,28 @@ body {
 /* Individual character card */
 .mojo-corr-card {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   background: var(--raised);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 3px;
   overflow: hidden;
-  min-height: 120px;
+  min-height: 0;
+}
+
+/* Top bar spanning full card width: character name + RP */
+.mojo-corr-card-header {
+  padding: 10px 16px 8px;
+  background: rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+/* Inner row: portrait left + thread list right */
+.mojo-corr-card-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Left column: portrait + character name + RP name */
@@ -2304,30 +2327,28 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  justify-content: center;
   padding: 14px 12px;
   background: rgba(0, 0, 0, 0.18);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
-  width: 140px;
+  width: 130px;
 }
 
 .mojo-corr-card-char-name {
   font-family: 'Cormorant Upright', serif;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--roseash);
-  text-align: center;
-  line-height: 1.3;
+  line-height: 1.2;
   word-break: break-word;
+  margin-bottom: 2px;
 }
 
 .mojo-corr-card-rp-name {
   font-family: 'EB Garamond', serif;
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
   color: var(--faded);
-  text-align: center;
   line-height: 1.3;
 }
 
@@ -2363,11 +2384,15 @@ body {
 
 /* Mobile: single column */
 @media (max-width: 767px) {
+  .mojo-corr-container {
+    padding: 0 8px;
+  }
+
   .mojo-corr-grid {
     grid-template-columns: 1fr;
   }
 
-  .mojo-corr-card {
+  .mojo-corr-card-body {
     flex-direction: column;
   }
 
@@ -2378,6 +2403,5 @@ body {
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     justify-content: flex-start;
-    gap: 12px;
   }
 }
