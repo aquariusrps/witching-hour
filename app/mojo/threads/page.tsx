@@ -202,11 +202,14 @@ export default async function ChronicleThreadsPage() {
       {/* ════ ZONE 3: ACTIVE THREADS ════ */}
       <div>
         {/* Candle heading */}
-        <div className="mojo-chronicle-section-heading">
+        <div
+          className="mojo-chronicle-section-heading mojo-corr-heading"
+          style={{ justifyContent: 'center' }}
+        >
           <div aria-hidden="true">
             <SvgCandleRealistic height={72} idSuffix="chron-left" flameDelay="0s" />
           </div>
-          <h2>Active Correspondence</h2>
+          <h2>Active Correspondences</h2>
           <div aria-hidden="true">
             <SvgCandleRealistic height={72} idSuffix="chron-right" flameDelay="0.35s" />
           </div>
@@ -224,7 +227,8 @@ export default async function ChronicleThreadsPage() {
             No active threads. Begin a new entry above.
           </p>
         ) : (
-          groups.map((group) => {
+          <div className="mojo-corr-grid">
+          {groups.map((group) => {
             const activeGroupThreads = group.threads.filter((t) =>
               getThreadDisplayState(t, group.characterName) !== 'upcoming'
             )
@@ -233,44 +237,29 @@ export default async function ChronicleThreadsPage() {
             )
 
             return (
-            <div key={group.characterId} className="mojo-thread-group">
+            <div key={group.characterId} className="mojo-corr-card">
 
-              {/* Character group header */}
-              <div
-                className="mojo-thread-group-header"
-                style={{ borderLeft: `3px solid ${group.rpColorHex}` }}
-              >
+              {/* LEFT COLUMN — portrait + identity */}
+              <div className="mojo-corr-card-left">
                 <MojoPortraitCard
                   token={group.avatarToken}
                   alt={group.characterName}
                   size="sm"
                   showFrame={false}
-                  idSuffix={`chron-${group.characterId}`}
+                  idSuffix={`chr-card-${group.characterId}`}
                 />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="mojo-thread-group-name">
-                    {group.characterName}
-                  </div>
-                  {group.rpName && (
-                    <div className="mojo-thread-group-rp">
-                      {group.rpName}
-                    </div>
-                  )}
+                <div className="mojo-corr-card-char-name">
+                  {group.characterName}
                 </div>
-                <span style={{
-                  fontFamily: 'Cinzel, serif',
-                  fontSize: '9px',
-                  letterSpacing: '0.15em',
-                  color: 'var(--faded)',
-                  flexShrink: 0,
-                }}>
-                  {group.threads.length}{' '}
-                  {group.threads.length === 1 ? 'thread' : 'threads'}
-                </span>
+                {group.rpName && (
+                  <div className="mojo-corr-card-rp-name">
+                    {group.rpName}
+                  </div>
+                )}
               </div>
 
-              {/* Thread cards */}
-              <div className="mojo-thread-group-body">
+              {/* RIGHT COLUMN — thread list */}
+              <div className="mojo-corr-card-right">
                 {activeGroupThreads.map((thread, i) => {
                   const state = getThreadDisplayState(thread, group.characterName)
                   const waitingOn = state === 'waiting' ? getWaitingOn(thread, group.characterName) : null
@@ -372,22 +361,13 @@ export default async function ChronicleThreadsPage() {
 
                 {/* On Deck divider — only when both arrays non-empty */}
                 {activeGroupThreads.length > 0 && onDeckThreads.length > 0 && (
-                  <div style={{
-                    fontFamily: 'Cinzel, serif',
-                    fontSize: '8px',
-                    letterSpacing: '0.28em',
-                    textTransform: 'uppercase',
-                    color: 'var(--faded)',
-                    opacity: 0.55,
-                    padding: '8px 16px 4px',
-                    borderTop: '1px solid rgba(255,255,255,0.04)',
-                    background: 'rgba(0,0,0,0.10)',
-                  }}>
+                  <div className="mojo-corr-on-deck-divider">
                     On Deck
                   </div>
                 )}
 
                 {/* Upcoming/on-deck threads — slightly muted, neutral (no scrape data) */}
+                <div className={onDeckThreads.length > 0 ? 'mojo-corr-upcoming' : undefined}>
                 {onDeckThreads.map((thread, i) => {
                   const state = getThreadDisplayState(thread, group.characterName)
                   const { className: badgeClass, label: badgeLabel } = getDisplayBadge(state)
@@ -462,10 +442,12 @@ export default async function ChronicleThreadsPage() {
                     </div>
                   )
                 })}
+                </div>
               </div>
             </div>
             )
-          })
+          })}
+          </div>
         )}
       </div>
 
