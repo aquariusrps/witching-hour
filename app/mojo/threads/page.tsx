@@ -299,6 +299,7 @@ export default async function ChronicleThreadsPage() {
                   style={{
                     width: '100%',
                     height: '400px',
+                    aspectRatio: '5 / 8',
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
@@ -356,6 +357,7 @@ export default async function ChronicleThreadsPage() {
                               textDecoration: 'none',
                               flex: '1 1 auto',
                               minWidth: 0,
+                              overflowWrap: 'break-word',
                             }}
                           >
                             {thread.title}
@@ -367,6 +369,7 @@ export default async function ChronicleThreadsPage() {
                             color: 'var(--mist)',
                             flex: '1 1 auto',
                             minWidth: 0,
+                            overflowWrap: 'break-word',
                           }}>
                             {thread.title}
                           </span>
