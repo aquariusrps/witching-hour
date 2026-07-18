@@ -2268,6 +2268,17 @@ body {
     0 2px 6px rgba(0, 0, 0, 0.30);
 }
 
+/* GRADE DUE — iris violet (--ember-dim / --ember), professor mode
+   grading (FIX-045-C). Distinct from all other .mojo-turn-* badges —
+   the only one using the site's true ember hue. */
+.mojo-turn-grade {
+  background: linear-gradient(135deg, #35236a 0%, #6040c0 100%);
+  color: #ece6f8;
+  box-shadow:
+    0 0 12px rgba(96, 64, 192, 0.40),
+    0 2px 6px rgba(0, 0, 0, 0.32);
+}
+
 /* ═══════════════════════════════════════════════════════
    CHRONICLE — Correspondences 2-Column Card Grid
    FIX-036

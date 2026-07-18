@@ -8,6 +8,7 @@ import {
   getMojoFaceclaimResources,
   getMojoImageStacks,
   getMojoAvatars,
+  getMojoGradeSubmissions,
 } from '@/lib/db/mojo'
 import MojoCharacterArchiveToggle from '@/app/mojo/components/MojoCharacterArchiveToggle'
 import MojoFaceclaimAssign from '@/app/mojo/components/MojoFaceclaimAssign'
@@ -17,6 +18,7 @@ import MojoCharacterNotes from '@/app/mojo/components/MojoCharacterNotes'
 import MojoThreadTracker from '@/app/mojo/components/MojoThreadTracker'
 import MojoResourcesTab from '@/app/mojo/components/MojoResourcesTab'
 import MojoThreadAutoRefresh from '@/app/mojo/components/MojoThreadAutoRefresh'
+import MojoGradeModal from '@/app/mojo/components/MojoGradeModal'
 import {
   SvgIvyBorder, SvgDossierQuill, SvgOpenBook,
   SvgCandleRealistic, SvgWaxSeal, SvgScrollEnd,
@@ -41,6 +43,7 @@ export default async function MojoCharacterPage({
     : []
   const characterStacks = await getMojoImageStacks({ character_id: charId })
   const characterAvatars = await getMojoAvatars({ character_id: charId })
+  const { pending: pendingGrades, graded: gradedGrades } = await getMojoGradeSubmissions(charId)
   const isArchived = character.status === 'archived'
 
   // Portrait avatar: primary stack token → most recent avatar token →
@@ -181,6 +184,20 @@ export default async function MojoCharacterPage({
                   display: 'inline-block',
                 }}>
                   ARCHIVED
+                </span>
+              )}
+              {pendingGrades.length > 0 && (
+                <span style={{
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: '9px',
+                  letterSpacing: '0.15em',
+                  color: '#ece6f8',
+                  border: '1px solid var(--ember)',
+                  background: 'rgba(96,64,192,0.18)',
+                  padding: '1px 6px',
+                  display: 'inline-block',
+                }}>
+                  GRADES DUE: {pendingGrades.length}
                 </span>
               )}
             </div>
@@ -396,6 +413,125 @@ export default async function MojoCharacterPage({
             </div>
           </div>
         </div>
+
+        {/* ════ ZONE 2B: GRADED ASSIGNMENTS DUE (Professor Mode, FIX-045-C) ════
+             Fully additive — renders nothing when pendingGrades is empty.
+             New standalone section rather than an extension of the existing
+             assignment-card rendering in MojoThreadTracker.tsx (that markup
+             is closure-scoped inside a Client Component outside this
+             prompt's file scope) — styled to match its card language
+             (var(--claret) background, var(--elevated) border, same
+             padding/typography tokens) without touching that file. */}
+        {pendingGrades.length > 0 && (
+          <div style={{ position: 'relative', zIndex: 1, marginBottom: '24px' }}>
+            <div className="mojo-column-heading">
+              <span>Graded Assignments Due</span>
+            </div>
+            <div>
+              {pendingGrades.map((g) => (
+                <div
+                  key={g.id}
+                  style={{
+                    background: 'var(--claret)',
+                    border: '1px solid var(--elevated)',
+                    borderRadius: 4,
+                    padding: '12px 16px',
+                    marginBottom: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.94rem', color: 'var(--roseash)' }}>
+                      {g.student_name}
+                    </span>
+                    <span className="mojo-turn-badge mojo-turn-grade" style={{ flexShrink: 0 }}>
+                      GRADE DUE
+                    </span>
+                  </div>
+                  <p style={{ fontFamily: 'var(--f-body)', fontStyle: 'italic', fontSize: '0.8rem', color: 'var(--mist)', margin: '4px 0 8px' }}>
+                    {g.thread_title}
+                  </p>
+                  <MojoGradeModal
+                    submissionId={g.id}
+                    studentName={g.student_name}
+                    threadTitle={g.thread_title}
+                    className={g.class_name ?? 'Class'}
+                    characterName={character.name}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ════ ZONE 2C: GRADEBOOK (Professor Mode, FIX-045-C) ════
+             Same additive-section rationale as Graded Assignments Due
+             above — archived professor threads and their graded
+             submissions, as a new standalone block rather than
+             extending MojoThreadTracker.tsx's archived-thread rendering
+             (out of this prompt's file scope). Gated entirely on
+             gradedGrades.length > 0; a professor thread with zero
+             graded submissions renders nothing (no empty accordion). */}
+        {gradedGrades.length > 0 && (
+          <div style={{ position: 'relative', zIndex: 1, marginBottom: '24px' }}>
+            <div className="mojo-column-heading">
+              <span>Gradebook</span>
+            </div>
+            <div>
+              {threads
+                .filter((t) => t.status !== 'active' && t.thread_mode === 'professor')
+                .map((t) => {
+                  const submissionsForThread = gradedGrades.filter((g) => g.thread_id === t.id)
+                  if (submissionsForThread.length === 0) return null
+                  return (
+                    <div
+                      key={t.id}
+                      style={{
+                        background: 'var(--char)',
+                        border: '1px solid var(--elevated)',
+                        borderRadius: 4,
+                        padding: '12px 16px',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span style={{ fontFamily: 'var(--f-body)', fontSize: '0.94rem', color: 'var(--faded)' }}>
+                        {t.title}
+                      </span>
+                      <details>
+                        <summary
+                          style={{
+                            cursor: 'pointer',
+                            fontFamily: 'EB Garamond, serif',
+                            fontStyle: 'italic',
+                            color: 'var(--mist)',
+                            fontSize: '13px',
+                            marginTop: '6px',
+                          }}
+                        >
+                          Gradebook ({submissionsForThread.length} graded)
+                        </summary>
+                        {submissionsForThread.map((g) => (
+                          <pre
+                            key={g.id}
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                              fontFamily: 'EB Garamond, serif',
+                              fontSize: '13px',
+                              color: 'var(--mist)',
+                              margin: '8px 0',
+                              borderTop: '1px solid var(--elevated)',
+                              paddingTop: '8px',
+                            }}
+                          >
+                            {g.grade_text}
+                          </pre>
+                        ))}
+                      </details>
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )}
 
         {/* ════ ZONE 3: THREE COLUMNS ════ */}
         <div className="mojo-char-columns" style={{ position: 'relative', zIndex: 1, marginBottom: '32px' }}>
