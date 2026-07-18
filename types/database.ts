@@ -887,6 +887,50 @@ export type Database = {
           },
         ]
       }
+      mojo_grade_submissions: {
+        Row: {
+          bonus_points: number
+          created_at: string
+          grade_points: number | null
+          grade_text: string | null
+          graded_at: string | null
+          id: string
+          student_first_posted_at: string | null
+          student_name: string
+          thread_id: string
+        }
+        Insert: {
+          bonus_points?: number
+          created_at?: string
+          grade_points?: number | null
+          grade_text?: string | null
+          graded_at?: string | null
+          id?: string
+          student_first_posted_at?: string | null
+          student_name: string
+          thread_id: string
+        }
+        Update: {
+          bonus_points?: number
+          created_at?: string
+          grade_points?: number | null
+          grade_text?: string | null
+          graded_at?: string | null
+          id?: string
+          student_first_posted_at?: string | null
+          student_name?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mojo_grade_submissions_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "mojo_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mojo_image_folders: {
         Row: {
           created_at: string
@@ -1250,11 +1294,13 @@ export type Database = {
         Row: {
           assignment_due_at: string | null
           character_id: string
+          class_name: string | null
           completed_at: string | null
           created_at: string
           detected_platform: string | null
           display_order: number
           fetch_status: string | null
+          first_poster: string | null
           id: string
           last_checked_at: string | null
           last_poster: string | null
@@ -1263,6 +1309,7 @@ export type Database = {
           reply_order: string | null
           rp_id: string
           status: string
+          thread_mode: string
           thread_type: string
           title: string
           url: string | null
@@ -1270,11 +1317,13 @@ export type Database = {
         Insert: {
           assignment_due_at?: string | null
           character_id: string
+          class_name?: string | null
           completed_at?: string | null
           created_at?: string
           detected_platform?: string | null
           display_order?: number
           fetch_status?: string | null
+          first_poster?: string | null
           id?: string
           last_checked_at?: string | null
           last_poster?: string | null
@@ -1283,6 +1332,7 @@ export type Database = {
           reply_order?: string | null
           rp_id: string
           status?: string
+          thread_mode?: string
           thread_type?: string
           title: string
           url?: string | null
@@ -1290,11 +1340,13 @@ export type Database = {
         Update: {
           assignment_due_at?: string | null
           character_id?: string
+          class_name?: string | null
           completed_at?: string | null
           created_at?: string
           detected_platform?: string | null
           display_order?: number
           fetch_status?: string | null
+          first_poster?: string | null
           id?: string
           last_checked_at?: string | null
           last_poster?: string | null
@@ -1303,6 +1355,7 @@ export type Database = {
           reply_order?: string | null
           rp_id?: string
           status?: string
+          thread_mode?: string
           thread_type?: string
           title?: string
           url?: string | null
