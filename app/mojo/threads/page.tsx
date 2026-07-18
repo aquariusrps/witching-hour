@@ -254,15 +254,29 @@ export default async function ChronicleThreadsPage() {
 
               <div className="mojo-corr-card-body">
 
-              {/* LEFT COLUMN — portrait only */}
+              {/* LEFT COLUMN — portrait only, 250x400 (5:8) presentation.
+                  Page-local wrapper overrides the effective aspect ratio
+                  for this card only — MojoPortraitCard and the shared
+                  3:5 .mojo-portrait-frame rule are untouched (FIX-041). */}
               <div className="mojo-corr-card-left">
-                <MojoPortraitCard
-                  token={group.avatarToken}
-                  alt={group.characterName}
-                  size="md"
-                  showFrame={false}
-                  idSuffix={`chr-card-${group.characterId}`}
-                />
+                <div
+                  style={{
+                    width: '100%',
+                    height: '400px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <MojoPortraitCard
+                    token={group.avatarToken}
+                    alt={group.characterName}
+                    size="lg"
+                    showFrame={false}
+                    idSuffix={`chr-card-${group.characterId}`}
+                  />
+                </div>
               </div>
 
               {/* RIGHT COLUMN — thread list */}
