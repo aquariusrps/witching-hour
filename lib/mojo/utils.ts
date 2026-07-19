@@ -141,7 +141,14 @@ export function getThreadDisplayState(
     characterName
   )
 
-  if (base === 'mine') return 'mine'
+  if (base === 'mine') {
+    // Before concluding it's the caller's turn, check reply_order:
+    // in a 3+ person thread a third party may have posted last,
+    // making the next-in-cycle person someone other than the caller.
+    const wo = getWaitingOn(thread, characterName)
+    if (wo) return 'waiting'
+    return 'mine'
+  }
 
   if (base === 'theirs') {
     const wo = getWaitingOn(thread, characterName)
