@@ -155,6 +155,7 @@ export async function fetchJcink(
     })
 
     if (!response.ok) {
+      console.error('JCINK fetch error (non-200):', response.status, url)
       return { last_poster: null, fetch_status: 'failed', detected_platform: platform }
     }
 
@@ -176,7 +177,9 @@ export async function fetchJcink(
     const isAuthWall =
       html.includes('do not have permission to view this topic') ||
       html.includes('id="board-message"') ||
-      html.includes("id='board-message'")
+      html.includes("id='board-message'") ||
+      html.includes('Age Verification Required') ||
+      html.includes('Content Restricted')
 
     if (isAuthWall) {
       return { last_poster: null, fetch_status: 'unsupported', detected_platform: platform }

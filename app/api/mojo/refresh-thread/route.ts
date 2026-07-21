@@ -142,7 +142,11 @@ export async function POST(request: Request) {
       detected_platform: result.detected_platform,
       last_checked_at: lastCheckedAt,
     }
-    if (thread.thread_type === 'class') {
+    if (
+      thread.thread_type === 'class' &&
+      result.all_authors &&
+      result.all_authors.length > 0
+    ) {
       updatePayload.thread_mode = 'student'
     }
     // Only overwrite last_poster when the scrape returned a usable value —
